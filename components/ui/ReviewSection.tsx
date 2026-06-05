@@ -195,7 +195,7 @@ export default function ReviewSection({
         <Star size={22} fill="#F59E0B" color="#F59E0B" /> Ulasan Pengunjung
       </h2>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'start' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 
         {/* Left: Rating summary + bar chart */}
         <div style={{ background: 'white', borderRadius: '20px', padding: '1.75rem', border: '1px solid #E5E9F0' }}>
