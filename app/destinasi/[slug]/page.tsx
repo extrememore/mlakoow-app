@@ -167,9 +167,8 @@ export default async function DetailDestinasiPage({
         </div>
       </div>
 
-      {/* Main Content */}
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1.5rem', width: '100%' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '2rem', alignItems: 'start' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 items-start">
           {/* Left */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             {/* Quick info cards */}
