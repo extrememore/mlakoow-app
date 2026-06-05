@@ -285,9 +285,16 @@ export default function Navbar() {
       {mobileOpen && (
         <div
           style={{
+            position: 'absolute',
+            top: '68px',
+            left: 0,
+            right: 0,
             background: 'white',
             borderTop: '1px solid #E5E9F0',
             padding: '1rem 1.5rem',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+            display: 'flex',
+            flexDirection: 'column',
           }}
           className="show-mobile"
         >
@@ -298,9 +305,10 @@ export default function Navbar() {
               onClick={() => setMobileOpen(false)}
               style={{
                 display: 'block',
-                padding: '0.75rem 0',
+                padding: '0.85rem 0',
                 textDecoration: 'none',
                 fontWeight: 600,
+                fontSize: '1.05rem',
                 color: isActive(link.href) ? '#0A4A5E' : '#4A5568',
                 borderBottom: '1px solid #E5E9F0',
               }}
@@ -308,36 +316,52 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
-          <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-            {session?.user ? (
-              <>
+          
+          {session?.user ? (
+            <div style={{ display: 'flex', flexDirection: 'column', marginTop: '0.5rem' }}>
+              <div style={{ fontSize: '0.75rem', color: '#8B98A9', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '0.5rem', marginTop: '1rem' }}>
+                Akun Saya
+              </div>
+              <Link
+                href="/profil"
+                onClick={() => setMobileOpen(false)}
+                style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0.85rem 0', textDecoration: 'none', color: '#1A2332', fontWeight: 600, borderBottom: '1px solid #E5E9F0' }}
+              >
+                <User size={18} color="#0A4A5E" /> Profil Saya
+              </Link>
+              <Link
+                href="/itinerary/riwayat"
+                onClick={() => setMobileOpen(false)}
+                style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0.85rem 0', textDecoration: 'none', color: '#1A2332', fontWeight: 600, borderBottom: '1px solid #E5E9F0' }}
+              >
+                <Map size={18} color="#0A4A5E" /> Itinerary Saya
+              </Link>
+              {(session.user as any).role === 'admin' && (
                 <Link
-                  href="/profil"
+                  href="/admin"
                   onClick={() => setMobileOpen(false)}
-                  className="btn-primary"
-                  style={{ flex: 1, justifyContent: 'center' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0.85rem 0', textDecoration: 'none', color: '#1A2332', fontWeight: 600, borderBottom: '1px solid #E5E9F0' }}
                 >
-                  Profil
+                  <Compass size={18} color="#FF6B35" /> Admin Panel
                 </Link>
-                <button
-                  onClick={() => { setMobileOpen(false); handleSignOut() }}
-                  className="btn-secondary"
-                  style={{ flex: 1, justifyContent: 'center', fontFamily: 'Outfit, sans-serif' }}
-                >
-                  Keluar
-                </button>
-              </>
-            ) : (
-              <>
-                <Link href="/login" className="btn-secondary" style={{ flex: 1, justifyContent: 'center' }}>
-                  Masuk
-                </Link>
-                <Link href="/register" className="btn-primary" style={{ flex: 1, justifyContent: 'center' }}>
-                  Daftar
-                </Link>
-              </>
-            )}
-          </div>
+              )}
+              <button
+                onClick={() => { setMobileOpen(false); handleSignOut() }}
+                style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0.85rem 0', background: 'none', border: 'none', color: '#E53E3E', fontWeight: 600, fontFamily: 'Outfit, sans-serif', fontSize: '1rem', cursor: 'pointer', textAlign: 'left' }}
+              >
+                <LogOut size={18} /> Keluar
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+              <Link href="/login" onClick={() => setMobileOpen(false)} className="btn-secondary" style={{ flex: 1, justifyContent: 'center', textAlign: 'center' }}>
+                Masuk
+              </Link>
+              <Link href="/register" onClick={() => setMobileOpen(false)} className="btn-primary" style={{ flex: 1, justifyContent: 'center', textAlign: 'center' }}>
+                Daftar
+              </Link>
+            </div>
+          )}
         </div>
       )}
 
