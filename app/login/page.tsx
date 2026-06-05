@@ -200,18 +200,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div
-            style={{
-              marginTop: '1.5rem',
-              padding: '1rem',
-              background: '#F0F7FA',
-              borderRadius: '12px',
-              fontSize: '0.85rem',
-              color: '#4A5568',
-            }}
-          >
-            <strong>Demo Admin:</strong> admin@mlakoow.com / admin123
-          </div>
+
 
           <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.9rem', color: '#4A5568' }}>
             Belum punya akun?{' '}
