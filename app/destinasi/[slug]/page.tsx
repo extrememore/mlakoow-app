@@ -1,0 +1,468 @@
+import { prisma } from '@/lib/prisma'
+import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import { auth } from '@/lib/auth'
+import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
+import SafeImage from '@/components/ui/SafeImage'
+import BookingButton from '@/components/ui/BookingButton'
+import MapWrapper from '@/components/ui/MapWrapper'
+import ReviewSection from '@/components/ui/ReviewSection'
+import ImageGallery from '@/components/ui/ImageGallery'
+import {
+  MapPin,
+  Clock,
+  Wallet,
+  Star,
+  Calendar,
+  ArrowLeft,
+  Navigation,
+  Bus,
+  Car,
+  Bike,
+  CheckCircle,
+  Users,
+  Share2,
+  Heart,
+} from 'lucide-react'
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const dest = await prisma.destination.findUnique({ where: { slug }, include: { category: true } })
+  if (!dest) return { title: 'Destinasi tidak ditemukan' }
+  return {
+    title: `${dest.name} — MLAKOOW Smart Tourism Surabaya`,
+    description: dest.description.slice(0, 160),
+  }
+}
+
+export default async function DetailDestinasiPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}) {
+  const { slug } = await params
+
+  const destination = await prisma.destination.findUnique({
+    where: { slug },
+    include: {
+      category: true,
+      reviews: {
+        include: { user: { select: { id: true, name: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: 8,
+      },
+    },
+  })
+
+  if (!destination) notFound()
+
+  // Session & review status
+  const session = await auth()
+  const isLoggedIn = !!session?.user
+  const currentUserId = session?.user ? parseInt(session.user.id as string) : undefined
+  const hasReviewed = currentUserId
+    ? destination.reviews.some(r => (r.user as any).id === currentUserId)
+    : false
+
+  // Related destinations (same category or area)
+  const related = await prisma.destination.findMany({
+    where: {
+      OR: [{ categoryId: destination.categoryId }, { area: destination.area }],
+      NOT: { id: destination.id },
+    },
+    include: { category: true },
+    take: 4,
+    orderBy: { rating: 'desc' },
+  })
+
+  const gallery: string[] = JSON.parse(destination.gallery || '[]')
+  const facilities: string[] = JSON.parse(destination.facilities || '[]')
+
+  const transportOptions = [
+    {
+      icon: '🛵',
+      mode: 'Ojek Online (Grab/Gojek)',
+      duration: '10-30 menit',
+      cost: 'Rp 10.000 – 35.000',
+      note: 'Paling fleksibel dan praktis untuk wisatawan',
+      recommended: true,
+    },
+    {
+      icon: '🚌',
+      mode: 'Bus Suroboyo',
+      duration: '20-45 menit',
+      cost: 'Rp 5.000',
+      note: 'Hemat, tersedia di rute utama kota',
+      recommended: false,
+    },
+    {
+      icon: '🚗',
+      mode: 'Taksi / Rental Mobil',
+      duration: '10-25 menit',
+      cost: 'Rp 30.000 – 80.000',
+      note: 'Cocok untuk rombongan keluarga',
+      recommended: false,
+    },
+  ]
+
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
+      <Navbar />
+
+      {/* Back nav */}
+      <div style={{ background: 'white', borderBottom: '1px solid #E5E9F0' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1rem 1.5rem' }}>
+          <Link
+            href="/destinasi"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              textDecoration: 'none',
+              color: '#4A5568',
+              fontSize: '0.9rem',
+              fontWeight: 500,
+            }}
+          >
+            <ArrowLeft size={16} /> Kembali ke Destinasi
+          </Link>
+        </div>
+      </div>
+
+      {/* Interactive Gallery (hero + thumbnails + lightbox) */}
+      <ImageGallery
+        mainImage={destination.mainImage}
+        gallery={gallery}
+        altBase={destination.name}
+      />
+
+      {/* Hero overlay info (name, badges, rating) — kept on top of gallery */}
+      <div style={{ background: 'linear-gradient(135deg, #062E3A 0%, #0A4A5E 100%)', padding: '1.5rem 1.5rem 1.25rem' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+            <span className="badge" style={{ background: destination.category.color + '22', color: destination.category.color, border: `1px solid ${destination.category.color}44` }}>
+              {destination.category.icon} {destination.category.name}
+            </span>
+            {destination.featured && (
+              <span className="badge" style={{ background: '#FF6B35', color: 'white' }}>⭐ Populer</span>
+            )}
+            {destination.hiddenGem && (
+              <span className="badge" style={{ background: '#7C3AED', color: 'white' }}>💎 Hidden Gem</span>
+            )}
+          </div>
+          <h1 style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.4rem)', fontWeight: 900, color: 'white', marginBottom: '0.5rem' }}>
+            {destination.name}
+          </h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', color: 'rgba(255,255,255,0.85)', fontSize: '0.9rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <MapPin size={15} /> {destination.address}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <Star size={15} fill="#F59E0B" color="#F59E0B" />
+              <strong>{destination.rating > 0 ? destination.rating.toFixed(1) : 'Baru'}</strong>
+              {destination.reviewCount > 0 && <span>({destination.reviewCount} review)</span>}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1.5rem', width: '100%' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '2rem', alignItems: 'start' }}>
+          {/* Left */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            {/* Quick info cards */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+                gap: '1rem',
+              }}
+            >
+              {[
+                {
+                  icon: Clock,
+                  label: 'Jam Buka',
+                  value: `${destination.openHour} – ${destination.closeHour}`,
+                  color: '#0A4A5E',
+                },
+                {
+                  icon: Wallet,
+                  label: 'Tiket Masuk',
+                  value: destination.ticketPrice === 0 ? 'Gratis' : `Rp ${destination.ticketPrice.toLocaleString('id-ID')}`,
+                  color: destination.ticketPrice === 0 ? '#10B981' : '#0A4A5E',
+                },
+                {
+                  icon: Calendar,
+                  label: 'Estimasi Kunjungan',
+                  value: `${destination.estimatedDuration} menit`,
+                  color: '#F59E0B',
+                },
+                {
+                  icon: MapPin,
+                  label: 'Area',
+                  value: destination.area,
+                  color: '#7C3AED',
+                },
+              ].map((info) => (
+                <div
+                  key={info.label}
+                  style={{
+                    background: 'white',
+                    border: '1px solid #E5E9F0',
+                    borderRadius: '16px',
+                    padding: '1.25rem',
+                  }}
+                >
+                  <info.icon size={20} color={info.color} style={{ marginBottom: '0.5rem' }} />
+                  <div style={{ fontSize: '0.75rem', color: '#8B98A9', fontWeight: 600, marginBottom: '4px' }}>{info.label}</div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 700, color: info.color }}>{info.value}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Description */}
+            <div style={{ background: 'white', borderRadius: '20px', padding: '2rem', border: '1px solid #E5E9F0' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1A2332', marginBottom: '1rem' }}>
+                Tentang {destination.name}
+              </h2>
+              <p style={{ color: '#4A5568', lineHeight: 1.9, fontSize: '0.95rem' }}>
+                {destination.description}
+              </p>
+            </div>
+
+            {/* Facilities */}
+            {facilities.length > 0 && (
+              <div style={{ background: 'white', borderRadius: '20px', padding: '2rem', border: '1px solid #E5E9F0' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1A2332', marginBottom: '1.25rem' }}>
+                  Fasilitas Tersedia
+                </h2>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+                  {facilities.map((fac) => (
+                    <div
+                      key={fac}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        background: '#F0F7FA',
+                        border: '1px solid #BAE6FD',
+                        borderRadius: '10px',
+                        padding: '8px 14px',
+                        fontSize: '0.875rem',
+                        color: '#0A4A5E',
+                        fontWeight: 500,
+                      }}
+                    >
+                      <CheckCircle size={14} color="#0A4A5E" />
+                      {fac}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Transport */}
+            <div style={{ background: 'white', borderRadius: '20px', padding: '2rem', border: '1px solid #E5E9F0' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1A2332', marginBottom: '1.25rem' }}>
+                🚌 Rekomendasi Transportasi
+              </h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {transportOptions.map((t) => (
+                  <div
+                    key={t.mode}
+                    style={{
+                      display: 'flex',
+                      gap: '1rem',
+                      alignItems: 'flex-start',
+                      padding: '1.25rem',
+                      background: t.recommended ? '#F0F7FA' : '#F8F6F2',
+                      borderRadius: '14px',
+                      border: t.recommended ? '2px solid #BAE6FD' : '1px solid #E5E9F0',
+                    }}
+                  >
+                    <span style={{ fontSize: '1.8rem', flexShrink: 0 }}>{t.icon}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <strong style={{ fontSize: '0.95rem', color: '#1A2332' }}>{t.mode}</strong>
+                        {t.recommended && (
+                          <span className="badge" style={{ background: '#0A4A5E', color: 'white', fontSize: '0.7rem' }}>
+                            Direkomendasikan
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '0.85rem', color: '#4A5568', marginBottom: '4px' }}>{t.note}</div>
+                      <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.82rem' }}>
+                        <span style={{ color: '#8B98A9' }}>⏱ {t.duration}</span>
+                        <span style={{ color: '#10B981', fontWeight: 600 }}>💰 {t.cost}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Map */}
+            <div style={{ background: 'white', borderRadius: '20px', border: '1px solid #E5E9F0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ padding: '1.5rem 1.5rem 1.25rem' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1A2332', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <MapPin fill="#EF4444" color="white" /> Lokasi
+                </h2>
+                <p style={{ color: '#4A5568', fontSize: '0.9rem', marginTop: '6px' }}>{destination.address}</p>
+              </div>
+              
+              {/* Map container with isolated stacking to prevent Leaflet from breaking out of border-radius */}
+              <div style={{ padding: '0 1.5rem' }}>
+                <div style={{ height: '280px', position: 'relative', borderRadius: '16px', overflow: 'hidden', isolation: 'isolate', border: '1px solid #E5E9F0' }}>
+                  <MapWrapper
+                    pins={[{ lat: destination.lat, lng: destination.lng, label: destination.name }]}
+                    zoom={16}
+                  />
+                </div>
+              </div>
+
+              <div style={{ padding: '1.25rem 1.5rem 1.5rem', display: 'flex' }}>
+                <a
+                  href={`https://www.google.com/maps?q=${destination.lat},${destination.lng}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn-secondary"
+                  style={{ fontSize: '0.875rem', padding: '0.75rem 1.5rem', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <Navigation size={16} />
+                  Buka di Google Maps
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Sidebar */}
+          <div style={{ position: 'sticky', top: '90px', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            {/* Booking Card */}
+            <div
+              style={{
+                background: 'white',
+                borderRadius: '20px',
+                padding: '1.75rem',
+                border: '1px solid #E5E9F0',
+                boxShadow: '0 8px 30px rgba(10,74,94,0.08)',
+              }}
+            >
+              <div style={{ marginBottom: '1.25rem' }}>
+                <div style={{ fontSize: '0.85rem', color: '#8B98A9', fontWeight: 600, marginBottom: '4px' }}>TIKET MASUK</div>
+                <div style={{ fontSize: '2rem', fontWeight: 900, color: destination.ticketPrice === 0 ? '#10B981' : '#0A4A5E' }}>
+                  {destination.ticketPrice === 0 ? 'GRATIS' : `Rp ${destination.ticketPrice.toLocaleString('id-ID')}`}
+                </div>
+                {destination.ticketPrice > 0 && (
+                  <div style={{ fontSize: '0.78rem', color: '#8B98A9' }}>per orang</div>
+                )}
+              </div>
+
+              <BookingButton
+                destinationId={destination.id}
+                destinationName={destination.name}
+                ticketPrice={destination.ticketPrice}
+              />
+
+              <Link
+                href={`/itinerary?add=${destination.id}`}
+                className="btn-secondary"
+                style={{ width: '100%', justifyContent: 'center', display: 'flex', fontSize: '0.875rem' }}
+              >
+                + Tambah ke Itinerary
+              </Link>
+            </div>
+
+
+            {related.length > 0 && (
+              <div
+                style={{
+                  background: 'white',
+                  borderRadius: '20px',
+                  padding: '1.75rem',
+                  border: '1px solid #E5E9F0',
+                }}
+              >
+                <h3 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '1.25rem' }}>
+                  Destinasi Serupa
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {related.map((rel) => (
+                    <Link
+                      key={rel.id}
+                      href={`/destinasi/${rel.slug}`}
+                      style={{ textDecoration: 'none', display: 'flex', gap: '12px', alignItems: 'center' }}
+                    >
+                      <SafeImage
+                        src={rel.mainImage}
+                        alt={rel.name}
+                        style={{ width: '68px', height: '52px', borderRadius: '10px', objectFit: 'cover', flexShrink: 0 }}
+                      />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div
+                          style={{ fontWeight: 700, fontSize: '0.875rem', color: '#1A2332', marginBottom: '2px' }}
+                          className="line-clamp-2"
+                        >
+                          {rel.name}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', color: '#8B98A9' }}>
+                          <Star size={11} fill="#F59E0B" color="#F59E0B" />
+                          <span>{rel.rating > 0 ? rel.rating.toFixed(1) : 'Baru'}</span>
+                          <span>•</span>
+                          <span>{rel.area.replace('Surabaya ', 'Sby ')}</span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* More destinations */}
+      {related.length > 0 && (
+        <div style={{ background: 'white', padding: '3rem 0', borderTop: '1px solid #E5E9F0' }}>
+          <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1.5rem', textAlign: 'center' }}>
+            <Link href="/destinasi" className="btn-primary" style={{ fontSize: '1rem' }}>
+              Lihat Semua Destinasi Surabaya
+            </Link>
+          </div>
+        </div>
+      )}
+
+      <ReviewSection
+        destinationId={destination.id}
+        destinationName={destination.name}
+        initialReviews={destination.reviews.map(r => ({
+          id: r.id,
+          rating: r.rating,
+          comment: r.comment,
+          createdAt: r.createdAt.toISOString(),
+          userId: r.user.id,
+          user: { name: r.user.name, avatar: null },
+        }))}
+        initialRating={destination.rating}
+        initialCount={destination.reviewCount}
+        isLoggedIn={isLoggedIn}
+        currentUserId={currentUserId}
+        hasReviewed={hasReviewed}
+      />
+
+      <Footer />
+
+      <style>{`
+        @media (max-width: 900px) {
+          div[style*="grid-template-columns: 1fr 360px"] {
+            grid-template-columns: 1fr !important;
+          }
+          div[style*="position: sticky"] {
+            position: static !important;
+          }
+        }
+      `}</style>
+    </div>
+  )
+}

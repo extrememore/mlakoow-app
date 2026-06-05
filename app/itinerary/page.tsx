@@ -1,0 +1,1922 @@
+'use client'
+
+import { useState, useEffect, useMemo } from 'react'
+import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import {
+  Zap,
+  MapPin,
+  Clock,
+  Wallet,
+  ChevronRight,
+  ChevronLeft,
+  Check,
+  Calendar,
+  ArrowRight,
+  Loader,
+  Star,
+  Bus,
+  Navigation,
+  Save,
+  X,
+  ChevronUp,
+  ChevronDown,
+  Plus,
+  RefreshCw,
+  Search,
+  Sparkles,
+  Trash2,
+  ArrowUpDown,
+  Ticket,
+  CreditCard,
+  Shield,
+} from 'lucide-react'
+
+const AREAS = ['Surabaya Pusat', 'Surabaya Utara', 'Surabaya Selatan', 'Surabaya Timur', 'Surabaya Barat']
+
+const PAYMENT_METHODS = [
+  { id: 'transfer_bca', name: 'Transfer BCA', icon: '🏦', group: 'Transfer Bank' },
+  { id: 'transfer_mandiri', name: 'Transfer Mandiri', icon: '🏦', group: 'Transfer Bank' },
+  { id: 'transfer_bri', name: 'Transfer BRI', icon: '🏦', group: 'Transfer Bank' },
+  { id: 'gopay', name: 'GoPay', icon: '💚', group: 'Dompet Digital' },
+  { id: 'ovo', name: 'OVO', icon: '💜', group: 'Dompet Digital' },
+  { id: 'qris', name: 'QRIS', icon: '📱', group: 'Dompet Digital' },
+]
+
+interface DestinationData {
+  id: number
+  name: string
+  slug: string
+  area: string
+  mainImage: string
+  rating: number
+  ticketPrice: number
+  estimatedDuration: number
+  category: { id?: number; name: string; icon: string; color: string }
+  categoryId?: number
+}
+
+interface ItineraryItem {
+  destination: DestinationData
+  order: number
+  day: number
+  startTime: string
+  estimatedVisitTime: number
+  estimatedCost: number
+  transportNote: string
+}
+
+interface GeneratedItinerary {
+  items: ItineraryItem[]
+  totalCost: number
+  totalTime: number
+  duration: number
+  summary: {
+    destinations: number
+    days: number
+    estimatedBudget: number
+    areas: string[]
+  }
+}
+
+// Recalculate timeline after modifications
+function recalcItems(items: ItineraryItem[], duration: number): ItineraryItem[] {
+  const startHours = [9, 11, 14, 16]
+  const destPerDay = Math.max(...items.map((i) => items.filter((x) => x.day === i.day).length), 1)
+
+  // Re-group by day and fix ordering
+  const byDay: Record<number, ItineraryItem[]> = {}
+  items.forEach((item) => {
+    if (!byDay[item.day]) byDay[item.day] = []
+    byDay[item.day].push(item)
+  })
+
+  const result: ItineraryItem[] = []
+  let globalOrder = 1
+
+  for (let day = 1; day <= duration; day++) {
+    const dayItems = byDay[day] || []
+    dayItems.forEach((item, idx) => {
+      const startHour = startHours[idx] || (9 + idx * 2)
+      const prevName = idx === 0
+        ? null
+        : dayItems[idx - 1]?.destination.name
+
+      result.push({
+        ...item,
+        order: globalOrder++,
+        startTime: `${startHour.toString().padStart(2, '0')}:00`,
+        transportNote:
+          idx === 0
+            ? 'Mulai perjalanan dari lokasi Anda'
+            : `Lanjut dari ${prevName} menggunakan Grab/Gojek`,
+      })
+    })
+  }
+
+  return result
+}
+
+export default function ItineraryPage() {
+  const router = useRouter()
+  const [step, setStep] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [generated, setGenerated] = useState<GeneratedItinerary | null>(null)
+  const [savedId, setSavedId] = useState<number | null>(null)
+
+  // Trip start & end date (from Step 1 date range picker)
+  const [tripStartDate, setTripStartDate] = useState('')
+  const [tripEndDate, setTripEndDate] = useState('')
+
+  // Booking modal state
+  const [showBookingModal, setShowBookingModal] = useState(false)
+  const [selectedBookingIds, setSelectedBookingIds] = useState<number[]>([])
+  const [bookingTicketCount, setBookingTicketCount] = useState(1)
+  const [bookingPayment, setBookingPayment] = useState('')
+  const [bookingLoading, setBookingLoading] = useState(false)
+  const [bookingError, setBookingError] = useState('')
+
+  // Editable items — the user's customized version of the generated itinerary
+  const [editableItems, setEditableItems] = useState<ItineraryItem[]>([])
+
+  // Suggestion state
+  const [suggestions, setSuggestions] = useState<DestinationData[]>([])
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false)
+  const [suggestingFor, setSuggestingFor] = useState<{ day: number; slotIdx: number } | null>(null)
+
+  // Add destination panel
+  const [addingForDay, setAddingForDay] = useState<number | null>(null)
+  const [addSearch, setAddSearch] = useState('')
+  const [addCandidates, setAddCandidates] = useState<DestinationData[]>([])
+  const [loadingAddCandidates, setLoadingAddCandidates] = useState(false)
+
+  // Form state
+  const [duration, setDuration] = useState(1)
+  const [budget, setBudget] = useState(200000)
+  const [selectedAreas, setSelectedAreas] = useState<string[]>([])
+  const [maxDestinations, setMaxDestinations] = useState(4)
+
+  const categories = [
+    { id: 1, label: 'Alam', icon: '🌿', slug: 'alam' },
+    { id: 2, label: 'Budaya', icon: '🎭', slug: 'budaya' },
+    { id: 3, label: 'Kuliner', icon: '🍜', slug: 'kuliner' },
+    { id: 4, label: 'Sejarah', icon: '🏛️', slug: 'sejarah' },
+    { id: 5, label: 'Keluarga', icon: '👨‍👩‍👧', slug: 'keluarga' },
+    { id: 6, label: 'Hidden Gem', icon: '💎', slug: 'hidden-gem' },
+  ]
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([])
+
+  const toggleCategory = (id: number) => {
+    setSelectedCategoryIds((prev) =>
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+    )
+  }
+
+  // Live summary computed from editableItems
+  const liveSummary = useMemo(() => {
+    const totalCost = editableItems.reduce((sum, item) => sum + item.estimatedCost, 0)
+    const totalTime = editableItems.reduce((sum, item) => sum + item.estimatedVisitTime, 0)
+    const areas = [...new Set(editableItems.map((i) => i.destination.area))]
+    return {
+      destinations: editableItems.length,
+      totalCost,
+      totalTime,
+      areas,
+      grandTotal: totalCost + editableItems.length * 25000 + duration * 50000,
+    }
+  }, [editableItems, duration])
+
+  async function generateItinerary() {
+    setLoading(true)
+    const res = await fetch('/api/itineraries/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        duration,
+        budget,
+        area: selectedAreas.length > 0 ? selectedAreas.join(',') : 'Semua Area',
+        areas: selectedAreas,
+        categoryIds: selectedCategoryIds,
+        maxDestinations,
+      }),
+    })
+    const data = await res.json()
+    setGenerated(data)
+    setEditableItems(data.items)
+    setSavedId(null)
+    setLoading(false)
+    setStep(3)
+  }
+
+  // --- Smart Customization Functions ---
+
+  function removeItem(day: number, slotIdx: number) {
+    const byDay = editableItems.filter((i) => i.day === day)
+    const target = byDay[slotIdx]
+    if (!target) return
+
+    const newItems = editableItems.filter(
+      (i) => !(i.day === target.day && i.destination.id === target.destination.id)
+    )
+    setEditableItems(recalcItems(newItems, duration))
+    setSavedId(null) // Reset save state since items changed
+  }
+
+  function moveItem(day: number, slotIdx: number, direction: 'up' | 'down') {
+    const newItems = [...editableItems]
+    const dayItems = newItems.filter((i) => i.day === day)
+    const swapIdx = direction === 'up' ? slotIdx - 1 : slotIdx + 1
+    if (swapIdx < 0 || swapIdx >= dayItems.length) return
+
+    // Find actual indices in the full array
+    const aIdx = newItems.findIndex(
+      (i) => i.day === day && i.destination.id === dayItems[slotIdx].destination.id
+    )
+    const bIdx = newItems.findIndex(
+      (i) => i.day === day && i.destination.id === dayItems[swapIdx].destination.id
+    )
+
+    // Swap
+    const temp = newItems[aIdx]
+    newItems[aIdx] = newItems[bIdx]
+    newItems[bIdx] = temp
+
+    setEditableItems(recalcItems(newItems, duration))
+    setSavedId(null)
+  }
+
+  async function fetchSuggestions(removedItem: ItineraryItem) {
+    setLoadingSuggestions(true)
+    const excludeIds = editableItems.map((i) => i.destination.id)
+    const res = await fetch('/api/itineraries/suggest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        excludeIds,
+        categoryId: removedItem.destination.category?.id || removedItem.destination.categoryId,
+        area: removedItem.destination.area,
+        maxBudget: budget > 0 ? Math.floor(budget / maxDestinations) : undefined,
+        limit: 5,
+      }),
+    })
+    const data = await res.json()
+    setSuggestions(data)
+    setLoadingSuggestions(false)
+  }
+
+  function addSuggestionToSlot(dest: DestinationData, day: number) {
+    const newItem: ItineraryItem = {
+      destination: dest,
+      order: 0,
+      day,
+      startTime: '09:00',
+      estimatedVisitTime: dest.estimatedDuration,
+      estimatedCost: dest.ticketPrice,
+      transportNote: '',
+    }
+    const newItems = [...editableItems, newItem]
+    setEditableItems(recalcItems(newItems, duration))
+    setSuggestingFor(null)
+    setSuggestions([])
+    setSavedId(null)
+  }
+
+  async function fetchAddCandidates(day: number) {
+    setLoadingAddCandidates(true)
+    const excludeIds = editableItems.map((i) => i.destination.id)
+    const res = await fetch('/api/itineraries/suggest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        excludeIds,
+        areas: selectedAreas.length > 0 ? selectedAreas : undefined,
+        maxBudget: budget > 0 ? Math.floor(budget / maxDestinations) : undefined,
+        limit: 10,
+      }),
+    })
+    const data = await res.json()
+    setAddCandidates(data)
+    setLoadingAddCandidates(false)
+  }
+
+  function addDestination(dest: DestinationData, day: number) {
+    const newItem: ItineraryItem = {
+      destination: dest,
+      order: 0,
+      day,
+      startTime: '09:00',
+      estimatedVisitTime: dest.estimatedDuration,
+      estimatedCost: dest.ticketPrice,
+      transportNote: '',
+    }
+    const newItems = [...editableItems, newItem]
+    setEditableItems(recalcItems(newItems, duration))
+    setAddingForDay(null)
+    setAddCandidates([])
+    setAddSearch('')
+    setSavedId(null)
+  }
+
+  // --- Save ---
+  async function saveItinerary() {
+    if (editableItems.length === 0) return
+    setSaving(true)
+    const res = await fetch('/api/itineraries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: `Trip Surabaya ${duration} Hari — ${new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}`,
+        duration,
+        budget,
+        area: selectedAreas.length > 0 ? selectedAreas.join(', ') : 'Semua Area',
+        totalEstimatedCost: liveSummary.totalCost,
+        startDate: tripStartDate || null,
+        items: editableItems.map((item) => ({
+          destinationId: item.destination.id,
+          order: item.order,
+          estimatedVisitTime: item.estimatedVisitTime,
+          estimatedCost: item.estimatedCost,
+          transportNote: item.transportNote,
+        })),
+      }),
+    })
+
+    if (res.status === 401) {
+      window.location.href = '/login'
+      return
+    }
+
+    const saved = await res.json()
+    setSavedId(saved.id)
+    setSaving(false)
+
+    // Check if there are paid destinations — auto show booking modal
+    const paidItems = editableItems.filter((i) => i.estimatedCost > 0)
+    if (paidItems.length > 0) {
+      setSelectedBookingIds(paidItems.map((i) => i.destination.id))
+      setShowBookingModal(true)
+    }
+  }
+
+  // --- Bulk Booking ---
+  function getVisitDate(day: number): string {
+    if (!tripStartDate) return ''
+    const d = new Date(tripStartDate + 'T00:00:00')
+    d.setDate(d.getDate() + day - 1)
+    return d.toISOString().split('T')[0]
+  }
+
+  const paidEditableItems = editableItems.filter((i) => i.estimatedCost > 0)
+  const selectedBookingTotal = paidEditableItems
+    .filter((i) => selectedBookingIds.includes(i.destination.id))
+    .reduce((sum, i) => sum + i.estimatedCost * bookingTicketCount, 0)
+
+  async function handleBulkBooking() {
+    if (!tripStartDate) { setBookingError('Pilih tanggal mulai trip terlebih dahulu'); return }
+    if (selectedBookingIds.length === 0) { setBookingError('Pilih minimal satu destinasi'); return }
+    if (!bookingPayment) { setBookingError('Pilih metode pembayaran'); return }
+
+    setBookingLoading(true)
+    setBookingError('')
+
+    const items = paidEditableItems
+      .filter((i) => selectedBookingIds.includes(i.destination.id))
+      .map((i) => ({
+        destinationId: i.destination.id,
+        visitDate: getVisitDate(i.day),
+        ticketCount: bookingTicketCount,
+      }))
+
+    try {
+      const res = await fetch('/api/bookings/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items }),
+      })
+
+      if (res.ok) {
+        const result = await res.json()
+        const dataParam = encodeURIComponent(JSON.stringify(result.bookings))
+        router.push(`/booking/bulk-sukses?data=${dataParam}&itineraryId=${savedId}`)
+      } else {
+        setBookingError('Gagal memproses booking. Coba lagi.')
+        setBookingLoading(false)
+      }
+    } catch {
+      setBookingError('Terjadi kesalahan koneksi.')
+      setBookingLoading(false)
+    }
+  }
+
+  const days = Array.from({ length: duration }, (_, i) => i + 1)
+
+  // Filtered add candidates for search
+  const filteredAddCandidates = addSearch.trim()
+    ? addCandidates.filter((d) =>
+        d.name.toLowerCase().includes(addSearch.toLowerCase()) ||
+        d.area.toLowerCase().includes(addSearch.toLowerCase()) ||
+        d.category.name.toLowerCase().includes(addSearch.toLowerCase())
+      )
+    : addCandidates
+
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
+      <Navbar />
+
+      {/* Header */}
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #062E3A 0%, #0A4A5E 50%, #0D6E84 100%)',
+          padding: '3rem 1.5rem',
+          color: 'white',
+        }}
+      >
+        <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: 'rgba(255,107,53,0.15)',
+              border: '1px solid rgba(255,107,53,0.3)',
+              borderRadius: '50px',
+              padding: '8px 18px',
+              marginBottom: '1.25rem',
+              color: '#FF8C5E',
+              fontWeight: 600,
+              fontSize: '0.85rem',
+            }}
+          >
+            <Zap size={14} /> Smart Itinerary Generator
+          </div>
+          <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', fontWeight: 900, marginBottom: '1rem' }}>
+            Buat Itinerary Perjalanan Cerdas
+          </h1>
+          <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1rem', maxWidth: '560px', margin: '0 auto' }}>
+            Masukkan preferensi kamu dan sistem akan menyusun rencana perjalanan yang efisien & hemat waktu di Surabaya
+          </p>
+
+          {/* Step indicator */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '2rem' }}>
+            {['Preferensi', 'Kategori', 'Kustomisasi'].map((s, i) => (
+              <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    background: step > i + 1 ? '#10B981' : step === i + 1 ? '#FF6B35' : 'rgba(255,255,255,0.15)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 700,
+                    fontSize: '0.85rem',
+                    color: 'white',
+                    border: step === i + 1 ? '2px solid rgba(255,255,255,0.5)' : 'none',
+                    transition: 'all 0.3s',
+                  }}
+                >
+                  {step > i + 1 ? <Check size={16} /> : i + 1}
+                </div>
+                <span
+                  style={{
+                    fontSize: '0.8rem',
+                    color: step === i + 1 ? 'white' : 'rgba(255,255,255,0.5)',
+                    fontWeight: step === i + 1 ? 600 : 400,
+                  }}
+                >
+                  {s}
+                </span>
+                {i < 2 && (
+                  <div style={{ width: '40px', height: '2px', background: step > i + 1 ? '#10B981' : 'rgba(255,255,255,0.2)', borderRadius: '1px' }} />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div style={{ maxWidth: '800px', margin: '2.5rem auto', padding: '0 1.5rem', width: '100%', flex: 1 }}>
+        {/* STEP 1 */}
+        {step === 1 && (
+          <div style={{ background: 'white', borderRadius: '24px', padding: '2.5rem', border: '1px solid #E5E9F0', boxShadow: '0 8px 30px rgba(10,74,94,0.06)' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1A2332', marginBottom: '0.5rem' }}>
+              Preferensi Perjalanan
+            </h2>
+            <p style={{ color: '#4A5568', marginBottom: '2rem', fontSize: '0.95rem' }}>
+              Pilih tanggal trip, budget, dan area tujuan kamu
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+              {/* Date range picker — replaces duration buttons */}
+              <div>
+                <label style={{ display: 'block', fontWeight: 700, fontSize: '0.95rem', color: '#1A2332', marginBottom: '0.25rem' }}>
+                  📅 Kapan kamu mau Mlakoow?
+                </label>
+                <p style={{ fontSize: '0.82rem', color: '#8B98A9', marginBottom: '1rem' }}>
+                  Pilih tanggal mulai &amp; selesai — durasi trip otomatis dihitung (maksimal 7 hari)
+                </p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  {/* Start date */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#4A5568', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Tanggal Mulai
+                    </label>
+                    <input
+                      type="date"
+                      value={tripStartDate}
+                      min={new Date().toISOString().split('T')[0]}
+                      max={new Date(Date.now() + 90 * 86400000).toISOString().split('T')[0]}
+                      onChange={(e) => {
+                        const start = e.target.value
+                        setTripStartDate(start)
+                        // Reset end date if it's now invalid (durasi inklusif: diff+1 hari)
+                        if (tripEndDate) {
+                          const diff = Math.round((new Date(tripEndDate + 'T00:00:00').getTime() - new Date(start + 'T00:00:00').getTime()) / 86400000)
+                          const days = diff + 1
+                          if (days < 1 || days > 7) setTripEndDate('')
+                        }
+                        // Auto-set duration if both dates present (inklusif)
+                        if (tripEndDate && e.target.value) {
+                          const diff = Math.round((new Date(tripEndDate + 'T00:00:00').getTime() - new Date(e.target.value + 'T00:00:00').getTime()) / 86400000)
+                          const days = diff + 1
+                          if (days >= 1 && days <= 7) setDuration(days)
+                        }
+                      }}
+                      style={{
+                        width: '100%', boxSizing: 'border-box',
+                        padding: '0.75rem 1rem', borderRadius: '14px',
+                        border: `2px solid ${tripStartDate ? '#0A4A5E' : '#E5E9F0'}`,
+                        background: tripStartDate ? '#F0F7FA' : 'white',
+                        fontFamily: 'Outfit, sans-serif', fontSize: '0.9rem',
+                        fontWeight: 600, color: '#1A2332', outline: 'none', cursor: 'pointer',
+                      }}
+                    />
+                    {tripStartDate && (
+                      <div style={{ fontSize: '0.72rem', color: '#0A4A5E', fontWeight: 600, marginTop: '4px' }}>
+                        {new Date(tripStartDate + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* End date */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#4A5568', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Tanggal Selesai
+                    </label>
+                    <input
+                      type="date"
+                      value={tripEndDate}
+                      min={tripStartDate
+                        ? tripStartDate  // min = hari yang sama (1 hari trip)
+                        : new Date().toISOString().split('T')[0]}
+                      max={tripStartDate
+                        ? new Date(new Date(tripStartDate + 'T00:00:00').getTime() + 6 * 86400000).toISOString().split('T')[0]  // +6 = 7 hari inklusif
+                        : new Date(Date.now() + 6 * 86400000).toISOString().split('T')[0]}
+                      disabled={!tripStartDate}
+                      onChange={(e) => {
+                        const end = e.target.value
+                        setTripEndDate(end)
+                        if (tripStartDate && end) {
+                          const diff = Math.round((new Date(end + 'T00:00:00').getTime() - new Date(tripStartDate + 'T00:00:00').getTime()) / 86400000)
+                          const days = diff + 1  // inklusif: tgl 13→15 = 3 hari
+                          if (days >= 1 && days <= 7) setDuration(days)
+                        }
+                      }}
+                      style={{
+                        width: '100%', boxSizing: 'border-box',
+                        padding: '0.75rem 1rem', borderRadius: '14px',
+                        border: `2px solid ${tripEndDate ? '#0A4A5E' : '#E5E9F0'}`,
+                        background: tripEndDate ? '#F0F7FA' : !tripStartDate ? '#F8FAFC' : 'white',
+                        fontFamily: 'Outfit, sans-serif', fontSize: '0.9rem',
+                        fontWeight: 600, color: '#1A2332', outline: 'none',
+                        cursor: tripStartDate ? 'pointer' : 'not-allowed',
+                        opacity: tripStartDate ? 1 : 0.5,
+                      }}
+                    />
+                    {tripEndDate && (
+                      <div style={{ fontSize: '0.72rem', color: '#0A4A5E', fontWeight: 600, marginTop: '4px' }}>
+                        {new Date(tripEndDate + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Live duration result */}
+                {tripStartDate && tripEndDate ? (
+                  <div style={{
+                    marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '8px',
+                    background: 'linear-gradient(135deg, #F0F7FA, #E8F4F8)',
+                    border: '1px solid #B8D8E8', borderRadius: '12px', padding: '0.6rem 1rem',
+                  }}>
+                    <span style={{ fontSize: '1.2rem' }}>🎉</span>
+                    <span style={{ fontWeight: 800, color: '#0A4A5E', fontSize: '0.9rem' }}>
+                      Trip {duration} Hari
+                    </span>
+                    <span style={{ color: '#8B98A9', fontSize: '0.8rem' }}>
+                      • ~{duration * maxDestinations} destinasi maksimum
+                    </span>
+                    {duration === 7 && (
+                      <span style={{ marginLeft: 'auto', fontSize: '0.68rem', background: '#FEF3C7', color: '#B45309', padding: '2px 8px', borderRadius: '50px', fontWeight: 700 }}>
+                        MAX 7 hari
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <p style={{ fontSize: '0.82rem', color: '#8B98A9', marginTop: '0.5rem' }}>
+                    {!tripStartDate ? '👆 Pilih tanggal mulai dahulu' : '👆 Lalu pilih tanggal selesai (max +7 hari)'}
+                  </p>
+                )}
+              </div>
+
+              {/* Budget */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <label style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1A2332' }}>
+                    💰 Budget tiket per orang
+                  </label>
+                  {/* Live value badge */}
+                  <div style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '6px',
+                    padding: '5px 14px', borderRadius: '50px', fontWeight: 800,
+                    fontSize: '0.95rem', fontFamily: 'Outfit, sans-serif',
+                    background: budget === 0
+                      ? 'linear-gradient(135deg, #ECFDF5, #D1FAE5)'
+                      : budget <= 200000
+                      ? 'linear-gradient(135deg, #EFF6FF, #DBEAFE)'
+                      : budget <= 500000
+                      ? 'linear-gradient(135deg, #FFF7ED, #FED7AA)'
+                      : 'linear-gradient(135deg, #FFF1F2, #FFE4E6)',
+                    color: budget === 0 ? '#065F46'
+                      : budget <= 200000 ? '#1E40AF'
+                      : budget <= 500000 ? '#C2410C'
+                      : '#9F1239',
+                    border: `1.5px solid ${budget === 0 ? '#A7F3D0' : budget <= 200000 ? '#BFDBFE' : budget <= 500000 ? '#FDBA74' : '#FECDD3'}`,
+                    transition: 'all 0.3s',
+                  }}>
+                    <span style={{ fontSize: '1.1rem' }}>
+                      {budget === 0 ? '🎁' : budget <= 100000 ? '💚' : budget <= 300000 ? '💙' : budget <= 600000 ? '🧡' : '💎'}
+                    </span>
+                    {budget === 0 ? 'Gratis saja' : `Rp ${budget.toLocaleString('id-ID')}`}
+                  </div>
+                </div>
+
+                {/* Budget category label */}
+                <div style={{ marginBottom: '0.75rem' }}>
+                  <span style={{
+                    fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.05em',
+                    color: budget === 0 ? '#10B981' : budget <= 200000 ? '#3B82F6' : budget <= 500000 ? '#F97316' : '#E11D48',
+                    textTransform: 'uppercase',
+                  }}>
+                    {budget === 0 ? '✦ Hanya destinasi gratis'
+                      : budget <= 150000 ? '✦ Budget hemat'
+                      : budget <= 350000 ? '✦ Budget moderat'
+                      : budget <= 700000 ? '✦ Budget premium'
+                      : '✦ All-inclusive / Luxury'}
+                  </span>
+                </div>
+
+                {/* Gradient slider track wrapper */}
+                <div style={{ position: 'relative', paddingBottom: '0.5rem' }}>
+                  <div style={{
+                    position: 'absolute', top: '10px', left: 0, right: 0, height: '8px',
+                    borderRadius: '50px', pointerEvents: 'none',
+                    background: 'linear-gradient(to right, #10B981 0%, #3B82F6 25%, #F97316 60%, #E11D48 100%)',
+                    opacity: 0.2,
+                  }} />
+                  <div style={{
+                    position: 'absolute', top: '10px', left: 0, height: '8px',
+                    borderRadius: '50px', pointerEvents: 'none',
+                    width: `${(budget / 1000000) * 100}%`,
+                    background: budget === 0 ? '#10B981'
+                      : budget <= 200000 ? 'linear-gradient(to right, #10B981, #3B82F6)'
+                      : budget <= 500000 ? 'linear-gradient(to right, #10B981, #3B82F6, #F97316)'
+                      : 'linear-gradient(to right, #10B981, #3B82F6, #F97316, #E11D48)',
+                    transition: 'width 0.15s, background 0.3s',
+                    boxShadow: '0 0 8px rgba(59,130,246,0.4)',
+                  }} />
+                  <input
+                    type="range"
+                    min={0}
+                    max={1000000}
+                    step={25000}
+                    value={budget}
+                    onChange={(e) => setBudget(parseInt(e.target.value))}
+                    style={{
+                      width: '100%', height: '28px', cursor: 'pointer',
+                      appearance: 'none', background: 'transparent',
+                      position: 'relative', zIndex: 1,
+                    }}
+                    className="budget-slider"
+                  />
+                </div>
+
+                {/* Tick marks */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#8B98A9', marginTop: '2px', paddingBottom: '0.25rem' }}>
+                  {['Gratis', 'Rp 250rb', 'Rp 500rb', 'Rp 750rb', 'Rp 1jt'].map((label, i) => (
+                    <span
+                      key={label}
+                      onClick={() => setBudget(i === 0 ? 0 : i === 1 ? 250000 : i === 2 ? 500000 : i === 3 ? 750000 : 1000000)}
+                      style={{
+                        cursor: 'pointer', fontWeight: 600, transition: 'color 0.2s',
+                        color: (i === 0 && budget === 0) || (i === 1 && budget === 250000) || (i === 2 && budget === 500000) || (i === 3 && budget === 750000) || (i === 4 && budget === 1000000)
+                          ? '#0A4A5E' : '#8B98A9',
+                      }}
+                    >
+                      {label}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Quick preset chips */}
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
+                  {[
+                    { label: '🎁 Gratis', value: 0, color: '#10B981', bg: '#ECFDF5' },
+                    { label: '💚 Rp 100rb', value: 100000, color: '#3B82F6', bg: '#EFF6FF' },
+                    { label: '💙 Rp 250rb', value: 250000, color: '#6366F1', bg: '#EEF2FF' },
+                    { label: '🧡 Rp 500rb', value: 500000, color: '#F97316', bg: '#FFF7ED' },
+                    { label: '💎 Rp 1jt', value: 1000000, color: '#E11D48', bg: '#FFF1F2' },
+                  ].map(({ label, value, color, bg }) => (
+                    <button
+                      key={value}
+                      onClick={() => setBudget(value)}
+                      style={{
+                        padding: '4px 12px', borderRadius: '50px', fontSize: '0.75rem',
+                        fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s',
+                        fontFamily: 'Outfit, sans-serif',
+                        border: budget === value ? `2px solid ${color}` : '2px solid #E5E9F0',
+                        background: budget === value ? bg : 'white',
+                        color: budget === value ? color : '#8B98A9',
+                        transform: budget === value ? 'scale(1.05)' : 'scale(1)',
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                <style>{`
+                  .budget-slider::-webkit-slider-thumb {
+                    -webkit-appearance: none;
+                    width: 24px; height: 24px;
+                    border-radius: 50%;
+                    background: white;
+                    border: 3px solid #0A4A5E;
+                    box-shadow: 0 2px 8px rgba(10,74,94,0.35);
+                    cursor: pointer;
+                    transition: border-color 0.3s, transform 0.15s;
+                  }
+                  .budget-slider::-webkit-slider-thumb:hover {
+                    transform: scale(1.2);
+                    box-shadow: 0 4px 16px rgba(10,74,94,0.45);
+                  }
+                  .budget-slider::-webkit-slider-runnable-track {
+                    height: 8px; border-radius: 50px;
+                    background: transparent;
+                  }
+                  .budget-slider::-moz-range-thumb {
+                    width: 22px; height: 22px;
+                    border-radius: 50%;
+                    background: white;
+                    border: 3px solid #0A4A5E;
+                    box-shadow: 0 2px 8px rgba(10,74,94,0.35);
+                    cursor: pointer;
+                  }
+                  .budget-slider::-moz-range-track {
+                    height: 8px; border-radius: 50px; background: transparent;
+                  }
+                `}</style>
+              </div>
+
+              {/* Area — multi-select */}
+              <div>
+                <label style={{ display: 'block', fontWeight: 700, fontSize: '0.95rem', color: '#1A2332', marginBottom: '0.25rem' }}>
+                  Area tujuan di Surabaya
+                </label>
+                <p style={{ fontSize: '0.82rem', color: '#8B98A9', marginBottom: '0.85rem' }}>
+                  Pilih satu atau lebih area — kosongkan untuk semua area
+                </p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem' }}>
+                  {AREAS.map((a) => {
+                    const isSelected = selectedAreas.includes(a)
+                    return (
+                      <button
+                        key={a}
+                        onClick={() =>
+                          setSelectedAreas((prev) =>
+                            prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a]
+                          )
+                        }
+                        style={{
+                          padding: '0.55rem 1.1rem',
+                          borderRadius: '50px',
+                          border: isSelected ? '2px solid #0A4A5E' : '2px solid #E5E9F0',
+                          background: isSelected ? '#0A4A5E' : 'white',
+                          color: isSelected ? 'white' : '#4A5568',
+                          fontWeight: 600,
+                          fontSize: '0.875rem',
+                          cursor: 'pointer',
+                          fontFamily: 'Outfit, sans-serif',
+                          transition: 'all 0.18s',
+                          display: 'flex', alignItems: 'center', gap: '6px',
+                        }}
+                      >
+                        {isSelected && <span style={{ fontSize: '0.75rem' }}>✓</span>}
+                        {a}
+                      </button>
+                    )
+                  })}
+                </div>
+                {/* Selected summary */}
+                <div style={{ marginTop: '0.6rem', fontSize: '0.8rem', color: '#8B98A9' }}>
+                  {selectedAreas.length === 0
+                    ? '🌍 Semua area Surabaya akan diikutsertakan'
+                    : `📍 ${selectedAreas.length} area dipilih: ${selectedAreas.join(' • ')}`}
+                </div>
+              </div>
+
+              {/* Max destinations per day */}
+              <div>
+                <label style={{ display: 'block', fontWeight: 700, fontSize: '0.95rem', color: '#1A2332', marginBottom: '1rem' }}>
+                  Destinasi per hari: <span style={{ color: '#0A4A5E' }}>{maxDestinations}</span>
+                </label>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  {[2, 3, 4, 5].map((n) => (
+                    <button
+                      key={n}
+                      onClick={() => setMaxDestinations(n)}
+                      style={{
+                        width: '56px',
+                        height: '56px',
+                        borderRadius: '14px',
+                        border: maxDestinations === n ? '2px solid #FF6B35' : '2px solid #E5E9F0',
+                        background: maxDestinations === n ? '#FFF5F1' : 'white',
+                        color: maxDestinations === n ? '#FF6B35' : '#1A2332',
+                        fontWeight: 700,
+                        fontSize: '1rem',
+                        cursor: 'pointer',
+                        fontFamily: 'Outfit, sans-serif',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setStep(2)}
+              className="btn-primary"
+              disabled={!tripStartDate || !tripEndDate}
+              style={{
+                marginTop: '2rem', width: '100%', justifyContent: 'center',
+                padding: '1rem', fontSize: '1rem',
+                opacity: (!tripStartDate || !tripEndDate) ? 0.5 : 1,
+                cursor: (!tripStartDate || !tripEndDate) ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {!tripStartDate || !tripEndDate
+                ? '📅 Pilih tanggal perjalanan dahulu'
+                : `Lanjut — Trip ${duration} Hari 🚀`}
+              {tripStartDate && tripEndDate && <ChevronRight size={18} />}
+            </button>
+          </div>
+        )}
+
+        {/* STEP 2 */}
+        {step === 2 && (
+          <div style={{ background: 'white', borderRadius: '24px', padding: '2.5rem', border: '1px solid #E5E9F0', boxShadow: '0 8px 30px rgba(10,74,94,0.06)' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1A2332', marginBottom: '0.5rem' }}>
+              Pilih Kategori Minat
+            </h2>
+            <p style={{ color: '#4A5568', marginBottom: '2rem', fontSize: '0.95rem' }}>
+              Pilih kategori wisata yang ingin kamu kunjungi. Kosongkan untuk semua kategori.
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => toggleCategory(cat.id)}
+                  style={{
+                    padding: '1.5rem 1rem',
+                    borderRadius: '16px',
+                    border: selectedCategoryIds.includes(cat.id) ? '2px solid #0A4A5E' : '2px solid #E5E9F0',
+                    background: selectedCategoryIds.includes(cat.id) ? '#F0F7FA' : 'white',
+                    cursor: 'pointer',
+                    fontFamily: 'Outfit, sans-serif',
+                    textAlign: 'center',
+                    transition: 'all 0.2s',
+                    position: 'relative',
+                  }}
+                >
+                  {selectedCategoryIds.includes(cat.id) && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '8px',
+                        right: '8px',
+                        width: '20px',
+                        height: '20px',
+                        borderRadius: '50%',
+                        background: '#0A4A5E',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Check size={12} color="white" strokeWidth={3} />
+                    </div>
+                  )}
+                  <div style={{ fontSize: '2rem', marginBottom: '8px' }}>{cat.icon}</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.875rem', color: '#1A2332' }}>{cat.label}</div>
+                </button>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button
+                onClick={() => setStep(1)}
+                className="btn-secondary"
+                style={{ flex: 1, justifyContent: 'center' }}
+              >
+                <ChevronLeft size={18} /> Kembali
+              </button>
+              <button
+                onClick={generateItinerary}
+                disabled={loading}
+                className="btn-primary"
+                style={{ flex: 2, justifyContent: 'center', padding: '1rem', opacity: loading ? 0.8 : 1 }}
+              >
+                {loading ? (
+                  <>
+                    <Loader size={18} style={{ animation: 'spin 1s linear infinite' }} />
+                    Menyusun Itinerary...
+                  </>
+                ) : (
+                  <>
+                    <Zap size={18} />
+                    Generate Itinerary!
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 3 — Smart Customization */}
+        {step === 3 && editableItems.length >= 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+
+            {/* Customization hint banner */}
+            <div
+              style={{
+                background: 'linear-gradient(135deg, #FFF7ED, #FEF3C7)',
+                borderRadius: '16px',
+                padding: '1rem 1.5rem',
+                border: '1px solid #FDE68A',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                animation: 'fadeInUp 0.4s ease',
+              }}
+            >
+              <div style={{
+                width: '40px', height: '40px', borderRadius: '12px',
+                background: '#FF6B35', display: 'flex', alignItems: 'center',
+                justifyContent: 'center', flexShrink: 0,
+              }}>
+                <Sparkles size={20} color="white" />
+              </div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#92400E' }}>
+                  ✨ Mode Kustomisasi Aktif
+                </div>
+                <div style={{ fontSize: '0.8rem', color: '#A16207', marginTop: '2px' }}>
+                  Sesuaikan itinerary kamu — atur ulang urutan, hapus, atau tambah destinasi baru.
+                </div>
+              </div>
+            </div>
+
+            {/* Live Summary Card */}
+            <div
+              style={{
+                background: 'linear-gradient(135deg, #0A4A5E, #0D6E84)',
+                borderRadius: '24px',
+                padding: '2rem',
+                color: 'white',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.75rem' }}>
+                    <Zap size={18} color="#FF8C5E" />
+                    <span style={{ color: '#FF8C5E', fontWeight: 700, fontSize: '0.85rem' }}>ITINERARY SIAP!</span>
+                  </div>
+                  <h2 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '0.5rem' }}>
+                    Trip Surabaya {duration} Hari
+                  </h2>
+                  <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>
+                    {liveSummary.areas.length > 0 ? liveSummary.areas.join(' • ') : 'Belum ada destinasi'}
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: '1.5rem' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontWeight: 900, fontSize: '1.8rem' }}>{liveSummary.destinations}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>Destinasi</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontWeight: 900, fontSize: '1.8rem' }}>
+                      Rp {(liveSummary.totalCost / 1000).toFixed(0)}K
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>Est. Budget</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontWeight: 900, fontSize: '1.8rem' }}>
+                      {Math.round(liveSummary.totalTime / 60)}j
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>Total Waktu</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Trip start date picker */}
+              <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid rgba(255,255,255,0.15)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'rgba(255,255,255,0.8)', fontSize: '0.85rem', fontWeight: 600 }}>
+                    <Calendar size={15} />
+                    Mulai trip tanggal:
+                  </div>
+                  <input
+                    type="date"
+                    min={new Date().toISOString().split('T')[0]}
+                    max={new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+                    value={tripStartDate}
+                    onChange={(e) => setTripStartDate(e.target.value)}
+                    style={{
+                      background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
+                      borderRadius: '10px', padding: '0.5rem 0.75rem', color: 'white',
+                      fontFamily: 'Outfit, sans-serif', fontSize: '0.88rem', fontWeight: 600,
+                      outline: 'none', cursor: 'pointer',
+                    }}
+                  />
+                  {tripStartDate && (
+                    <span style={{ fontSize: '0.78rem', color: '#FF8C5E', fontWeight: 600 }}>
+                      {new Date(tripStartDate + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}
+                      {duration > 1 && ` — ${new Date(new Date(tripStartDate + 'T00:00:00').getTime() + (duration - 1) * 86400000).toLocaleDateString('id-ID', { day: 'numeric', month: 'long' })}`}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Day-by-day itinerary with customization */}
+            {days.map((day) => {
+              const dayItems = editableItems.filter((item) => item.day === day)
+
+              return (
+                <div key={day} style={{ background: 'white', borderRadius: '20px', overflow: 'hidden', border: '1px solid #E5E9F0' }}>
+                  <div
+                    style={{
+                      background: 'linear-gradient(135deg, #F0F7FA, #E8F4F8)',
+                      padding: '1rem 1.5rem',
+                      borderBottom: '1px solid #E5E9F0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '12px',
+                        background: 'linear-gradient(135deg, #0A4A5E, #0D6E84)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        fontWeight: 800,
+                        fontSize: '0.9rem',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {day}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332' }}>Hari ke-{day}</div>
+                      <div style={{ fontSize: '0.78rem', color: '#8B98A9' }}>
+                        {dayItems.length} destinasi
+                        {dayItems.length > 0 && ` · ${dayItems.reduce((s, i) => s + i.estimatedVisitTime, 0)} menit`}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {dayItems.length === 0 && (
+                      <div style={{
+                        textAlign: 'center', padding: '2.5rem 1rem', color: '#8B98A9', fontSize: '0.9rem',
+                        background: '#FAFCFD', borderRadius: '14px', border: '2px dashed #E5E9F0',
+                      }}>
+                        <MapPin size={24} style={{ margin: '0 auto 8px', opacity: 0.4 }} />
+                        <div>Belum ada destinasi di hari ini.</div>
+                        <div style={{ fontSize: '0.8rem', marginTop: '4px' }}>Klik tombol di bawah untuk menambah.</div>
+                      </div>
+                    )}
+
+                    {dayItems.map((item, idx) => (
+                      <div key={`${item.destination.id}-${day}`} style={{ animation: 'fadeInUp 0.3s ease' }}>
+                        {/* Transport note */}
+                        {item.transportNote && (
+                          <div
+                            style={{
+                              fontSize: '0.75rem',
+                              color: '#8B98A9',
+                              fontStyle: 'italic',
+                              marginBottom: '6px',
+                              marginLeft: '12px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                            }}
+                          >
+                            <Bus size={11} style={{ opacity: 0.6 }} /> {item.transportNote}
+                          </div>
+                        )}
+
+                        {/* Destination card */}
+                        <div
+                          style={{
+                            background: '#F8F6F2',
+                            borderRadius: '16px',
+                            border: '1px solid #E5E9F0',
+                            overflow: 'hidden',
+                            transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
+                          }}
+                        >
+                          {/* Card content row */}
+                          <div style={{ display: 'flex', gap: '0.85rem', padding: '0.85rem 1rem' }}>
+                            {/* Order badge + image */}
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                              <div style={{
+                                width: '26px', height: '26px', borderRadius: '8px',
+                                background: 'linear-gradient(135deg, #FF6B35, #E5522A)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                color: 'white', fontWeight: 800, fontSize: '0.75rem',
+                              }}>
+                                {idx + 1}
+                              </div>
+                              <img
+                                src={item.destination.mainImage}
+                                alt={item.destination.name}
+                                style={{ width: '56px', height: '56px', borderRadius: '10px', objectFit: 'cover' }}
+                              />
+                            </div>
+
+                            {/* Info */}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px', flexWrap: 'wrap' }}>
+                                <span style={{
+                                  fontSize: '0.68rem', color: 'white', fontWeight: 700,
+                                  background: '#0A4A5E', borderRadius: '6px', padding: '2px 7px',
+                                }}>
+                                  {item.startTime}
+                                </span>
+                                <span style={{
+                                  fontSize: '0.68rem', color: '#4A5568', fontWeight: 600,
+                                  background: '#F0F4F8', borderRadius: '6px', padding: '2px 7px',
+                                }}>
+                                  {item.destination.category.icon} {item.destination.category.name}
+                                </span>
+                              </div>
+                              <Link
+                                href={`/destinasi/${item.destination.slug}`}
+                                style={{ textDecoration: 'none', color: '#1A2332', fontWeight: 700, fontSize: '0.92rem', lineHeight: 1.3 }}
+                              >
+                                {item.destination.name}
+                              </Link>
+                              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '5px', fontSize: '0.75rem', color: '#8B98A9', flexWrap: 'wrap' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                  <Clock size={11} /> {item.estimatedVisitTime} mnt
+                                </span>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '3px', color: item.estimatedCost === 0 ? '#10B981' : '#0A4A5E', fontWeight: 600 }}>
+                                  <Wallet size={11} />
+                                  {item.estimatedCost === 0 ? 'Gratis' : `Rp ${item.estimatedCost.toLocaleString('id-ID')}`}
+                                </span>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                  <MapPin size={11} /> {item.destination.area}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Action toolbar — always visible, clean design */}
+                          <div style={{
+                            display: 'flex', alignItems: 'center',
+                            borderTop: '1px solid #E5E9F0',
+                            background: '#FAFCFD',
+                          }}>
+                            {/* Reorder buttons */}
+                            <button
+                              onClick={() => idx > 0 && moveItem(day, idx, 'up')}
+                              disabled={idx === 0}
+                              style={{
+                                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                                padding: '8px 0', border: 'none', background: 'transparent',
+                                color: idx === 0 ? '#D1D5DB' : '#0A4A5E', cursor: idx === 0 ? 'default' : 'pointer',
+                                fontSize: '0.75rem', fontWeight: 600, fontFamily: 'Outfit, sans-serif',
+                                transition: 'background 0.15s',
+                                borderRadius: '0',
+                              }}
+                              onMouseEnter={(e) => { if (idx > 0) e.currentTarget.style.background = '#F0F7FA' }}
+                              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+                            >
+                              <ChevronUp size={14} /> Naik
+                            </button>
+
+                            <div style={{ width: '1px', height: '20px', background: '#E5E9F0' }} />
+
+                            <button
+                              onClick={() => idx < dayItems.length - 1 && moveItem(day, idx, 'down')}
+                              disabled={idx === dayItems.length - 1}
+                              style={{
+                                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                                padding: '8px 0', border: 'none', background: 'transparent',
+                                color: idx === dayItems.length - 1 ? '#D1D5DB' : '#0A4A5E', cursor: idx === dayItems.length - 1 ? 'default' : 'pointer',
+                                fontSize: '0.75rem', fontWeight: 600, fontFamily: 'Outfit, sans-serif',
+                                transition: 'background 0.15s',
+                                borderRadius: '0',
+                              }}
+                              onMouseEnter={(e) => { if (idx < dayItems.length - 1) e.currentTarget.style.background = '#F0F7FA' }}
+                              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+                            >
+                              <ChevronDown size={14} /> Turun
+                            </button>
+
+                            <div style={{ width: '1px', height: '20px', background: '#E5E9F0' }} />
+
+                            <button
+                              onClick={() => {
+                                const removedItem = { ...item }
+                                removeItem(day, idx)
+                                setSuggestingFor({ day, slotIdx: idx })
+                                fetchSuggestions(removedItem)
+                              }}
+                              style={{
+                                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                                padding: '8px 0', border: 'none', background: 'transparent',
+                                color: '#EF4444', cursor: 'pointer',
+                                fontSize: '0.75rem', fontWeight: 600, fontFamily: 'Outfit, sans-serif',
+                                transition: 'background 0.15s',
+                                borderRadius: '0',
+                              }}
+                              onMouseEnter={(e) => { e.currentTarget.style.background = '#FEF2F2' }}
+                              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+                            >
+                              <Trash2 size={13} /> Hapus
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Suggestion panel (shown after deletion) */}
+                        {suggestingFor?.day === day && suggestingFor?.slotIdx === idx && (
+                          <div className="suggestion-panel">
+                            <div className="suggestion-panel-header">
+                              <h4>
+                                <Sparkles size={15} color="#FF6B35" />
+                                Rekomendasi Pengganti
+                              </h4>
+                              <button
+                                className="suggestion-panel-close"
+                                onClick={() => { setSuggestingFor(null); setSuggestions([]) }}
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+
+                            {loadingSuggestions ? (
+                              <div style={{ textAlign: 'center', padding: '1.5rem', color: '#8B98A9' }}>
+                                <Loader size={20} style={{ animation: 'spin 1s linear infinite', display: 'block', margin: '0 auto 0.5rem' }} />
+                                <div style={{ fontSize: '0.85rem' }}>Mencari destinasi serupa...</div>
+                              </div>
+                            ) : suggestions.length > 0 ? (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                {suggestions.map((s) => (
+                                  <div
+                                    key={s.id}
+                                    className="suggestion-card"
+                                    onClick={() => addSuggestionToSlot(s, day)}
+                                  >
+                                    <img src={s.mainImage} alt={s.name} />
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                      <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#1A2332' }}>{s.name}</div>
+                                      <div style={{ display: 'flex', gap: '0.6rem', fontSize: '0.72rem', color: '#8B98A9', marginTop: '3px', flexWrap: 'wrap' }}>
+                                        <span>{s.category.icon} {s.category.name}</span>
+                                        <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                                          <Star size={10} color="#F59E0B" fill="#F59E0B" /> {s.rating}
+                                        </span>
+                                        <span style={{ color: s.ticketPrice === 0 ? '#10B981' : '#0A4A5E', fontWeight: 600 }}>
+                                          {s.ticketPrice === 0 ? 'Gratis' : `Rp ${s.ticketPrice.toLocaleString('id-ID')}`}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div style={{
+                                      padding: '5px 10px', borderRadius: '8px',
+                                      background: '#F0FDF4', border: '1px solid #D1FAE5',
+                                      color: '#10B981', fontSize: '0.72rem', fontWeight: 700,
+                                      flexShrink: 0, alignSelf: 'center',
+                                    }}>
+                                      + Pilih
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div style={{ textAlign: 'center', padding: '1rem', color: '#8B98A9', fontSize: '0.85rem' }}>
+                                Tidak ada rekomendasi yang tersedia.
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+
+                    {/* Suggestion panel shown at the end of the day if slot was the last index */}
+                    {suggestingFor?.day === day && suggestingFor?.slotIdx >= dayItems.length && (
+                      <div className="suggestion-panel">
+                        <div className="suggestion-panel-header">
+                          <h4>
+                            <Sparkles size={15} color="#FF6B35" />
+                            Rekomendasi Pengganti
+                          </h4>
+                          <button
+                            className="suggestion-panel-close"
+                            onClick={() => { setSuggestingFor(null); setSuggestions([]) }}
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+
+                        {loadingSuggestions ? (
+                          <div style={{ textAlign: 'center', padding: '1.5rem', color: '#8B98A9' }}>
+                            <Loader size={20} style={{ animation: 'spin 1s linear infinite', display: 'block', margin: '0 auto 0.5rem' }} />
+                            <div style={{ fontSize: '0.85rem' }}>Mencari destinasi serupa...</div>
+                          </div>
+                        ) : suggestions.length > 0 ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            {suggestions.map((s) => (
+                              <div
+                                key={s.id}
+                                className="suggestion-card"
+                                onClick={() => addSuggestionToSlot(s, day)}
+                              >
+                                <img src={s.mainImage} alt={s.name} />
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#1A2332' }}>{s.name}</div>
+                                  <div style={{ display: 'flex', gap: '0.6rem', fontSize: '0.72rem', color: '#8B98A9', marginTop: '3px', flexWrap: 'wrap' }}>
+                                    <span>{s.category.icon} {s.category.name}</span>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                                      <Star size={10} color="#F59E0B" fill="#F59E0B" /> {s.rating}
+                                    </span>
+                                    <span style={{ color: s.ticketPrice === 0 ? '#10B981' : '#0A4A5E', fontWeight: 600 }}>
+                                      {s.ticketPrice === 0 ? 'Gratis' : `Rp ${s.ticketPrice.toLocaleString('id-ID')}`}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div style={{
+                                  padding: '5px 10px', borderRadius: '8px',
+                                  background: '#F0FDF4', border: '1px solid #D1FAE5',
+                                  color: '#10B981', fontSize: '0.72rem', fontWeight: 700,
+                                  flexShrink: 0, alignSelf: 'center',
+                                }}>
+                                  + Pilih
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div style={{ textAlign: 'center', padding: '1rem', color: '#8B98A9', fontSize: '0.85rem' }}>
+                            Tidak ada rekomendasi yang tersedia.
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Add destination section */}
+                    {addingForDay === day ? (
+                      <div style={{
+                        background: 'white', border: '1px solid #E5E9F0', borderRadius: '16px',
+                        overflow: 'hidden', animation: 'slideDown 0.3s ease',
+                        boxShadow: '0 4px 20px rgba(10,74,94,0.06)',
+                      }}>
+                        {/* Panel header */}
+                        <div style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                          padding: '0.85rem 1.15rem',
+                          background: 'linear-gradient(135deg, #F0FDF4, #ECFDF5)',
+                          borderBottom: '1px solid #D1FAE5',
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{
+                              width: '28px', height: '28px', borderRadius: '8px',
+                              background: '#10B981', display: 'flex', alignItems: 'center',
+                              justifyContent: 'center',
+                            }}>
+                              <Plus size={14} color="white" />
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#065F46' }}>
+                                Tambah Destinasi
+                              </div>
+                              <div style={{ fontSize: '0.72rem', color: '#059669' }}>
+                                Hari {day} · Pilih dari rekomendasi atau cari manual
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => { setAddingForDay(null); setAddCandidates([]); setAddSearch('') }}
+                            style={{
+                              width: '28px', height: '28px', borderRadius: '50%',
+                              border: 'none', background: 'rgba(5,150,105,0.1)', color: '#059669',
+                              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              transition: 'all 0.15s',
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = '#FEE2E2'; e.currentTarget.style.color = '#EF4444' }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(5,150,105,0.1)'; e.currentTarget.style.color = '#059669' }}
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+
+                        <div style={{ padding: '1rem 1.15rem' }}>
+                          {/* Recommendations section (shown first) */}
+                          {loadingAddCandidates ? (
+                            <div style={{ textAlign: 'center', padding: '2rem', color: '#8B98A9' }}>
+                              <Loader size={22} style={{ animation: 'spin 1s linear infinite', display: 'block', margin: '0 auto 0.75rem' }} />
+                              <div style={{ fontSize: '0.88rem', fontWeight: 600 }}>Mencari rekomendasi terbaik...</div>
+                            </div>
+                          ) : (
+                            <>
+                              {/* Recommended destinations header */}
+                              {!addSearch && filteredAddCandidates.length > 0 && (
+                                <div style={{
+                                  display: 'flex', alignItems: 'center', gap: '6px',
+                                  marginBottom: '0.65rem',
+                                  fontSize: '0.8rem', fontWeight: 700, color: '#0A4A5E',
+                                }}>
+                                  <Sparkles size={13} />
+                                  Rekomendasi untuk kamu
+                                </div>
+                              )}
+
+                              {/* Destination list */}
+                              {filteredAddCandidates.length > 0 ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '260px', overflowY: 'auto', marginBottom: '0.75rem' }}>
+                                  {filteredAddCandidates.map((d) => (
+                                    <div
+                                      key={d.id}
+                                      onClick={() => addDestination(d, day)}
+                                      style={{
+                                        display: 'flex', gap: '0.65rem', padding: '0.6rem 0.75rem',
+                                        borderRadius: '12px', border: '1.5px solid #E5E9F0',
+                                        cursor: 'pointer', transition: 'all 0.2s ease', background: 'white',
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        e.currentTarget.style.borderColor = '#10B981'
+                                        e.currentTarget.style.background = '#F0FDF4'
+                                        e.currentTarget.style.transform = 'translateY(-1px)'
+                                        e.currentTarget.style.boxShadow = '0 3px 10px rgba(16,185,129,0.1)'
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.borderColor = '#E5E9F0'
+                                        e.currentTarget.style.background = 'white'
+                                        e.currentTarget.style.transform = 'translateY(0)'
+                                        e.currentTarget.style.boxShadow = 'none'
+                                      }}
+                                    >
+                                      <img
+                                        src={d.mainImage} alt={d.name}
+                                        style={{ width: '48px', height: '48px', borderRadius: '10px', objectFit: 'cover', flexShrink: 0 }}
+                                      />
+                                      <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ fontWeight: 700, fontSize: '0.84rem', color: '#1A2332' }}>{d.name}</div>
+                                        <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.7rem', color: '#8B98A9', marginTop: '2px', flexWrap: 'wrap' }}>
+                                          <span>{d.category.icon} {d.category.name}</span>
+                                          <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                                            <Star size={9} color="#F59E0B" fill="#F59E0B" /> {d.rating}
+                                          </span>
+                                          <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                                            <MapPin size={9} /> {d.area}
+                                          </span>
+                                          <span style={{ color: d.ticketPrice === 0 ? '#10B981' : '#0A4A5E', fontWeight: 600 }}>
+                                            {d.ticketPrice === 0 ? 'Gratis' : `Rp ${d.ticketPrice.toLocaleString('id-ID')}`}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <div style={{
+                                        padding: '4px 9px', borderRadius: '8px',
+                                        background: '#F0FDF4', border: '1px solid #D1FAE5',
+                                        color: '#10B981', fontSize: '0.7rem', fontWeight: 700,
+                                        flexShrink: 0, alignSelf: 'center', whiteSpace: 'nowrap',
+                                      }}>
+                                        + Tambah
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                !addSearch && (
+                                  <div style={{ textAlign: 'center', padding: '1.5rem', color: '#8B98A9', fontSize: '0.85rem' }}>
+                                    Tidak ada destinasi tersedia.
+                                  </div>
+                                )
+                              )}
+
+                              {/* Search section (below recommendations) */}
+                              <div style={{
+                                borderTop: filteredAddCandidates.length > 0 && !addSearch ? '1px solid #E5E9F0' : 'none',
+                                paddingTop: filteredAddCandidates.length > 0 && !addSearch ? '0.75rem' : '0',
+                              }}>
+                                <div style={{ position: 'relative' }}>
+                                  <Search size={15} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#8B98A9' }} />
+                                  <input
+                                    className="search-destinations-input"
+                                    type="text"
+                                    placeholder="Cari destinasi lain..."
+                                    value={addSearch}
+                                    onChange={(e) => setAddSearch(e.target.value)}
+                                  />
+                                </div>
+                                {addSearch && filteredAddCandidates.length === 0 && (
+                                  <div style={{ textAlign: 'center', padding: '1rem', color: '#8B98A9', fontSize: '0.82rem' }}>
+                                    Tidak ditemukan hasil untuk &quot;{addSearch}&quot;
+                                  </div>
+                                )}
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        className="add-destination-btn"
+                        onClick={() => {
+                          setAddingForDay(day)
+                          fetchAddCandidates(day)
+                        }}
+                      >
+                        <Plus size={15} />
+                        Tambah Destinasi
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+
+            {/* Budget breakdown */}
+            <div
+              style={{
+                background: 'white',
+                borderRadius: '20px',
+                padding: '1.75rem',
+                border: '1px solid #E5E9F0',
+              }}
+            >
+              <h3 style={{ fontWeight: 800, color: '#1A2332', marginBottom: '1.25rem' }}>💰 Estimasi Biaya Perjalanan</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                  <span style={{ color: '#4A5568' }}>Tiket Masuk ({liveSummary.destinations} destinasi)</span>
+                  <strong style={{ color: '#1A2332' }}>Rp {liveSummary.totalCost.toLocaleString('id-ID')}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                  <span style={{ color: '#4A5568' }}>Transportasi (estimasi)</span>
+                  <strong style={{ color: '#1A2332' }}>Rp {(liveSummary.destinations * 25000).toLocaleString('id-ID')}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                  <span style={{ color: '#4A5568' }}>Makan & minuman (estimasi)</span>
+                  <strong style={{ color: '#1A2332' }}>Rp {(duration * 50000).toLocaleString('id-ID')}</strong>
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    padding: '0.75rem 0',
+                    borderTop: '2px solid #0A4A5E',
+                    marginTop: '0.25rem',
+                  }}
+                >
+                  <span style={{ fontWeight: 800, color: '#1A2332', fontSize: '1rem' }}>Total Estimasi</span>
+                  <strong style={{ color: '#0A4A5E', fontSize: '1.1rem' }}>
+                    Rp {liveSummary.grandTotal.toLocaleString('id-ID')}
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => { setStep(1); setGenerated(null); setEditableItems([]) }}
+                className="btn-secondary"
+                style={{ flex: 1, justifyContent: 'center' }}
+              >
+                <ChevronLeft size={18} /> Buat Ulang
+              </button>
+
+              {savedId ? (
+                <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <div
+                    style={{
+                      justifyContent: 'center',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      background: '#DCFCE7',
+                      borderRadius: '50px',
+                      padding: '0.75rem 1.75rem',
+                      color: '#15803D',
+                      fontWeight: 700,
+                      fontSize: '0.95rem',
+                    }}
+                  >
+                    <Check size={18} /> Itinerary Tersimpan!
+                  </div>
+                  {paidEditableItems.length > 0 && (
+                    <button
+                      onClick={() => {
+                        setSelectedBookingIds(paidEditableItems.map((i) => i.destination.id))
+                        setShowBookingModal(true)
+                      }}
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                        padding: '0.6rem 1rem', borderRadius: '50px',
+                        background: 'linear-gradient(135deg, #FF6B35, #E5522A)', color: 'white',
+                        border: 'none', fontWeight: 700, fontSize: '0.85rem',
+                        cursor: 'pointer', fontFamily: 'Outfit, sans-serif',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      <Ticket size={15} /> Pesan {paidEditableItems.length} Tiket Sekaligus
+                    </button>
+                  )}
+                  <Link
+                    href={`/itinerary/${savedId}`}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                      fontSize: '0.8rem', color: '#0A4A5E', textDecoration: 'none', fontWeight: 600,
+                      padding: '0.4rem',
+                    }}
+                  >
+                    Lihat Detail Itinerary <ArrowRight size={14} />
+                  </Link>
+                </div>
+              ) : (
+                <button
+                  onClick={saveItinerary}
+                  disabled={saving || editableItems.length === 0}
+                  className="btn-primary"
+                  style={{ flex: 2, justifyContent: 'center', opacity: saving || editableItems.length === 0 ? 0.6 : 1 }}
+                >
+                  {saving ? <Loader size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={18} />}
+                  {saving ? 'Menyimpan...' : 'Simpan Itinerary'}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Booking Modal */}
+      {showBookingModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backdropFilter: 'blur(4px)' }}>
+          <div style={{
+            background: 'white', borderRadius: '24px', maxWidth: '520px', width: '100%',
+            maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 25px 80px rgba(0,0,0,0.3)',
+            animation: 'fadeInUp 0.3s ease',
+          }}>
+            {/* Modal header */}
+            <div style={{
+              background: 'linear-gradient(135deg, #0A4A5E, #0D6E84)',
+              padding: '1.5rem', borderRadius: '24px 24px 0 0', color: 'white',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '0.5rem' }}>
+                    <Ticket size={16} color="#FF8C5E" />
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#FF8C5E', letterSpacing: '0.05em' }}>PESAN TIKET</span>
+                  </div>
+                  <h3 style={{ fontWeight: 900, fontSize: '1.2rem', margin: 0 }}>Booking Tiket Destinasi</h3>
+                  <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)', marginTop: '4px' }}>
+                    Pesan tiket untuk {paidEditableItems.length} destinasi berbayar dalam itinerary kamu
+                  </p>
+                </div>
+                <button
+                  onClick={() => { setShowBookingModal(false); setBookingError('') }}
+                  style={{
+                    width: '32px', height: '32px', borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+
+            <div style={{ padding: '1.25rem' }}>
+              {/* Trip date reminder */}
+              {tripStartDate ? (
+                <div style={{
+                  background: '#F0FDF4', border: '1px solid #A7F3D0', borderRadius: '12px',
+                  padding: '0.75rem 1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px',
+                }}>
+                  <Calendar size={15} color="#10B981" />
+                  <span style={{ fontSize: '0.82rem', color: '#065F46', fontWeight: 600 }}>
+                    Trip dimulai: {new Date(tripStartDate + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                  </span>
+                </div>
+              ) : (
+                <div style={{
+                  background: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '12px',
+                  padding: '0.75rem 1rem', marginBottom: '1rem',
+                }}>
+                  <div style={{ fontSize: '0.82rem', color: '#92400E', fontWeight: 600, marginBottom: '6px' }}>
+                    ⚠️ Pilih tanggal mulai trip dulu
+                  </div>
+                  <input
+                    type="date"
+                    min={new Date().toISOString().split('T')[0]}
+                    max={new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+                    value={tripStartDate}
+                    onChange={(e) => setTripStartDate(e.target.value)}
+                    className="input-field"
+                    style={{ width: '100%', fontSize: '0.88rem' }}
+                  />
+                </div>
+              )}
+
+              {/* Destination selection */}
+              <div style={{ marginBottom: '1rem' }}>
+                <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#1A2332', marginBottom: '0.6rem' }}>
+                  Destinasi Berbayar ({selectedBookingIds.length}/{paidEditableItems.length} dipilih)
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  {paidEditableItems.map((item) => {
+                    const isSelected = selectedBookingIds.includes(item.destination.id)
+                    const visitDate = getVisitDate(item.day)
+                    return (
+                      <div
+                        key={item.destination.id}
+                        onClick={() => {
+                          setSelectedBookingIds((prev) =>
+                            isSelected
+                              ? prev.filter((id) => id !== item.destination.id)
+                              : [...prev, item.destination.id]
+                          )
+                        }}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '0.65rem',
+                          padding: '0.65rem 0.85rem', borderRadius: '12px',
+                          border: `2px solid ${isSelected ? '#0A4A5E' : '#E5E9F0'}`,
+                          background: isSelected ? '#F0F7FA' : 'white',
+                          cursor: 'pointer', transition: 'all 0.15s',
+                        }}
+                      >
+                        {/* Checkbox */}
+                        <div style={{
+                          width: '22px', height: '22px', borderRadius: '6px',
+                          border: `2px solid ${isSelected ? '#0A4A5E' : '#CBD5E0'}`,
+                          background: isSelected ? '#0A4A5E' : 'white',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          flexShrink: 0, transition: 'all 0.15s',
+                        }}>
+                          {isSelected && <Check size={13} color="white" strokeWidth={3} />}
+                        </div>
+
+                        <img
+                          src={item.destination.mainImage}
+                          alt={item.destination.name}
+                          style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }}
+                        />
+
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: 700, fontSize: '0.84rem', color: '#1A2332' }}>{item.destination.name}</div>
+                          <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.7rem', color: '#8B98A9', marginTop: '2px' }}>
+                            <span>Hari {item.day}</span>
+                            {visitDate && <span>· {new Date(visitDate + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</span>}
+                            <span>· {item.startTime}</span>
+                          </div>
+                        </div>
+
+                        <div style={{ fontWeight: 800, fontSize: '0.82rem', color: '#0A4A5E', flexShrink: 0 }}>
+                          Rp {item.estimatedCost.toLocaleString('id-ID')}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Ticket count */}
+              <div style={{ marginBottom: '1rem' }}>
+                <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#1A2332', marginBottom: '0.5rem' }}>Jumlah Tiket (per destinasi)</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <button
+                    onClick={() => setBookingTicketCount(Math.max(1, bookingTicketCount - 1))}
+                    style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #E5E9F0', background: 'white', fontSize: '1.1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#4A5568', fontFamily: 'Outfit, sans-serif' }}
+                  >−</button>
+                  <span style={{ fontWeight: 800, fontSize: '1.1rem', color: '#1A2332', minWidth: '24px', textAlign: 'center' }}>{bookingTicketCount}</span>
+                  <button
+                    onClick={() => setBookingTicketCount(Math.min(10, bookingTicketCount + 1))}
+                    style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #0A4A5E', background: '#0A4A5E', fontSize: '1.1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'white', fontFamily: 'Outfit, sans-serif' }}
+                  >+</button>
+                  <span style={{ fontSize: '0.78rem', color: '#8B98A9' }}>orang</span>
+                </div>
+              </div>
+
+              {/* Payment method */}
+              <div style={{ marginBottom: '1rem' }}>
+                <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#1A2332', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <CreditCard size={14} /> Metode Pembayaran
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.4rem' }}>
+                  {PAYMENT_METHODS.map((m) => (
+                    <button
+                      key={m.id}
+                      onClick={() => setBookingPayment(m.id)}
+                      style={{
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px',
+                        padding: '0.6rem 0.5rem', borderRadius: '12px',
+                        border: `2px solid ${bookingPayment === m.id ? '#0A4A5E' : '#E5E9F0'}`,
+                        background: bookingPayment === m.id ? '#F0F7FA' : 'white',
+                        cursor: 'pointer', fontFamily: 'Outfit, sans-serif',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <span style={{ fontSize: '1.2rem' }}>{m.icon}</span>
+                      <span style={{ fontSize: '0.68rem', fontWeight: 600, color: bookingPayment === m.id ? '#0A4A5E' : '#4A5568' }}>{m.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Error */}
+              {bookingError && (
+                <div style={{ background: '#FEE2E2', border: '1px solid #FCA5A5', borderRadius: '10px', padding: '0.6rem 0.85rem', color: '#B91C1C', fontSize: '0.8rem', fontWeight: 500, marginBottom: '0.75rem' }}>
+                  ⚠️ {bookingError}
+                </div>
+              )}
+
+              {/* Total + Actions */}
+              <div style={{
+                background: '#F8FAFC', borderRadius: '14px', padding: '1rem',
+                border: '1px solid #E5E9F0', marginBottom: '0.75rem',
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <span style={{ fontSize: '0.82rem', color: '#4A5568' }}>{selectedBookingIds.length} destinasi × {bookingTicketCount} orang</span>
+                  <span style={{ fontWeight: 900, fontSize: '1.1rem', color: '#0A4A5E' }}>Rp {selectedBookingTotal.toLocaleString('id-ID')}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', color: '#8B98A9' }}>
+                  <Shield size={12} color="#10B981" />
+                  Transaksi dilindungi enkripsi SSL
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button
+                  onClick={() => { setShowBookingModal(false); setBookingError('') }}
+                  className="btn-secondary"
+                  style={{ flex: 1, justifyContent: 'center', fontSize: '0.88rem' }}
+                >
+                  Nanti Saja
+                </button>
+                <button
+                  onClick={handleBulkBooking}
+                  disabled={bookingLoading || selectedBookingIds.length === 0}
+                  className="btn-primary"
+                  style={{ flex: 2, justifyContent: 'center', fontSize: '0.88rem', opacity: bookingLoading || selectedBookingIds.length === 0 ? 0.6 : 1 }}
+                >
+                  {bookingLoading ? (
+                    <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} /> Memproses...</>
+                  ) : (
+                    <><Ticket size={16} /> Pesan {selectedBookingIds.length} Tiket</>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Footer />
+    </div>
+  )
+}

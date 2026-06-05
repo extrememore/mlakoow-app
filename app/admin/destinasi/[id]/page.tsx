@@ -1,0 +1,335 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { ArrowLeft, Save, Loader, Plus, Trash2, Image } from 'lucide-react'
+import MapPickerWrapper from '@/components/admin/MapPickerWrapper'
+
+interface Category { id: number; name: string; icon: string }
+
+const AREAS = ['Surabaya Pusat', 'Surabaya Utara', 'Surabaya Selatan', 'Surabaya Timur', 'Surabaya Barat']
+
+export default function EditDestinasiPage() {
+  const { id } = useParams()
+  const router = useRouter()
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  const [form, setForm] = useState({
+    name: '', slug: '', description: '', categoryId: '',
+    area: '', address: '', lat: '', lng: '',
+    openHour: '', closeHour: '', ticketPrice: '0',
+    mainImage: '', estimatedDuration: '60',
+    facilities: '', featured: false, hiddenGem: false,
+  })
+  const [galleryUrls, setGalleryUrls] = useState<string[]>([])
+  const [newGalleryUrl, setNewGalleryUrl] = useState('')
+  const [newGalleryPreviewOk, setNewGalleryPreviewOk] = useState(false)
+
+  useEffect(() => {
+    Promise.all([
+      fetch(`/api/admin/destinations/${id}`).then(r => r.json()),
+      fetch('/api/destinations/categories').then(r => r.json()),
+    ]).then(([dest, cats]) => {
+      setCategories(cats)
+      const facs = (() => { try { return JSON.parse(dest.facilities || '[]').join(', ') } catch { return '' } })()
+      const gals = (() => { try { return JSON.parse(dest.gallery || '[]') } catch { return [] } })()
+      setForm({
+        name: dest.name, slug: dest.slug, description: dest.description,
+        categoryId: String(dest.categoryId), area: dest.area, address: dest.address,
+        lat: String(dest.lat), lng: String(dest.lng),
+        openHour: dest.openHour, closeHour: dest.closeHour,
+        ticketPrice: String(dest.ticketPrice), mainImage: dest.mainImage,
+        estimatedDuration: String(dest.estimatedDuration), facilities: facs,
+        featured: dest.featured, hiddenGem: dest.hiddenGem,
+      })
+      setGalleryUrls(gals)
+      setLoading(false)
+    })
+  }, [id])
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+    const { name, value, type } = e.target
+    const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+    setForm(prev => ({ ...prev, [name]: val }))
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setSaving(true)
+    setError('')
+
+    const res = await fetch(`/api/admin/destinations/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: form.name, slug: form.slug, description: form.description,
+        categoryId: parseInt(form.categoryId), area: form.area, address: form.address,
+        lat: parseFloat(form.lat), lng: parseFloat(form.lng),
+        openHour: form.openHour, closeHour: form.closeHour,
+        ticketPrice: parseInt(form.ticketPrice) || 0, mainImage: form.mainImage,
+        estimatedDuration: parseInt(form.estimatedDuration) || 60,
+        facilities: form.facilities ? JSON.stringify(form.facilities.split(',').map((f: string) => f.trim())) : '[]',
+        gallery: JSON.stringify(galleryUrls),
+        featured: form.featured, hiddenGem: form.hiddenGem,
+      }),
+    })
+
+    if (res.ok) {
+      router.push('/admin/destinasi')
+    } else {
+      setError('Gagal menyimpan perubahan.')
+      setSaving(false)
+    }
+  }
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #E5E9F0',
+    fontSize: '0.9rem', fontFamily: 'Outfit, sans-serif', outline: 'none', boxSizing: 'border-box',
+    background: 'white', color: '#1A2332',
+  }
+  const labelStyle: React.CSSProperties = {
+    display: 'block', fontWeight: 700, fontSize: '0.85rem', color: '#4A5568', marginBottom: '6px',
+  }
+
+  if (loading) return (
+    <div style={{ padding: '2rem', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+      <Loader size={32} color="#0A4A5E" style={{ animation: 'spin 1s linear infinite' }} />
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+    </div>
+  )
+
+  return (
+    <div style={{ padding: '2rem', maxWidth: '760px' }}>
+      <div style={{ marginBottom: '2rem' }}>
+        <Link href="/admin/destinasi" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#8B98A9', textDecoration: 'none', fontSize: '0.875rem', marginBottom: '1rem' }}>
+          <ArrowLeft size={16} /> Kembali ke Destinasi
+        </Link>
+        <h1 style={{ fontSize: '1.75rem', fontWeight: 900, color: '#1A2332' }}>Edit Destinasi</h1>
+        <p style={{ color: '#8B98A9', fontSize: '0.9rem', marginTop: '4px' }}>{form.name}</p>
+      </div>
+
+      {error && (
+        <div style={{ background: '#FEE2E2', color: '#DC2626', padding: '12px 16px', borderRadius: '12px', marginBottom: '1.5rem', fontSize: '0.875rem', fontWeight: 600 }}>
+          ⚠️ {error}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit}>
+        <div style={{ background: 'white', borderRadius: '20px', padding: '1.75rem', border: '1px solid #E5E9F0', marginBottom: '1.25rem' }}>
+          <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '1.25rem' }}>📍 Informasi Dasar</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div>
+                <label style={labelStyle}>Nama Destinasi *</label>
+                <input name="name" value={form.name} onChange={handleChange} required style={inputStyle} />
+              </div>
+              <div>
+                <label style={labelStyle}>Slug (URL) *</label>
+                <input name="slug" value={form.slug} onChange={handleChange} required style={inputStyle} />
+              </div>
+            </div>
+            <div>
+              <label style={labelStyle}>Deskripsi *</label>
+              <textarea name="description" value={form.description} onChange={handleChange} required rows={4} style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div>
+                <label style={labelStyle}>Kategori *</label>
+                <select name="categoryId" value={form.categoryId} onChange={handleChange} required style={inputStyle}>
+                  {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>Area *</label>
+                <select name="area" value={form.area} onChange={handleChange} style={inputStyle}>
+                  {AREAS.map(a => <option key={a} value={a}>{a}</option>)}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label style={labelStyle}>Alamat *</label>
+              <input name="address" value={form.address} onChange={handleChange} required style={inputStyle} />
+            </div>
+          </div>
+        </div>
+
+        <div style={{ background: 'white', borderRadius: '20px', padding: '1.75rem', border: '1px solid #E5E9F0', marginBottom: '1.25rem' }}>
+          <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '1.25rem' }}>🕐 Operasional & Tiket</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+            <div><label style={labelStyle}>Jam Buka</label><input type="time" name="openHour" value={form.openHour} onChange={handleChange} style={inputStyle} /></div>
+            <div><label style={labelStyle}>Jam Tutup</label><input type="time" name="closeHour" value={form.closeHour} onChange={handleChange} style={inputStyle} /></div>
+             <div><label style={labelStyle}>Harga Tiket (Rp)</label><input type="number" name="ticketPrice" value={form.ticketPrice} onChange={handleChange} min="0" style={inputStyle} /></div>
+            <div><label style={labelStyle}>Est. Kunjungan (mnt)</label><input type="number" name="estimatedDuration" value={form.estimatedDuration} onChange={handleChange} min="15" style={inputStyle} /></div>
+          </div>
+        </div>
+
+        <div style={{ background: 'white', borderRadius: '20px', padding: '1.75rem', border: '1px solid #E5E9F0', marginBottom: '1.25rem' }}>
+          <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '1.25rem' }}>🗺️ Lokasi Peta</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <MapPickerWrapper
+              lat={form.lat}
+              lng={form.lng}
+              onChange={(lat, lng) => setForm(prev => ({ ...prev, lat, lng }))}
+            />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div><label style={labelStyle}>Koordinat Lat</label><input name="lat" value={form.lat} onChange={handleChange} style={inputStyle} /></div>
+              <div><label style={labelStyle}>Koordinat Lng</label><input name="lng" value={form.lng} onChange={handleChange} style={inputStyle} /></div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ background: 'white', borderRadius: '20px', padding: '1.75rem', border: '1px solid #E5E9F0', marginBottom: '1.25rem' }}>
+          <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '1.25rem' }}>🖼️ Media & Fasilitas</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div>
+              <label style={labelStyle}>URL Foto Utama *</label>
+              <input name="mainImage" value={form.mainImage} onChange={handleChange} required style={inputStyle} />
+              {form.mainImage && (
+                <img src={form.mainImage} alt="Preview" style={{ marginTop: '8px', width: '100%', maxHeight: '180px', objectFit: 'cover', borderRadius: '10px' }} onError={e => (e.currentTarget.style.display = 'none')} />
+              )}
+            </div>
+
+            {/* Gallery editor */}
+            <div>
+              <label style={{ ...labelStyle, marginBottom: '10px' }}>
+                🖼️ Galeri Foto ({galleryUrls.length} foto)
+              </label>
+
+              {/* Existing gallery thumbnails */}
+              {galleryUrls.length > 0 ? (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '10px', marginBottom: '1rem' }}>
+                  {galleryUrls.map((url, i) => (
+                    <div key={i} style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', border: '2px solid #E5E9F0', background: '#F8F6F2' }}>
+                      <img
+                        src={url}
+                        alt={`Gallery ${i + 1}`}
+                        style={{ width: '100%', height: '90px', objectFit: 'cover', display: 'block' }}
+                        onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.setAttribute('style', 'display:flex') }}
+                      />
+                      {/* Error fallback */}
+                      <div style={{ display: 'none', height: '90px', alignItems: 'center', justifyContent: 'center', color: '#8B98A9', fontSize: '0.7rem', flexDirection: 'column', gap: '4px' }}>
+                        <Image size={20} color="#8B98A9" />
+                        <span>Gagal load</span>
+                      </div>
+                      {/* Overlay: index + delete */}
+                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0)', transition: 'background 0.2s', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '6px' }}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(0,0,0,0.4)')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'rgba(0,0,0,0)')}
+                      >
+                        <span style={{ background: 'rgba(0,0,0,0.6)', color: 'white', fontSize: '0.65rem', fontWeight: 700, padding: '2px 7px', borderRadius: '50px', alignSelf: 'flex-start' }}>#{i + 1}</span>
+                        <button
+                          type="button"
+                          onClick={() => setGalleryUrls(prev => prev.filter((_, j) => j !== i))}
+                          style={{
+                            alignSelf: 'flex-end', width: '26px', height: '26px', borderRadius: '50%',
+                            background: '#EF4444', border: 'none', color: 'white',
+                            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          }}
+                          title="Hapus foto ini"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '1.5rem', background: '#F8F6F2', borderRadius: '12px', border: '2px dashed #E5E9F0', marginBottom: '1rem' }}>
+                  <Image size={28} color="#8B98A9" style={{ marginBottom: '6px' }} />
+                  <p style={{ fontSize: '0.82rem', color: '#8B98A9', margin: 0 }}>Belum ada foto galeri. Tambahkan di bawah.</p>
+                </div>
+              )}
+
+              {/* Add new URL */}
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                <div style={{ flex: 1 }}>
+                  <input
+                    type="url"
+                    value={newGalleryUrl}
+                    onChange={e => { setNewGalleryUrl(e.target.value); setNewGalleryPreviewOk(false) }}
+                    placeholder="https://example.com/foto.jpg"
+                    style={{ ...inputStyle, borderColor: newGalleryUrl ? '#0A4A5E' : '#E5E9F0' }}
+                  />
+                  {/* Live preview of new URL */}
+                  {newGalleryUrl && (
+                    <img
+                      src={newGalleryUrl}
+                      alt="preview"
+                      onLoad={() => setNewGalleryPreviewOk(true)}
+                      onError={() => setNewGalleryPreviewOk(false)}
+                      style={{ marginTop: '6px', width: '100%', height: '80px', objectFit: 'cover', borderRadius: '8px', display: newGalleryPreviewOk ? 'block' : 'none' }}
+                    />
+                  )}
+                  {newGalleryUrl && !newGalleryPreviewOk && (
+                    <p style={{ fontSize: '0.7rem', color: '#EF4444', marginTop: '4px', fontWeight: 600 }}>⚠️ URL tidak dapat dimuat — pastikan URL gambar valid</p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (newGalleryUrl.trim() && !galleryUrls.includes(newGalleryUrl.trim())) {
+                      setGalleryUrls(prev => [...prev, newGalleryUrl.trim()])
+                      setNewGalleryUrl('')
+                      setNewGalleryPreviewOk(false)
+                    }
+                  }}
+                  disabled={!newGalleryUrl.trim()}
+                  style={{
+                    padding: '10px 16px', borderRadius: '10px', border: 'none',
+                    background: newGalleryUrl.trim() ? '#0A4A5E' : '#E5E9F0',
+                    color: newGalleryUrl.trim() ? 'white' : '#8B98A9',
+                    fontWeight: 700, fontSize: '0.85rem', cursor: newGalleryUrl.trim() ? 'pointer' : 'not-allowed',
+                    display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0, height: '42px',
+                    fontFamily: 'Outfit, sans-serif', transition: 'all 0.15s',
+                  }}
+                >
+                  <Plus size={16} /> Tambah
+                </button>
+              </div>
+              <p style={{ fontSize: '0.72rem', color: '#8B98A9', marginTop: '6px' }}>
+                💡 Masukkan URL gambar publik. Klik hover thumbnail untuk menghapus.
+              </p>
+            </div>
+
+            <div>
+              <label style={labelStyle}>Fasilitas (pisahkan dengan koma)</label>
+              <input name="facilities" value={form.facilities} onChange={handleChange} placeholder="Parkir, Toilet, Musholla" style={inputStyle} />
+            </div>
+          </div>
+        </div>
+
+        <div style={{ background: 'white', borderRadius: '20px', padding: '1.75rem', border: '1px solid #E5E9F0', marginBottom: '1.5rem' }}>
+          <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '1.25rem' }}>⚙️ Status</h2>
+          <div style={{ display: 'flex', gap: '2rem' }}>
+            {[
+              { name: 'featured', label: '⭐ Featured', desc: 'Tampil di halaman utama' },
+              { name: 'hiddenGem', label: '💎 Hidden Gem', desc: 'Tandai sebagai permata tersembunyi' },
+            ].map(toggle => (
+              <label key={toggle.name} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
+                <input type="checkbox" name={toggle.name} checked={(form as any)[toggle.name]} onChange={handleChange} style={{ marginTop: '3px', width: '18px', height: '18px', accentColor: '#0A4A5E' }} />
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1A2332' }}>{toggle.label}</div>
+                  <div style={{ fontSize: '0.78rem', color: '#8B98A9' }}>{toggle.desc}</div>
+                </div>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <Link href="/admin/destinasi" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', borderRadius: '50px', border: '2px solid #E5E9F0', background: 'white', color: '#4A5568', fontWeight: 700, textDecoration: 'none', fontSize: '0.9rem' }}>
+            Batal
+          </Link>
+          <button type="submit" disabled={saving} style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', borderRadius: '50px', background: '#0A4A5E', color: 'white', border: 'none', fontWeight: 700, fontSize: '0.9rem', cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'Outfit, sans-serif', opacity: saving ? 0.8 : 1 }}>
+            {saving ? <><Loader size={18} style={{ animation: 'spin 1s linear infinite' }} /> Menyimpan...</> : <><Save size={18} /> Simpan Perubahan</>}
+          </button>
+        </div>
+      </form>
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+    </div>
+  )
+}

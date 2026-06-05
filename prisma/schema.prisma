@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  role      String    @default("user")
+  avatar    String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  reviews     Review[]
+  itineraries Itinerary[]
+  bookings    Booking[]
+}
+
+model Category {
+  id           Int           @id @default(autoincrement())
+  name         String
+  slug         String        @unique
+  icon         String
+  color        String
+  destinations Destination[]
+}
+
+model Destination {
+  id                Int      @id @default(autoincrement())
+  name              String
+  slug              String   @unique
+  description       String   @db.Text
+  categoryId        Int
+  area              String
+  address           String
+  lat               Float
+  lng               Float
+  openHour          String
+  closeHour         String
+  ticketPrice       Int      @default(0)
+  mainImage         String
+  gallery           String   @db.Text
+  rating            Float    @default(0)
+  reviewCount       Int      @default(0)
+  featured          Boolean  @default(false)
+  hiddenGem         Boolean  @default(false)
+  estimatedDuration Int      @default(60)
+  facilities        String   @db.Text
+  createdAt         DateTime @default(now())
+
+  category       Category        @relation(fields: [categoryId], references: [id])
+  reviews        Review[]
+  itineraryItems ItineraryItem[]
+  bookings       Booking[]
+}
+
+model Review {
+  id            Int         @id @default(autoincrement())
+  userId        Int
+  destinationId Int
+  rating        Int
+  comment       String      @db.Text
+  createdAt     DateTime    @default(now())
+
+  user        User        @relation(fields: [userId], references: [id])
+  destination Destination @relation(fields: [destinationId], references: [id])
+}
+
+model Itinerary {
+  id                Int             @id @default(autoincrement())
+  userId            Int
+  title             String
+  duration          Int
+  budget            Int
+  area              String
+  totalEstimatedCost Int            @default(0)
+  notes             String?         @db.Text
+  startDate         DateTime?
+  createdAt         DateTime        @default(now())
+
+  user  User            @relation(fields: [userId], references: [id])
+  items ItineraryItem[]
+}
+
+model ItineraryItem {
+  id                  Int         @id @default(autoincrement())
+  itineraryId         Int
+  destinationId       Int
+  order               Int
+  estimatedVisitTime  Int
+  estimatedCost       Int         @default(0)
+  transportNote       String?
+
+  itinerary   Itinerary   @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
+  destination Destination @relation(fields: [destinationId], references: [id])
+}
+
+model Booking {
+  id            Int         @id @default(autoincrement())
+  userId        Int
+  destinationId Int
+  visitDate     DateTime
+  ticketCount   Int
+  totalPrice    Int
+  status        String      @default("pending")
+  bookingCode   String      @unique
+  createdAt     DateTime    @default(now())
+
+  user        User        @relation(fields: [userId], references: [id])
+  destination Destination @relation(fields: [destinationId], references: [id])
+}
