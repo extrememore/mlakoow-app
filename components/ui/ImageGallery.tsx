@@ -1,15 +1,16 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { X, ChevronLeft, ChevronRight, ZoomIn, Images } from 'lucide-react'
+import { X, ChevronLeft, ChevronRight, ZoomIn, Images, ArrowLeft } from 'lucide-react'
 
 interface ImageGalleryProps {
   mainImage: string
   gallery: string[]
   altBase: string
+  backLink?: string
 }
 
-export default function ImageGallery({ mainImage, gallery, altBase }: ImageGalleryProps) {
+export default function ImageGallery({ mainImage, gallery, altBase, backLink }: ImageGalleryProps) {
   // All images: main first, then gallery
   const allImages = [mainImage, ...gallery].filter(Boolean)
 
@@ -68,21 +69,32 @@ export default function ImageGallery({ mainImage, gallery, altBase }: ImageGalle
         <div
           style={{
             position: 'relative',
-            height: 'clamp(280px, 45vw, 520px)',
+            height: 'clamp(320px, 45vw, 600px)',
             overflow: 'hidden',
             cursor: hasMultiple ? 'zoom-in' : 'default',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: `url(${allImages[activeIdx]}) center/cover no-repeat`
           }}
           onClick={() => openLightbox(activeIdx)}
         >
+          {/* Heavy blur backdrop for wide screens */}
+          <div style={{ position: 'absolute', inset: 0, backdropFilter: 'blur(30px)', background: 'rgba(10,24,40,0.6)' }} />
+
           <img
             key={activeIdx}
             src={allImages[activeIdx]}
             alt={`${altBase} ${activeIdx + 1}`}
             onLoad={() => setImgLoaded(true)}
             style={{
-              width: '100%', height: '100%', objectFit: 'cover',
+              position: 'relative',
+              width: '100%', 
+              height: '100%', 
+              objectFit: 'contain',
               transition: 'opacity 0.3s',
               opacity: imgLoaded ? 1 : 0,
+              zIndex: 1
             }}
           />
 
@@ -91,7 +103,30 @@ export default function ImageGallery({ mainImage, gallery, altBase }: ImageGalle
             position: 'absolute', inset: 0,
             background: 'linear-gradient(to top, rgba(10,74,94,0.85) 0%, transparent 55%)',
             pointerEvents: 'none',
+            zIndex: 2
           }} />
+
+          {/* Back button */}
+          {backLink && (
+            <a
+              href={backLink}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                position: 'absolute', top: '1rem', left: '1rem',
+                background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)',
+                borderRadius: '50px', padding: '8px 16px',
+                display: 'flex', alignItems: 'center', gap: '8px',
+                color: 'white', fontSize: '0.85rem', fontWeight: 600,
+                textDecoration: 'none', zIndex: 5,
+                border: '1px solid rgba(255,255,255,0.2)',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.7)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.45)' }}
+            >
+              <ArrowLeft size={16} /> Kembali
+            </a>
+          )}
 
           {/* Zoom hint */}
           {hasMultiple && (
@@ -101,7 +136,7 @@ export default function ImageGallery({ mainImage, gallery, altBase }: ImageGalle
               borderRadius: '50px', padding: '6px 12px',
               display: 'flex', alignItems: 'center', gap: '5px',
               color: 'white', fontSize: '0.72rem', fontWeight: 600,
-              pointerEvents: 'none',
+              pointerEvents: 'none', zIndex: 5
             }}>
               <ZoomIn size={13} />
               Klik untuk perbesar
@@ -115,7 +150,7 @@ export default function ImageGallery({ mainImage, gallery, altBase }: ImageGalle
               background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
               borderRadius: '50px', padding: '4px 10px',
               color: 'white', fontSize: '0.72rem', fontWeight: 700,
-              pointerEvents: 'none',
+              pointerEvents: 'none', zIndex: 5
             }}>
               {activeIdx + 1} / {allImages.length}
             </div>

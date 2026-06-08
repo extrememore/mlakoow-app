@@ -86,30 +86,12 @@ export default async function DetailDestinasiPage({
       <Navbar />
 
       {/* Back nav */}
-      <div style={{ background: 'white', borderBottom: '1px solid #E5E9F0' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1rem 1.5rem' }}>
-          <Link
-            href="/wisata"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              textDecoration: 'none',
-              color: '#4A5568',
-              fontSize: '0.9rem',
-              fontWeight: 500,
-            }}
-          >
-            <ArrowLeft size={16} /> Kembali ke Destinasi
-          </Link>
-        </div>
-      </div>
-
       {/* Interactive Gallery (hero + thumbnails + lightbox) */}
       <ImageGallery
         mainImage={destination.mainImage}
         gallery={gallery}
         altBase={destination.name}
+        backLink="/wisata"
       />
 
       {/* Hero overlay info (name, badges, rating) — kept on top of gallery */}

@@ -99,31 +99,12 @@ export default async function DetailKulinerPage({
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
       <Navbar />
 
-      {/* Back nav */}
-      <div style={{ background: 'white', borderBottom: '1px solid #E5E9F0' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1rem 1.5rem' }}>
-          <Link
-            href="/kuliner"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              textDecoration: 'none',
-              color: '#4A5568',
-              fontSize: '0.9rem',
-              fontWeight: 500,
-            }}
-          >
-            <ArrowLeft size={16} /> Kembali ke Kuliner & Oleh-oleh
-          </Link>
-        </div>
-      </div>
-
-      {/* Interactive Gallery */}
+      {/* Interactive Gallery (hero + thumbnails + lightbox) */}
       <ImageGallery
         mainImage={destination.mainImage}
         gallery={gallery}
         altBase={destination.name}
+        backLink="/kuliner"
       />
 
       {/* Hero info bar */}
