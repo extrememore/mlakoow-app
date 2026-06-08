@@ -92,7 +92,7 @@ export default async function DetailCafePage({
     try {
       menus = JSON.parse(destination.menus)
       if (menus.length > 0) {
-        const sum = menus.reduce((acc: number, curr: any) => acc + (curr.price || 0), 0)
+        const sum = menus.reduce((acc: number, curr: any) => acc + (curr.price || curr.ticketPrice || 0), 0)
         averageMenuPrice = Math.round(sum / menus.length)
       }
     } catch(e) {}
@@ -237,7 +237,7 @@ export default async function DetailCafePage({
                         )}
                       </div>
                       <div style={{ fontWeight: 900, color: '#C0392B', fontSize: '1.05rem', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
-                        Rp {menu.price.toLocaleString('id-ID')}
+                        Rp {(menu.price || menu.ticketPrice || 0).toLocaleString('id-ID')}
                       </div>
                     </div>
                   ))}
