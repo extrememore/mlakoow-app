@@ -332,6 +332,14 @@ export default async function DetailKulinerPage({
               >
                 <Star size={18} /> Tambah ke Wishlist
               </Link>
+              
+              <Link
+                href={`/itinerary?add=${destination.id}`}
+                className="btn-secondary"
+                style={{ width: '100%', justifyContent: 'center', display: 'flex', fontSize: '0.875rem' }}
+              >
+                + Tambah ke Itinerary
+              </Link>
             </div>
 
             {/* Related kuliner */}
