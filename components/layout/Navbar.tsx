@@ -20,6 +20,7 @@ export default function Navbar() {
     { href: '/destinasi', label: 'Destinasi' },
     { href: '/kuliner', label: 'Kuliner & Oleh-oleh' },
     { href: '/itinerary', label: 'Smart Itinerary' },
+    { href: '/bantuan', label: 'Bantuan' },
   ]
 
   const isActive = (href: string) =>
