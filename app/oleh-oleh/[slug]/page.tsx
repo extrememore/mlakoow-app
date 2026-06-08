@@ -58,8 +58,8 @@ export default async function DetailKulinerPage({
 
   if (!destination) notFound()
 
-  // If someone navigates here but it's not a kuliner destination, redirect to destinasi
-  if (destination.category.slug !== 'kuliner') {
+  // If someone navigates here but it's not an oleh-oleh destination, redirect to destinasi
+  if (destination.category.slug !== 'oleh-oleh') {
     redirect(`/wisata/${slug}`)
   }
 
@@ -104,7 +104,7 @@ export default async function DetailKulinerPage({
         mainImage={destination.mainImage}
         gallery={gallery}
         altBase={destination.name}
-        backLink="/kuliner"
+        backLink="/oleh-oleh"
       />
 
       {/* Hero info bar */}
@@ -351,7 +351,7 @@ export default async function DetailKulinerPage({
                   {related.map((rel) => (
                     <Link
                       key={rel.id}
-                      href={`/kuliner/${rel.slug}`}
+                      href={`/oleh-oleh/${rel.slug}`}
                       style={{ textDecoration: 'none', display: 'flex', gap: '12px', alignItems: 'center' }}
                     >
                       <SafeImage
