@@ -273,9 +273,15 @@ export default async function DetailDestinasiPage({
               }}
             >
               <div style={{ marginBottom: '1.25rem' }}>
-                <div style={{ fontSize: '0.85rem', color: '#8B98A9', fontWeight: 600, marginBottom: '4px' }}>TIKET MASUK</div>
-                <div style={{ fontSize: '2rem', fontWeight: 900, color: destination.ticketPrice === 0 ? '#10B981' : '#0A4A5E' }}>
-                  {destination.ticketPrice === 0 ? 'GRATIS' : `Rp ${destination.ticketPrice.toLocaleString('id-ID')}`}
+                <div style={{ fontSize: '0.85rem', color: '#8B98A9', fontWeight: 600, marginBottom: '4px' }}>
+                  {destination.category.slug === 'hiburan' || destination.category.slug === 'spot-foto' ? 'ESTIMASI PENGELUARAN' : 'TIKET MASUK'}
+                </div>
+                <div style={{ fontSize: destination.category.slug === 'hiburan' || destination.category.slug === 'spot-foto' ? '1.5rem' : '2rem', fontWeight: 900, color: destination.ticketPrice === 0 ? '#10B981' : '#0A4A5E' }}>
+                  {destination.ticketPrice === 0 ? 'GRATIS' : (
+                    destination.category.slug === 'hiburan' || destination.category.slug === 'spot-foto'
+                    ? `Rp ${destination.ticketPrice.toLocaleString('id-ID')} - ${(Math.round((destination.ticketPrice * 1.5) / 5000) * 5000).toLocaleString('id-ID')}`
+                    : `Rp ${destination.ticketPrice.toLocaleString('id-ID')}`
+                  )}
                 </div>
                 {destination.ticketPrice > 0 && (
                   <div style={{ fontSize: '0.78rem', color: '#8B98A9' }}>per orang</div>

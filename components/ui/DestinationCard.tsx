@@ -82,6 +82,10 @@ export default function DestinationCard({
       else if (ticketPrice < 60000) priceDisplay = '$$ (Sedang)'
       else if (ticketPrice < 100000) priceDisplay = '$$$ (Mahal)'
       else priceDisplay = '$$$$ (Premium)'
+    } else if (category.slug === 'hiburan' || category.slug === 'spot-foto') {
+      const upper = Math.round((ticketPrice * 1.5) / 5000) * 5000;
+      const fmt = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 });
+      priceDisplay = `Rp ${fmt.format(ticketPrice)} - Rp ${fmt.format(upper)}`;
     } else {
       priceDisplay = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(ticketPrice)
     }
