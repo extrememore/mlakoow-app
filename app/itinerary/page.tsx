@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, Suspense } from 'react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import Link from 'next/link'
@@ -119,7 +119,7 @@ function recalcItems(items: ItineraryItem[], duration: number): ItineraryItem[] 
   return result
 }
 
-export default function ItineraryPage() {
+function ItineraryContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [step, setStep] = useState(1)
@@ -1979,5 +1979,13 @@ export default function ItineraryPage() {
 
       <Footer />
     </div>
+  )
+}
+
+export default function ItineraryPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', color: '#8B98A9' }}>Memuat itinerary...</div>}>
+      <ItineraryContent />
+    </Suspense>
   )
 }
