@@ -22,6 +22,8 @@ interface DestinationCardProps {
     slug: string
   }
   description?: string
+  isKuliner?: boolean
+  facilities?: string
 }
 
 export default function DestinationCard({
@@ -37,6 +39,8 @@ export default function DestinationCard({
   estimatedDuration,
   category,
   description,
+  isKuliner,
+  facilities,
 }: DestinationCardProps) {
   const href = category.slug === 'kuliner' ? `/kuliner/${slug}` : `/destinasi/${slug}`
   return (
@@ -142,11 +146,19 @@ export default function DestinationCard({
                 )}
               </div>
 
-              {/* Duration */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#8B98A9', fontSize: '0.82rem' }}>
-                <Clock size={12} />
-                <span>{estimatedDuration} mnt</span>
-              </div>
+              {/* Duration or Badges */}
+              {isKuliner ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.82rem' }}>
+                  {facilities?.includes('Legendaris') && <span title="Legendaris" style={{ background: '#FEF3C7', color: '#D97706', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>🏆 Legendaris</span>}
+                  {facilities?.includes('Halal') && <span title="100% Halal" style={{ background: '#D1FAE5', color: '#059669', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>🟢 Halal</span>}
+                  {facilities?.includes('Pedes') && <span title="Pedes Nampol" style={{ background: '#FEE2E2', color: '#DC2626', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>🔥 Pedes</span>}
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#8B98A9', fontSize: '0.82rem' }}>
+                  <Clock size={12} />
+                  <span>{estimatedDuration} mnt</span>
+                </div>
+              )}
             </div>
 
             {/* Price */}
@@ -156,10 +168,13 @@ export default function DestinationCard({
                 style={{
                   fontWeight: 700,
                   fontSize: '0.9rem',
-                  color: ticketPrice === 0 ? '#10B981' : '#0A4A5E',
+                  color: (ticketPrice === 0 && !isKuliner) ? '#10B981' : '#0A4A5E',
                 }}
               >
-                {ticketPrice === 0 ? 'Gratis' : `Rp ${ticketPrice.toLocaleString('id-ID')}`}
+                {isKuliner 
+                  ? (ticketPrice === 0 ? 'Bervariasi' : ticketPrice < 25000 ? '$ (Murah)' : ticketPrice <= 75000 ? '$$ (Standar)' : '$$$ (Premium)')
+                  : (ticketPrice === 0 ? 'Gratis' : `Rp ${ticketPrice.toLocaleString('id-ID')}`)
+                }
               </span>
             </div>
           </div>

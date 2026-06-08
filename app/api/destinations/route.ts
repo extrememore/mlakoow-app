@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
   const sort = searchParams.get('sort') || ''
   const price = searchParams.get('price') || ''
   const facilities = searchParams.get('facilities') || ''
+  const pageType = searchParams.get('pageType') || 'default'
 
   const limit = parseInt(searchParams.get('limit') || '20')
   const page = parseInt(searchParams.get('page') || '1')
@@ -43,11 +44,13 @@ export async function GET(request: NextRequest) {
 
   // Price Filter
   if (price === 'gratis') {
-    where.ticketPrice = 0
+    if (pageType !== 'kuliner') {
+      where.ticketPrice = 0
+    }
   } else if (price === 'murah') {
-    where.ticketPrice = { gt: 0, lte: 50000 }
+    where.ticketPrice = { gt: 0, lte: pageType === 'kuliner' ? 25000 : 50000 }
   } else if (price === 'premium') {
-    where.ticketPrice = { gt: 50000 }
+    where.ticketPrice = { gt: pageType === 'kuliner' ? 25000 : 50000 }
   }
 
   // Facilities Filter (AND logic)

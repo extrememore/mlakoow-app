@@ -28,6 +28,7 @@ export interface Destination {
   hiddenGem: boolean
   estimatedDuration: number
   description: string
+  facilities: string
   category: Category
 }
 
@@ -44,6 +45,7 @@ interface DestinationExplorerProps {
   showCategoryFilter?: boolean
   tags?: { label: string, value: string }[]
   customBanner?: ReactNode
+  pageType?: 'default' | 'kuliner'
 }
 
 export default function DestinationExplorer({
@@ -56,7 +58,8 @@ export default function DestinationExplorer({
   icon = <MapPin size={16} color="#FF8C5E" />,
   showCategoryFilter = false,
   tags = [],
-  customBanner
+  customBanner,
+  pageType = 'default'
 }: DestinationExplorerProps) {
   const [destinations, setDestinations] = useState<Destination[]>([])
   const [categories, setCategories] = useState<Category[]>([])
@@ -94,6 +97,7 @@ export default function DestinationExplorer({
       if (activeTag === 'featured') params.set('featured', 'true')
       if (activeTag === 'hidden') params.set('hiddenGem', 'true')
       
+      params.set('pageType', pageType)
       if (sort) params.set('sort', sort)
       if (price) params.set('price', price)
       if (facilities.length > 0) params.set('facilities', facilities.join(','))
@@ -341,6 +345,8 @@ export default function DestinationExplorer({
                   estimatedDuration={dest.estimatedDuration}
                   category={dest.category}
                   description={dest.description}
+                  isKuliner={pageType === 'kuliner'}
+                  facilities={dest.facilities}
                 />
               ))}
             </div>
@@ -362,16 +368,25 @@ export default function DestinationExplorer({
             <div style={{ marginBottom: '1.5rem' }}>
               <h4 style={{ fontSize: '1rem', fontWeight: 700, color: '#4A5568', marginBottom: '0.75rem' }}>Rentang Harga</h4>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                <button onClick={() => setPrice(price === 'gratis' ? '' : 'gratis')} style={{ padding: '0.75rem', borderRadius: '12px', border: price === 'gratis' ? '2px solid #FF6B35' : '1px solid #E5E9F0', background: price === 'gratis' ? 'rgba(255,107,53,0.05)' : 'white', color: price === 'gratis' ? '#FF6B35' : '#4A5568', fontWeight: 600, cursor: 'pointer', fontFamily: 'Outfit, sans-serif', transition: 'all 0.2s' }}>Gratis</button>
-                <button onClick={() => setPrice(price === 'murah' ? '' : 'murah')} style={{ padding: '0.75rem', borderRadius: '12px', border: price === 'murah' ? '2px solid #FF6B35' : '1px solid #E5E9F0', background: price === 'murah' ? 'rgba(255,107,53,0.05)' : 'white', color: price === 'murah' ? '#FF6B35' : '#4A5568', fontWeight: 600, cursor: 'pointer', fontFamily: 'Outfit, sans-serif', transition: 'all 0.2s' }}>&lt; 50k</button>
-                <button onClick={() => setPrice(price === 'premium' ? '' : 'premium')} style={{ padding: '0.75rem', borderRadius: '12px', border: price === 'premium' ? '2px solid #FF6B35' : '1px solid #E5E9F0', background: price === 'premium' ? 'rgba(255,107,53,0.05)' : 'white', color: price === 'premium' ? '#FF6B35' : '#4A5568', fontWeight: 600, cursor: 'pointer', fontFamily: 'Outfit, sans-serif', transition: 'all 0.2s' }}>&gt; 50k</button>
+                <button onClick={() => setPrice(price === 'gratis' ? '' : 'gratis')} style={{ padding: '0.75rem', borderRadius: '12px', border: price === 'gratis' ? '2px solid #FF6B35' : '1px solid #E5E9F0', background: price === 'gratis' ? 'rgba(255,107,53,0.05)' : 'white', color: price === 'gratis' ? '#FF6B35' : '#4A5568', fontWeight: 600, cursor: 'pointer', fontFamily: 'Outfit, sans-serif', transition: 'all 0.2s' }}>
+                  {pageType === 'kuliner' ? 'Semua Harga' : 'Gratis'}
+                </button>
+                <button onClick={() => setPrice(price === 'murah' ? '' : 'murah')} style={{ padding: '0.75rem', borderRadius: '12px', border: price === 'murah' ? '2px solid #FF6B35' : '1px solid #E5E9F0', background: price === 'murah' ? 'rgba(255,107,53,0.05)' : 'white', color: price === 'murah' ? '#FF6B35' : '#4A5568', fontWeight: 600, cursor: 'pointer', fontFamily: 'Outfit, sans-serif', transition: 'all 0.2s' }}>
+                  {pageType === 'kuliner' ? '< 25k' : '< 50k'}
+                </button>
+                <button onClick={() => setPrice(price === 'premium' ? '' : 'premium')} style={{ padding: '0.75rem', borderRadius: '12px', border: price === 'premium' ? '2px solid #FF6B35' : '1px solid #E5E9F0', background: price === 'premium' ? 'rgba(255,107,53,0.05)' : 'white', color: price === 'premium' ? '#FF6B35' : '#4A5568', fontWeight: 600, cursor: 'pointer', fontFamily: 'Outfit, sans-serif', transition: 'all 0.2s' }}>
+                  {pageType === 'kuliner' ? '> 25k' : '> 50k'}
+                </button>
               </div>
             </div>
 
             <div style={{ marginBottom: '2rem' }}>
               <h4 style={{ fontSize: '1rem', fontWeight: 700, color: '#4A5568', marginBottom: '0.75rem' }}>Fasilitas Spesifik</h4>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                {['Ramah Anak', 'Akses Kursi Roda', 'Buka 24 Jam', 'Instagramable', 'Tempat Parkir'].map(fac => {
+                {(pageType === 'kuliner' 
+                  ? ['Halal', 'Kaki Lima', 'Restoran Keluarga', 'Legendaris', 'Pedes']
+                  : ['Ramah Anak', 'Akses Kursi Roda', 'Buka 24 Jam', 'Instagramable', 'Tempat Parkir']
+                ).map(fac => {
                   const isSelected = facilities.includes(fac);
                   return (
                     <button key={fac} onClick={() => {
