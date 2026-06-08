@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
   const area = searchParams.get('area') || ''
   const featured = searchParams.get('featured') === 'true'
   const hiddenGem = searchParams.get('hiddenGem') === 'true'
+  const excludeCategory = searchParams.get('excludeCategory') || ''
   const limit = parseInt(searchParams.get('limit') || '20')
   const page = parseInt(searchParams.get('page') || '1')
   const skip = (page - 1) * limit
@@ -24,6 +25,7 @@ export async function GET(request: NextRequest) {
   if (area) where.area = area
   if (featured) where.featured = true
   if (hiddenGem) where.hiddenGem = true
+  if (excludeCategory) where.NOT = { category: { slug: excludeCategory } }
 
   const [destinations, total] = await Promise.all([
     prisma.destination.findMany({

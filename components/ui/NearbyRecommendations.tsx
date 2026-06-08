@@ -23,6 +23,7 @@ interface Destination {
     name: string
     icon: string
     color: string
+    slug: string
   }
 }
 

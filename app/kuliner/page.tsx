@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import DestinationCard from '@/components/ui/DestinationCard'
-import { Search, SlidersHorizontal, X, MapPin, ChevronDown } from 'lucide-react'
+import { Search, X, MapPin, ChevronDown, UtensilsCrossed } from 'lucide-react'
 
 interface Category {
   id: number
@@ -32,105 +32,126 @@ interface Destination {
 
 const AREAS = ['Surabaya Pusat', 'Surabaya Utara', 'Surabaya Selatan', 'Surabaya Timur', 'Surabaya Barat']
 
-export default function DestinasiPage() {
+// Kuliner sub-tags untuk filtering extra
+const KULINER_TAGS = [
+  { label: 'Semua', value: '' },
+  { label: '⭐ Populer', value: 'featured' },
+  { label: '💎 Hidden Gem', value: 'hidden' },
+]
+
+export default function KulinerPage() {
   const [destinations, setDestinations] = useState<Destination[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [total, setTotal] = useState(0)
 
-  // Filters
   const [search, setSearch] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedArea, setSelectedArea] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
+  const [activeTag, setActiveTag] = useState('')
 
-  const fetchDestinations = useCallback(async () => {
+  const fetchKuliner = useCallback(async () => {
     setLoading(true)
     const params = new URLSearchParams()
-    if (search) params.set('search', search)
-    if (selectedCategory) params.set('category', selectedCategory)
-    if (selectedArea) params.set('area', selectedArea)
+    params.set('category', 'kuliner')
     params.set('limit', '24')
-    params.set('excludeCategory', 'kuliner')
+    if (search) params.set('search', search)
+    if (selectedArea) params.set('area', selectedArea)
+    if (activeTag === 'featured') params.set('featured', 'true')
+    if (activeTag === 'hidden') params.set('hiddenGem', 'true')
 
     const res = await fetch(`/api/destinations?${params}`)
     const data = await res.json()
     setDestinations(data.destinations || [])
     setTotal(data.total || 0)
     setLoading(false)
-  }, [search, selectedCategory, selectedArea])
+  }, [search, selectedArea, activeTag])
 
   useEffect(() => {
-    fetch('/api/destinations?limit=0')
-      .then((r) => r.json())
-      .then(() => {})
+    fetchKuliner()
+  }, [fetchKuliner])
 
-    fetch('/api/destinations?limit=1')
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.destinations?.[0]?.category) {
-          // categories are embedded in destinations
-        }
-      })
-
-    // Load categories (exclude kuliner, it has its own page)
-    fetch('/api/destinations?limit=50&excludeCategory=kuliner')
-      .then((r) => r.json())
-      .then((d) => {
-        const cats = new Map()
-        ;(d.destinations || []).forEach((dest: Destination) => {
-          if (!cats.has(dest.category.id)) cats.set(dest.category.id, dest.category)
-        })
-        setCategories(Array.from(cats.values()))
-      })
-
-    // Load URL params
-    const params = new URLSearchParams(window.location.search)
-    setSearch(params.get('search') || '')
-    setSelectedCategory(params.get('category') || '')
-    setSelectedArea(params.get('area') || '')
-    if (params.get('hiddenGem') === 'true') {
-      // pass
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchDestinations()
-  }, [fetchDestinations])
-
-  const activeFilters = [
-    selectedCategory && `Kategori: ${categories.find((c) => c.slug === selectedCategory)?.name || selectedCategory}`,
-    selectedArea && `Area: ${selectedArea}`,
-  ].filter(Boolean)
+  const hasFilters = search || selectedArea || activeTag
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
       <Navbar />
 
-      {/* Page Header */}
+      {/* Hero Header */}
       <div
         style={{
-          background: 'linear-gradient(135deg, #062E3A 0%, #0A4A5E 100%)',
+          background: 'linear-gradient(135deg, #7B1A00 0%, #C0392B 50%, #E67E22 100%)',
           padding: '3rem 1.5rem',
           color: 'white',
+          position: 'relative',
+          overflow: 'hidden',
         }}
       >
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.75rem' }}>
-            <MapPin size={16} color="#FF8C5E" />
-            <span style={{ color: '#FF8C5E', fontWeight: 600, fontSize: '0.85rem' }}>DESTINASI WISATA</span>
+        {/* Background decoration */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '-40px',
+            right: '-40px',
+            width: '220px',
+            height: '220px',
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.05)',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '-60px',
+            left: '10%',
+            width: '160px',
+            height: '160px',
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.04)',
+          }}
+        />
+
+        <div style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '0.75rem' }}>
+            <div
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '10px',
+                background: 'rgba(255,255,255,0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <UtensilsCrossed size={20} color="white" />
+            </div>
+            <span style={{ color: 'rgba(255,255,255,0.85)', fontWeight: 700, fontSize: '0.85rem', letterSpacing: '1px', textTransform: 'uppercase' }}>
+              KULINER & OLEH-OLEH SURABAYA
+            </span>
           </div>
-          <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', fontWeight: 900, marginBottom: '0.75rem' }}>
-            Destinasi Wisata Surabaya
+          <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', fontWeight: 900, marginBottom: '0.75rem', lineHeight: 1.2 }}>
+            Wisata Kuliner Surabaya 🍜
           </h1>
-          <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1rem', maxWidth: '560px' }}>
-            Temukan {total > 0 ? `${total}+` : ''} destinasi wisata terbaik di Kota Surabaya — dari landmark populer hingga hidden gems. Cari kuliner? Kunjungi halaman{' '}
-            <a href="/kuliner" style={{ color: '#FF8C5E', fontWeight: 700, textDecoration: 'underline' }}>Kuliner & Oleh-oleh</a> kami!
+          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '1rem', maxWidth: '580px', lineHeight: 1.7 }}>
+            Temukan {total > 0 ? `${total}` : ''} destinasi kuliner legendaris Surabaya — dari Rawon, Rujak Cingur, Pecel Semanggi, hingga pusat oleh-oleh terbaik kota ini.
           </p>
+
+          {/* Quick stats */}
+          <div style={{ display: 'flex', gap: '2rem', marginTop: '1.75rem', flexWrap: 'wrap' }}>
+            {[
+              { emoji: '🍛', label: 'Kuliner Khas' },
+              { emoji: '🛍️', label: 'Oleh-oleh' },
+              { emoji: '📍', label: 'Tersebar di Surabaya' },
+            ].map((s) => (
+              <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.15)', borderRadius: '50px', padding: '6px 14px' }}>
+                <span style={{ fontSize: '1rem' }}>{s.emoji}</span>
+                <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>{s.label}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Search & Filter Bar */}
+      {/* Filter Bar */}
       <div
         style={{
           background: 'white',
@@ -163,38 +184,9 @@ export default function DestinasiPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Cari destinasi..."
+              placeholder="Cari kuliner atau tempat makan..."
               className="input-field"
               style={{ paddingLeft: '2.75rem', paddingTop: '0.65rem', paddingBottom: '0.65rem' }}
-            />
-          </div>
-
-          {/* Category filter */}
-          <div style={{ position: 'relative' }}>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="input-field"
-              style={{
-                paddingTop: '0.65rem',
-                paddingBottom: '0.65rem',
-                paddingRight: '2.5rem',
-                appearance: 'none',
-                cursor: 'pointer',
-                minWidth: '160px',
-              }}
-            >
-              <option value="">Semua Kategori</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.slug}>
-                  {cat.icon} {cat.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              size={16}
-              color="#8B98A9"
-              style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
             />
           </div>
 
@@ -225,10 +217,34 @@ export default function DestinasiPage() {
             />
           </div>
 
+          {/* Tag pills */}
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {KULINER_TAGS.map((tag) => (
+              <button
+                key={tag.value}
+                onClick={() => setActiveTag(tag.value)}
+                style={{
+                  padding: '0.55rem 1rem',
+                  borderRadius: '50px',
+                  border: activeTag === tag.value ? '2px solid #C0392B' : '2px solid #E5E9F0',
+                  background: activeTag === tag.value ? '#C0392B' : 'white',
+                  color: activeTag === tag.value ? 'white' : '#4A5568',
+                  fontWeight: 600,
+                  fontSize: '0.82rem',
+                  cursor: 'pointer',
+                  fontFamily: 'Outfit, sans-serif',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {tag.label}
+              </button>
+            ))}
+          </div>
+
           {/* Reset */}
-          {(search || selectedCategory || selectedArea) && (
+          {hasFilters && (
             <button
-              onClick={() => { setSearch(''); setSelectedCategory(''); setSelectedArea('') }}
+              onClick={() => { setSearch(''); setSelectedArea(''); setActiveTag('') }}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -250,21 +266,6 @@ export default function DestinasiPage() {
             </button>
           )}
         </div>
-
-        {/* Active filters */}
-        {activeFilters.length > 0 && (
-          <div style={{ maxWidth: '1200px', margin: '0.75rem auto 0', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {activeFilters.map((f) => (
-              <span
-                key={f}
-                className="badge"
-                style={{ background: '#E0F2FE', color: '#0A4A5E', border: '1px solid #BAE6FD' }}
-              >
-                {f}
-              </span>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Content */}
@@ -277,7 +278,7 @@ export default function DestinasiPage() {
               gap: '1.5rem',
             }}
           >
-            {Array.from({ length: 6 }).map((_, i) => (
+            {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} style={{ borderRadius: '20px', overflow: 'hidden', background: 'white' }}>
                 <div className="skeleton" style={{ paddingTop: '58%', width: '100%' }} />
                 <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -296,16 +297,16 @@ export default function DestinasiPage() {
               color: '#8B98A9',
             }}
           >
-            <MapPin size={56} style={{ opacity: 0.25, marginBottom: '1rem' }} />
+            <UtensilsCrossed size={56} style={{ opacity: 0.25, marginBottom: '1rem' }} />
             <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#4A5568', marginBottom: '0.5rem' }}>
-              Destinasi tidak ditemukan
+              Kuliner tidak ditemukan
             </h3>
             <p>Coba ubah filter atau kata kunci pencarian</p>
           </div>
         ) : (
           <>
             <div style={{ marginBottom: '1.5rem', color: '#4A5568', fontSize: '0.9rem' }}>
-              Menampilkan <strong style={{ color: '#0A4A5E' }}>{destinations.length}</strong> dari <strong>{total}</strong> destinasi
+              Menampilkan <strong style={{ color: '#C0392B' }}>{destinations.length}</strong> dari <strong>{total}</strong> kuliner & oleh-oleh
             </div>
             <div
               style={{
@@ -332,6 +333,53 @@ export default function DestinasiPage() {
                   description={dest.description}
                 />
               ))}
+            </div>
+
+            {/* Oleh-oleh tips banner */}
+            <div
+              style={{
+                marginTop: '3rem',
+                background: 'linear-gradient(135deg, #FFF5F0 0%, #FFF1E6 100%)',
+                border: '1px solid #FDDCBE',
+                borderRadius: '20px',
+                padding: '2rem',
+                display: 'flex',
+                gap: '1.5rem',
+                alignItems: 'flex-start',
+                flexWrap: 'wrap',
+              }}
+            >
+              <div style={{ fontSize: '3rem', flexShrink: 0 }}>🛍️</div>
+              <div>
+                <h3 style={{ fontWeight: 800, fontSize: '1.1rem', color: '#7B1A00', marginBottom: '0.5rem' }}>
+                  Tips Belanja Oleh-oleh Khas Surabaya
+                </h3>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.75rem' }}>
+                  {[
+                    '🦈 Kerupuk Sirip Hiu',
+                    '🤎 Petis Udang Asli',
+                    '🍬 Carang Mas',
+                    '🍪 Kue Sagon',
+                    '🫙 Sambal Cumi',
+                    '🍞 Roti Pao Ampel',
+                  ].map((item) => (
+                    <span
+                      key={item}
+                      style={{
+                        background: 'rgba(192,57,43,0.08)',
+                        border: '1px solid rgba(192,57,43,0.2)',
+                        color: '#7B1A00',
+                        padding: '5px 12px',
+                        borderRadius: '50px',
+                        fontSize: '0.82rem',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
           </>
         )}

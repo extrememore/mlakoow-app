@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import { MapPin, Menu, X, User, LogOut, Map, Compass, ChevronDown } from 'lucide-react'
+import { MapPin, Menu, X, User, LogOut, Map, Compass, ChevronDown, UtensilsCrossed } from 'lucide-react'
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -16,6 +16,7 @@ export default function Navbar() {
 
   const navLinks = [
     { href: '/destinasi', label: 'Destinasi' },
+    { href: '/kuliner', label: 'Kuliner & Oleh-oleh' },
     { href: '/itinerary', label: 'Smart Itinerary' },
   ]
 

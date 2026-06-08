@@ -19,6 +19,7 @@ interface DestinationCardProps {
     name: string
     icon: string
     color: string
+    slug: string
   }
   description?: string
 }
@@ -37,8 +38,9 @@ export default function DestinationCard({
   category,
   description,
 }: DestinationCardProps) {
+  const href = category.slug === 'kuliner' ? `/kuliner/${slug}` : `/destinasi/${slug}`
   return (
-    <Link href={`/destinasi/${slug}`} style={{ textDecoration: 'none' }}>
+    <Link href={href} style={{ textDecoration: 'none' }}>
       <div
         className="card-hover"
         style={{
