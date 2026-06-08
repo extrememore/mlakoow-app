@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef, ReactNode } from 'react'
+ import { createPortal } from 'react-dom'
+
 import { useRouter } from 'next/navigation'
 import {
   CalendarPlus, X, Check, Loader, Plus, ChevronRight,
@@ -141,14 +143,23 @@ export default function ItineraryPickerModal({
   return (
     <>
       {/* Trigger */}
-      <span onClick={openModal} style={{ display: 'contents', cursor: 'pointer' }}>
+      <span
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          openModal()
+        }}
+        style={{ display: 'contents', cursor: 'pointer' }}
+      >
         {trigger}
       </span>
 
-      {/* Modal Overlay */}
-      {open && (
+      {/* Modal Overlay — rendered via portal to escape Link parent */}
+      {open && typeof document !== 'undefined' && createPortal(
+        <>
         <div
           ref={overlayRef}
+          onClick={(e) => e.stopPropagation()}
           style={{
             position: 'fixed', inset: 0,
             background: 'rgba(10,20,40,0.55)',
@@ -421,15 +432,17 @@ export default function ItineraryPickerModal({
             )}
           </div>
         </div>
-      )}
 
-      <style>{`
-        @keyframes modalPop {
-          from { opacity: 0; transform: scale(0.92) translateY(12px) }
-          to   { opacity: 1; transform: scale(1) translateY(0) }
-        }
-        @keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
-      `}</style>
+        <style>{`
+          @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.92) translateY(12px) }
+            to   { opacity: 1; transform: scale(1) translateY(0) }
+          }
+          @keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
+        `}</style>
+      </>,
+      document.body
+    )}
     </>
   )
 }
