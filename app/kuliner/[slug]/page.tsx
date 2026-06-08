@@ -81,9 +81,14 @@ export default async function DetailKulinerPage({
   const gallery: string[] = JSON.parse(destination.gallery || '[]')
   const facilities: string[] = JSON.parse(destination.facilities || '[]')
   let menus: any[] = []
+  let averageMenuPrice = destination.ticketPrice
   if (destination.menus) {
     try {
       menus = JSON.parse(destination.menus)
+      if (menus.length > 0) {
+        const sum = menus.reduce((acc: number, curr: any) => acc + (curr.price || 0), 0)
+        averageMenuPrice = Math.round(sum / menus.length)
+      }
     } catch(e) {}
   }
 
@@ -197,8 +202,8 @@ export default async function DetailKulinerPage({
                 {
                   icon: Wallet,
                   label: 'Harga Rata-rata',
-                  value: destination.ticketPrice === 0 ? 'Gratis' : `Rp ${destination.ticketPrice.toLocaleString('id-ID')}`,
-                  color: destination.ticketPrice === 0 ? '#10B981' : '#C0392B',
+                  value: averageMenuPrice === 0 ? 'Bervariasi' : `Rp ${averageMenuPrice.toLocaleString('id-ID')}`,
+                  color: averageMenuPrice === 0 ? '#10B981' : '#C0392B',
                 },
                 {
                   icon: Calendar,
@@ -372,7 +377,7 @@ export default async function DetailKulinerPage({
 
           {/* Right Sidebar */}
           <div style={{ position: 'sticky', top: '90px', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            {/* Booking Card */}
+            {/* Wishlist Card */}
             <div
               style={{
                 background: 'white',
@@ -383,27 +388,18 @@ export default async function DetailKulinerPage({
               }}
             >
               <div style={{ marginBottom: '1.25rem' }}>
-                <div style={{ fontSize: '0.85rem', color: '#8B98A9', fontWeight: 600, marginBottom: '4px' }}>HARGA</div>
-                <div style={{ fontSize: '2rem', fontWeight: 900, color: destination.ticketPrice === 0 ? '#10B981' : '#C0392B' }}>
-                  {destination.ticketPrice === 0 ? 'GRATIS' : `Rp ${destination.ticketPrice.toLocaleString('id-ID')}`}
+                <div style={{ fontSize: '0.85rem', color: '#8B98A9', fontWeight: 600, marginBottom: '4px' }}>RATA-RATA HARGA MENU</div>
+                <div style={{ fontSize: '2rem', fontWeight: 900, color: averageMenuPrice === 0 ? '#10B981' : '#C0392B' }}>
+                  {averageMenuPrice === 0 ? 'Bervariasi' : `Rp ${averageMenuPrice.toLocaleString('id-ID')}`}
                 </div>
-                {destination.ticketPrice > 0 && (
-                  <div style={{ fontSize: '0.78rem', color: '#8B98A9' }}>per orang</div>
-                )}
               </div>
 
-              <BookingButton
-                destinationId={destination.id}
-                destinationName={destination.name}
-                ticketPrice={destination.ticketPrice}
-              />
-
               <Link
-                href={`/itinerary?add=${destination.id}`}
-                className="btn-secondary"
-                style={{ width: '100%', justifyContent: 'center', display: 'flex', fontSize: '0.875rem' }}
+                href={`/wishlist?add=${destination.id}`}
+                className="btn-primary"
+                style={{ width: '100%', justifyContent: 'center', display: 'flex', fontSize: '0.9rem', padding: '0.9rem', marginBottom: '0.75rem', background: 'linear-gradient(135deg, #C0392B, #E67E22)', color: 'white', borderRadius: '10px', textDecoration: 'none', fontWeight: 600, gap: '8px', alignItems: 'center' }}
               >
-                + Tambah ke Itinerary
+                <Star size={18} /> Tambah ke Wishlist
               </Link>
             </div>
 
