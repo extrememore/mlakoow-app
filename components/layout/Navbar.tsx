@@ -62,28 +62,17 @@ export default function Navbar() {
         }}
       >
         {/* Logo */}
-        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div
-            style={{
-              width: '38px',
-              height: '38px',
-              borderRadius: '10px',
-              background: 'linear-gradient(135deg, #0A4A5E 0%, #FF6B35 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <MapPin size={20} color="white" strokeWidth={2.5} />
-          </div>
-          <div>
-            <div style={{ fontWeight: 900, fontSize: '1.3rem', color: '#0A4A5E', letterSpacing: '-0.5px', lineHeight: 1 }}>
-              MLAKOOW
-            </div>
-            <div style={{ fontSize: '0.65rem', color: '#FF6B35', fontWeight: 600, letterSpacing: '0.5px' }}>
-              SMART TOURISM SURABAYA
-            </div>
-          </div>
+        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+          <img 
+            src="/logo.png" 
+            alt="MLAKOOW" 
+            style={{ 
+              height: '42px', 
+              width: 'auto', 
+              objectFit: 'contain' 
+            }} 
+          />
+
         </Link>
 
         {/* Desktop Nav */}
