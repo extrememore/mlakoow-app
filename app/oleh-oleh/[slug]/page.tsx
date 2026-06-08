@@ -108,7 +108,7 @@ export default async function DetailKulinerPage({
       />
 
       {/* Hero info bar */}
-      <div style={{ background: 'linear-gradient(135deg, #7B1A00 0%, #C0392B 100%)', padding: '1.5rem 1.5rem 1.25rem' }}>
+      <div style={{ background: 'linear-gradient(135deg, #047857 0%, #10B981 100%)', padding: '1.5rem 1.5rem 1.25rem' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
             <span className="badge" style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.3)' }}>
@@ -155,13 +155,13 @@ export default async function DetailKulinerPage({
                   icon: Clock,
                   label: 'Jam Buka',
                   value: `${destination.openHour} – ${destination.closeHour}`,
-                  color: '#C0392B',
+                  color: '#10B981',
                 },
                 {
                   icon: Wallet,
                   label: 'Harga Rata-rata',
                   value: averageMenuPrice === 0 ? 'Bervariasi' : `Rp ${averageMenuPrice.toLocaleString('id-ID')}`,
-                  color: averageMenuPrice === 0 ? '#10B981' : '#C0392B',
+                  color: averageMenuPrice === 0 ? '#10B981' : '#10B981',
                 },
                 {
                   icon: Calendar,
@@ -206,7 +206,7 @@ export default async function DetailKulinerPage({
             {menus.length > 0 && (
               <div style={{ background: 'white', borderRadius: '20px', padding: '2rem', border: '1px solid #E5E9F0' }}>
                 <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1A2332', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <ShoppingBag size={20} color="#C0392B" /> Menu & Harga
+                  <ShoppingBag size={20} color="#10B981" /> Menu & Harga
                 </h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {menus.map((menu: any, index: number) => (
@@ -229,7 +229,7 @@ export default async function DetailKulinerPage({
                           <p style={{ fontSize: '0.85rem', color: '#8B98A9', margin: 0, lineHeight: 1.5 }}>{menu.desc}</p>
                         )}
                       </div>
-                      <div style={{ fontWeight: 900, color: '#C0392B', fontSize: '1.05rem', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
+                      <div style={{ fontWeight: 900, color: '#10B981', fontSize: '1.05rem', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
                         Rp {menu.price.toLocaleString('id-ID')}
                       </div>
                     </div>
@@ -257,11 +257,11 @@ export default async function DetailKulinerPage({
                         borderRadius: '10px',
                         padding: '8px 14px',
                         fontSize: '0.875rem',
-                        color: '#7B1A00',
+                        color: '#047857',
                         fontWeight: 500,
                       }}
                     >
-                      <CheckCircle size={14} color="#C0392B" />
+                      <CheckCircle size={14} color="#10B981" />
                       {fac}
                     </div>
                   ))}
@@ -315,12 +315,12 @@ export default async function DetailKulinerPage({
                 borderRadius: '20px',
                 padding: '1.75rem',
                 border: '1px solid #E5E9F0',
-                boxShadow: '0 8px 30px rgba(192,57,43,0.08)',
+                boxShadow: '0 8px 30px rgba(4,120,87,0.08)',
               }}
             >
               <div style={{ marginBottom: '1.25rem' }}>
                 <div style={{ fontSize: '0.85rem', color: '#8B98A9', fontWeight: 600, marginBottom: '4px' }}>RATA-RATA HARGA MENU</div>
-                <div style={{ fontSize: '2rem', fontWeight: 900, color: averageMenuPrice === 0 ? '#10B981' : '#C0392B' }}>
+                <div style={{ fontSize: '2rem', fontWeight: 900, color: averageMenuPrice === 0 ? '#10B981' : '#10B981' }}>
                   {averageMenuPrice === 0 ? 'Bervariasi' : `Rp ${averageMenuPrice.toLocaleString('id-ID')}`}
                 </div>
               </div>
@@ -328,9 +328,17 @@ export default async function DetailKulinerPage({
               <Link
                 href={`/wishlist?add=${destination.id}`}
                 className="btn-primary"
-                style={{ width: '100%', justifyContent: 'center', display: 'flex', fontSize: '0.9rem', padding: '0.9rem', marginBottom: '0.75rem', background: 'linear-gradient(135deg, #C0392B, #E67E22)', color: 'white', borderRadius: '10px', textDecoration: 'none', fontWeight: 600, gap: '8px', alignItems: 'center' }}
+                style={{ width: '100%', justifyContent: 'center', display: 'flex', fontSize: '0.9rem', padding: '0.9rem', marginBottom: '0.75rem', background: 'linear-gradient(135deg, #047857, #10B981)', color: 'white', borderRadius: '10px', textDecoration: 'none', fontWeight: 600, gap: '8px', alignItems: 'center' }}
               >
                 <Star size={18} /> Tambah ke Wishlist
+              </Link>
+
+              <Link
+                href={`/itinerary?add=${destination.id}`}
+                className="btn-secondary"
+                style={{ width: '100%', justifyContent: 'center', display: 'flex', fontSize: '0.875rem' }}
+              >
+                + Tambah ke Itinerary
               </Link>
             </div>
 
@@ -391,7 +399,7 @@ export default async function DetailKulinerPage({
               display: 'inline-flex',
               alignItems: 'center',
               gap: '8px',
-              background: 'linear-gradient(135deg, #C0392B, #E67E22)',
+              background: 'linear-gradient(135deg, #047857, #10B981)',
               color: 'white',
               borderRadius: '50px',
               padding: '0.9rem 2rem',
