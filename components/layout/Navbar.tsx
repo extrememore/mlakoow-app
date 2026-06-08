@@ -122,17 +122,19 @@ export default function Navbar() {
                 top: '100%',
                 left: '50%',
                 transform: 'translateX(-50%)',
-                background: 'white',
-                minWidth: '220px',
-                borderRadius: '16px',
-                boxShadow: '0 10px 40px rgba(0,0,0,0.12)',
-                padding: '0.75rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '4px',
-                marginTop: '10px',
-                border: '1px solid #E5E9F0'
+                paddingTop: '10px'
               }}>
+                <div style={{
+                  background: 'white',
+                  minWidth: '220px',
+                  borderRadius: '16px',
+                  boxShadow: '0 10px 40px rgba(0,0,0,0.12)',
+                  padding: '0.75rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px',
+                  border: '1px solid #E5E9F0'
+                }}>
                 <Link href="/destinasi" onClick={() => setDestinasiMenuOpen(false)} style={{
                   display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', textDecoration: 'none', color: '#1A2332', fontSize: '0.9rem', fontWeight: 600, borderRadius: '8px', transition: 'background 0.2s'
                 }} className="dropdown-item">
@@ -158,6 +160,7 @@ export default function Navbar() {
                   <Map size={18} color="#10B981" />
                   Peta Interaktif
                 </Link>
+                </div>
               </div>
             )}
           </div>
@@ -209,22 +212,25 @@ export default function Navbar() {
                 top: '100%',
                 left: '50%',
                 transform: 'translateX(-50%)',
-                background: 'white',
-                minWidth: '200px',
-                borderRadius: '12px',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-                padding: '0.5rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '4px',
-                marginTop: '10px',
-                border: '1px solid #E5E9F0'
+                paddingTop: '10px'
               }}>
+                <div style={{
+                  background: 'white',
+                  minWidth: '200px',
+                  borderRadius: '12px',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                  padding: '0.5rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px',
+                  border: '1px solid #E5E9F0'
+                }}>
                 <Link href="/extras/kalender-event" onClick={() => setExtrasMenuOpen(false)} style={{
                   padding: '10px 14px', textDecoration: 'none', color: '#1A2332', fontSize: '0.9rem', fontWeight: 500, borderRadius: '8px', transition: 'background 0.2s'
                 }} className="dropdown-item">
                   Kalender Event
                 </Link>
+                </div>
               </div>
             )}
           </div>
