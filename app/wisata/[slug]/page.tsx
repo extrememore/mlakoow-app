@@ -28,6 +28,7 @@ import {
   Users,
   Share2,
   Heart,
+  CalendarPlus,
 } from 'lucide-react'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -294,38 +295,29 @@ export default async function DetailDestinasiPage({
                 )}
               </div>
 
-              {destination.category.slug === 'hiburan' || destination.category.slug === 'spot-foto' ? (
-                <Link
-                  href={`/wishlist?add=${destination.id}`}
-                  className="btn-primary"
-                  style={{ width: '100%', justifyContent: 'center', display: 'flex', fontSize: '0.9rem', padding: '0.9rem', marginBottom: '0.75rem', background: 'linear-gradient(135deg, #B45309, #F59E0B)', color: 'white', borderRadius: '10px', textDecoration: 'none', fontWeight: 600, gap: '8px', alignItems: 'center' }}
-                >
-                  <Star size={18} /> Tambah ke Wishlist
-                </Link>
-              ) : (
-                <>
-                  <BookingButton
-                    destinationId={destination.id}
-                    destinationName={destination.name}
-                    ticketPrice={destination.ticketPrice}
-                  />
-                  <Link
-                    href={`/wishlist?add=${destination.id}`}
-                    className="btn-secondary"
-                    style={{ width: '100%', justifyContent: 'center', display: 'flex', fontSize: '0.875rem', marginBottom: '0.75rem', gap: '8px', alignItems: 'center' }}
-                  >
-                    <Star size={16} /> Tambah ke Wishlist
-                  </Link>
-                </>
+              <WishlistButton
+                destinationId={destination.id}
+                style={{ marginBottom: '0.75rem' }}
+              />
+
+              {destination.ticketPrice > 0 && (
+                <BookingButton
+                  destinationId={destination.id}
+                  destinationName={destination.name}
+                  ticketPrice={destination.ticketPrice}
+                />
               )}
 
-              <Link
-                href={`/itinerary?add=${destination.id}`}
-                className="btn-secondary"
-                style={{ width: '100%', justifyContent: 'center', display: 'flex', fontSize: '0.875rem' }}
-              >
-                + Tambah ke Itinerary
-              </Link>
+              <ItineraryPickerModal
+                destinationId={destination.id}
+                destinationName={destination.name}
+                destinationSlug={destination.slug}
+                trigger={
+                  <button style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0.875rem', borderRadius: '14px', background: '#F0F7FA', border: '1.5px solid #BAE6FD', color: '#0A4A5E', fontWeight: 700, fontSize: '0.875rem', cursor: 'pointer', fontFamily: 'Outfit, sans-serif' }}>
+                    <CalendarPlus size={16} /> Tambah ke Itinerary
+                  </button>
+                }
+              />
             </div>
 
 
