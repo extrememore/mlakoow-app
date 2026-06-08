@@ -302,7 +302,15 @@ async function seed() {
     const img1 = getImg(i * 3);
     const img2 = getImg(i * 3 + 1);
     const img3 = getImg(i * 3 + 2);
-    const gallery = JSON.stringify([img1, img2, img3]);
+    const gallery = cafe.gallery || JSON.stringify([img1, img2, img3]);
+
+    if (!cafe.menus) {
+      cafe.menus = JSON.stringify([
+        { name: "Signature Coffee", price: 28000, desc: "Kopi susu signature dengan resep rahasia", image: foodImages[0], recommended: true },
+        { name: "Caffe Latte", price: 35000, desc: "Espresso dengan susu steamed", image: foodImages[1] },
+        { name: "French Fries", price: 20000, desc: "Kentang goreng renyah", image: foodImages[2], recommended: true }
+      ]);
+    }
 
     await prisma.destination.upsert({
       where: { slug: cafe.slug },

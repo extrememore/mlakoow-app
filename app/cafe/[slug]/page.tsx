@@ -177,10 +177,10 @@ export default async function DetailCafePage({
                   color: '#0284C7',
                 },
                 {
-                  icon: Music,
-                  label: 'Vibe & Ambience',
-                  value: destination.facilities?.includes('Live Music') ? 'Ada Live Music' : 'Cocok untuk Ngobrol',
-                  color: '#BE185D',
+                  icon: MapPin,
+                  label: 'Area',
+                  value: destination.area.replace('Surabaya ', 'Sby '),
+                  color: '#4C1D95',
                 },
               ].map((info) => (
                 <div
@@ -213,7 +213,7 @@ export default async function DetailCafePage({
             {menus.length > 0 && (
               <div style={{ background: 'white', borderRadius: '20px', padding: '2rem', border: '1px solid #E5E9F0' }}>
                 <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1A2332', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Coffee size={24} color="#C0392B" /> Rekomendasi Menu Utama
+                  <Coffee size={24} color="#4C1D95" /> Menu & Harga
                 </h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {menus.map((menu: any, index: number) => (
@@ -322,12 +322,12 @@ export default async function DetailCafePage({
                 borderRadius: '20px',
                 padding: '1.75rem',
                 border: '1px solid #E5E9F0',
-                boxShadow: '0 8px 30px rgba(192,57,43,0.08)',
+                boxShadow: '0 8px 30px rgba(76,29,149,0.08)',
               }}
             >
               <div style={{ marginBottom: '1.25rem' }}>
                 <div style={{ fontSize: '0.85rem', color: '#8B98A9', fontWeight: 600, marginBottom: '4px' }}>RATA-RATA HARGA MENU</div>
-                <div style={{ fontSize: '2rem', fontWeight: 900, color: averageMenuPrice === 0 ? '#10B981' : '#C0392B' }}>
+                <div style={{ fontSize: '2rem', fontWeight: 900, color: averageMenuPrice === 0 ? '#10B981' : '#4C1D95' }}>
                   {averageMenuPrice === 0 ? 'Bervariasi' : `Rp ${averageMenuPrice.toLocaleString('id-ID')}`}
                 </div>
               </div>
@@ -335,7 +335,7 @@ export default async function DetailCafePage({
               <Link
                 href={`/wishlist?add=${destination.id}`}
                 className="btn-primary"
-                style={{ width: '100%', justifyContent: 'center', display: 'flex', fontSize: '0.9rem', padding: '0.9rem', marginBottom: '0.75rem', background: 'linear-gradient(135deg, #C0392B, #E67E22)', color: 'white', borderRadius: '10px', textDecoration: 'none', fontWeight: 600, gap: '8px', alignItems: 'center' }}
+                style={{ width: '100%', justifyContent: 'center', display: 'flex', fontSize: '0.9rem', padding: '0.9rem', marginBottom: '0.75rem', background: 'linear-gradient(135deg, #4C1D95, #7C3AED)', color: 'white', borderRadius: '10px', textDecoration: 'none', fontWeight: 600, gap: '8px', alignItems: 'center' }}
               >
                 <Star size={18} /> Tambah ke Wishlist
               </Link>
@@ -351,8 +351,8 @@ export default async function DetailCafePage({
                   border: '1px solid #E5E9F0',
                 }}
               >
-                <h3 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Coffee size={18} color="#C0392B" /> Cafe Serupa
+                <h3 style={{ fontWeight: 800, fontSize: '1.25rem', color: '#1A2332', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Coffee size={22} color="#4C1D95" /> Cafe Serupa
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {related.map((rel) => (
