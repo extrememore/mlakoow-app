@@ -57,7 +57,11 @@ export async function GET(request: NextRequest) {
       where.category = { slug: category }
     }
   } else if (excludeCategory) {
-    where.NOT = { category: { slug: excludeCategory } }
+    if (excludeCategory.includes(',')) {
+      where.NOT = { category: { slug: { in: excludeCategory.split(',') } } }
+    } else {
+      where.NOT = { category: { slug: excludeCategory } }
+    }
   }
 
   if (area) where.area = area
