@@ -713,13 +713,26 @@ function ItineraryContent() {
         {/* STEP 1 */}
 
         {step === 1 && (
-          <div style={{ background: 'white', borderRadius: '24px', padding: '2.5rem', border: '1px solid #E5E9F0', boxShadow: '0 8px 30px rgba(10,74,94,0.06)' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1A2332', marginBottom: '0.5rem' }}>
-              Preferensi Perjalanan
-            </h2>
-            <p style={{ color: '#4A5568', marginBottom: canvasDests.length > 0 ? '1rem' : '2rem', fontSize: '0.95rem' }}>
-              Pilih tanggal trip, budget, dan area tujuan kamu
-            </p>
+          <div style={{ background: 'white', borderRadius: '28px', overflow: 'hidden', border: '1px solid #E5E9F0', boxShadow: '0 12px 40px rgba(10,74,94,0.08)' }}>
+            {/* Step 1 Header gradient */}
+            <div style={{ background: 'linear-gradient(135deg, #0A4A5E 0%, #1E6FA8 60%, #2A8FD4 100%)', padding: '2rem 2.5rem 4rem', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '180px', height: '180px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
+              <div style={{ position: 'absolute', bottom: '-40px', left: '30%', width: '240px', height: '240px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '0.75rem', position: 'relative' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
+                  <span style={{ fontSize: '1.25rem' }}>🗓️</span>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,255,255,0.65)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Langkah 1 dari 2</div>
+                  <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'white', margin: 0 }}>Preferensi Perjalanan</h2>
+                </div>
+              </div>
+              <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.875rem', margin: 0, position: 'relative', maxWidth: '400px' }}>
+                Atur kapan, kemana, dan sebesar apa budget trip impianmu
+              </p>
+            </div>
+            {/* Content pulled up over header */}
+            <div style={{ padding: '0 2.5rem 2.5rem', marginTop: '-2.5rem', position: 'relative' }}>
 
             {/* Canvas banner — shown when destination was pre-loaded */}
             {/* Canvas banner — shown when destinations were pre-loaded from wishlist/detail */}
@@ -767,295 +780,19 @@ function ItineraryContent() {
               </div>
             )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-              {/* Date range picker — replaces duration buttons */}
-              <div>
-                <label style={{ display: 'block', fontWeight: 700, fontSize: '0.95rem', color: '#1A2332', marginBottom: '0.25rem' }}>
-                  📅 Kapan kamu mau Mlakoow?
-                </label>
-                <p style={{ fontSize: '0.82rem', color: '#8B98A9', marginBottom: '1rem' }}>
-                  Pilih tanggal mulai &amp; selesai — durasi trip otomatis dihitung (maksimal 7 hari)
-                </p>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  {/* Start date */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#4A5568', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Tanggal Mulai
-                    </label>
-                    <input
-                      type="date"
-                      value={tripStartDate}
-                      min={new Date().toISOString().split('T')[0]}
-                      max={new Date(Date.now() + 90 * 86400000).toISOString().split('T')[0]}
-                      onChange={(e) => {
-                        const start = e.target.value
-                        setTripStartDate(start)
-                        // Reset end date if it's now invalid (durasi inklusif: diff+1 hari)
-                        if (tripEndDate) {
-                          const diff = Math.round((new Date(tripEndDate + 'T00:00:00').getTime() - new Date(start + 'T00:00:00').getTime()) / 86400000)
-                          const days = diff + 1
-                          if (days < 1 || days > 7) setTripEndDate('')
-                        }
-                        // Auto-set duration if both dates present (inklusif)
-                        if (tripEndDate && e.target.value) {
-                          const diff = Math.round((new Date(tripEndDate + 'T00:00:00').getTime() - new Date(e.target.value + 'T00:00:00').getTime()) / 86400000)
-                          const days = diff + 1
-                          if (days >= 1 && days <= 7) setDuration(days)
-                        }
-                      }}
-                      style={{
-                        width: '100%', boxSizing: 'border-box',
-                        padding: '0.75rem 1rem', borderRadius: '14px',
-                        border: `2px solid ${tripStartDate ? '#0A4A5E' : '#E5E9F0'}`,
-                        background: tripStartDate ? '#F0F7FA' : 'white',
-                        fontFamily: 'Outfit, sans-serif', fontSize: '0.9rem',
-                        fontWeight: 600, color: '#1A2332', outline: 'none', cursor: 'pointer',
-                      }}
-                    />
-                    {tripStartDate && (
-                      <div style={{ fontSize: '0.72rem', color: '#0A4A5E', fontWeight: 600, marginTop: '4px' }}>
-                        {new Date(tripStartDate + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}
-                      </div>
-                    )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                          {/* Date range picker */}
+              <div style={{ background: '#F8FAFC', borderRadius: '20px', padding: '1.5rem', border: '1px solid #EEF1F5' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '0.35rem' }}>
+                  <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'linear-gradient(135deg, #0A4A5E, #1E6FA8)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span style={{ fontSize: '0.9rem' }}>📅</span>
                   </div>
-
-                  {/* End date */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#4A5568', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Tanggal Selesai
-                    </label>
-                    <input
-                      type="date"
-                      value={tripEndDate}
-                      min={tripStartDate
-                        ? tripStartDate  // min = hari yang sama (1 hari trip)
-                        : new Date().toISOString().split('T')[0]}
-                      max={tripStartDate
-                        ? new Date(new Date(tripStartDate + 'T00:00:00').getTime() + 6 * 86400000).toISOString().split('T')[0]  // +6 = 7 hari inklusif
-                        : new Date(Date.now() + 6 * 86400000).toISOString().split('T')[0]}
-                      disabled={!tripStartDate}
-                      onChange={(e) => {
-                        const end = e.target.value
-                        setTripEndDate(end)
-                        if (tripStartDate && end) {
-                          const diff = Math.round((new Date(end + 'T00:00:00').getTime() - new Date(tripStartDate + 'T00:00:00').getTime()) / 86400000)
-                          const days = diff + 1  // inklusif: tgl 13→15 = 3 hari
-                          if (days >= 1 && days <= 7) setDuration(days)
-                        }
-                      }}
-                      style={{
-                        width: '100%', boxSizing: 'border-box',
-                        padding: '0.75rem 1rem', borderRadius: '14px',
-                        border: `2px solid ${tripEndDate ? '#0A4A5E' : '#E5E9F0'}`,
-                        background: tripEndDate ? '#F0F7FA' : !tripStartDate ? '#F8FAFC' : 'white',
-                        fontFamily: 'Outfit, sans-serif', fontSize: '0.9rem',
-                        fontWeight: 600, color: '#1A2332', outline: 'none',
-                        cursor: tripStartDate ? 'pointer' : 'not-allowed',
-                        opacity: tripStartDate ? 1 : 0.5,
-                      }}
-                    />
-                    {tripEndDate && (
-                      <div style={{ fontSize: '0.72rem', color: '#0A4A5E', fontWeight: 600, marginTop: '4px' }}>
-                        {new Date(tripEndDate + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Live duration result */}
-                {tripStartDate && tripEndDate ? (
-                  <div style={{
-                    marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '8px',
-                    background: 'linear-gradient(135deg, #F0F7FA, #E8F4F8)',
-                    border: '1px solid #B8D8E8', borderRadius: '12px', padding: '0.6rem 1rem',
-                  }}>
-                    <span style={{ fontSize: '1.2rem' }}>🎉</span>
-                    <span style={{ fontWeight: 800, color: '#0A4A5E', fontSize: '0.9rem' }}>
-                      Trip {duration} Hari
-                    </span>
-                    <span style={{ color: '#8B98A9', fontSize: '0.8rem' }}>
-                      • ~{duration * maxDestinations} destinasi maksimum
-                    </span>
-                    {duration === 7 && (
-                      <span style={{ marginLeft: 'auto', fontSize: '0.68rem', background: '#FEF3C7', color: '#B45309', padding: '2px 8px', borderRadius: '50px', fontWeight: 700 }}>
-                        MAX 7 hari
-                      </span>
-                    )}
-                  </div>
-                ) : (
-                  <p style={{ fontSize: '0.82rem', color: '#8B98A9', marginTop: '0.5rem' }}>
-                    {!tripStartDate ? '👆 Pilih tanggal mulai dahulu' : '👆 Lalu pilih tanggal selesai (max +7 hari)'}
-                  </p>
-                )}
-              </div>
-
-              {/* Budget */}
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                  <label style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1A2332' }}>
-                    💰 Budget tiket per orang
+                  <label style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', margin: 0 }}>
+                    Kapan kamu mau Mlakoow?
                   </label>
-                  {/* Live value badge */}
-                  <div style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                    padding: '5px 14px', borderRadius: '50px', fontWeight: 800,
-                    fontSize: '0.95rem', fontFamily: 'Outfit, sans-serif',
-                    background: budget === 0
-                      ? 'linear-gradient(135deg, #ECFDF5, #D1FAE5)'
-                      : budget <= 200000
-                      ? 'linear-gradient(135deg, #EFF6FF, #DBEAFE)'
-                      : budget <= 500000
-                      ? 'linear-gradient(135deg, #FFF7ED, #FED7AA)'
-                      : 'linear-gradient(135deg, #FFF1F2, #FFE4E6)',
-                    color: budget === 0 ? '#065F46'
-                      : budget <= 200000 ? '#1E40AF'
-                      : budget <= 500000 ? '#C2410C'
-                      : '#9F1239',
-                    border: `1.5px solid ${budget === 0 ? '#A7F3D0' : budget <= 200000 ? '#BFDBFE' : budget <= 500000 ? '#FDBA74' : '#FECDD3'}`,
-                    transition: 'all 0.3s',
-                  }}>
-                    <span style={{ fontSize: '1.1rem' }}>
-                      {budget === 0 ? '🎁' : budget <= 100000 ? '💚' : budget <= 300000 ? '💙' : budget <= 600000 ? '🧡' : '💎'}
-                    </span>
-                    {budget === 0 ? 'Gratis saja' : `Rp ${budget.toLocaleString('id-ID')}`}
-                  </div>
                 </div>
-
-                {/* Budget category label */}
-                <div style={{ marginBottom: '0.75rem' }}>
-                  <span style={{
-                    fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.05em',
-                    color: budget === 0 ? '#10B981' : budget <= 200000 ? '#3B82F6' : budget <= 500000 ? '#F97316' : '#E11D48',
-                    textTransform: 'uppercase',
-                  }}>
-                    {budget === 0 ? '✦ Hanya destinasi gratis'
-                      : budget <= 150000 ? '✦ Budget hemat'
-                      : budget <= 350000 ? '✦ Budget moderat'
-                      : budget <= 700000 ? '✦ Budget premium'
-                      : '✦ All-inclusive / Luxury'}
-                  </span>
-                </div>
-
-                {/* Gradient slider track wrapper */}
-                <div style={{ position: 'relative', paddingBottom: '0.5rem' }}>
-                  <div style={{
-                    position: 'absolute', top: '10px', left: 0, right: 0, height: '8px',
-                    borderRadius: '50px', pointerEvents: 'none',
-                    background: 'linear-gradient(to right, #10B981 0%, #3B82F6 25%, #F97316 60%, #E11D48 100%)',
-                    opacity: 0.2,
-                  }} />
-                  <div style={{
-                    position: 'absolute', top: '10px', left: 0, height: '8px',
-                    borderRadius: '50px', pointerEvents: 'none',
-                    width: `${(budget / 1000000) * 100}%`,
-                    background: budget === 0 ? '#10B981'
-                      : budget <= 200000 ? 'linear-gradient(to right, #10B981, #3B82F6)'
-                      : budget <= 500000 ? 'linear-gradient(to right, #10B981, #3B82F6, #F97316)'
-                      : 'linear-gradient(to right, #10B981, #3B82F6, #F97316, #E11D48)',
-                    transition: 'width 0.15s, background 0.3s',
-                    boxShadow: '0 0 8px rgba(59,130,246,0.4)',
-                  }} />
-                  <input
-                    type="range"
-                    min={0}
-                    max={1000000}
-                    step={25000}
-                    value={budget}
-                    onChange={(e) => setBudget(parseInt(e.target.value))}
-                    style={{
-                      width: '100%', height: '28px', cursor: 'pointer',
-                      appearance: 'none', background: 'transparent',
-                      position: 'relative', zIndex: 1,
-                    }}
-                    className="budget-slider"
-                  />
-                </div>
-
-                {/* Tick marks */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#8B98A9', marginTop: '2px', paddingBottom: '0.25rem' }}>
-                  {['Gratis', 'Rp 250rb', 'Rp 500rb', 'Rp 750rb', 'Rp 1jt'].map((label, i) => (
-                    <span
-                      key={label}
-                      onClick={() => setBudget(i === 0 ? 0 : i === 1 ? 250000 : i === 2 ? 500000 : i === 3 ? 750000 : 1000000)}
-                      style={{
-                        cursor: 'pointer', fontWeight: 600, transition: 'color 0.2s',
-                        color: (i === 0 && budget === 0) || (i === 1 && budget === 250000) || (i === 2 && budget === 500000) || (i === 3 && budget === 750000) || (i === 4 && budget === 1000000)
-                          ? '#0A4A5E' : '#8B98A9',
-                      }}
-                    >
-                      {label}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Quick preset chips */}
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
-                  {[
-                    { label: '🎁 Gratis', value: 0, color: '#10B981', bg: '#ECFDF5' },
-                    { label: '💚 Rp 100rb', value: 100000, color: '#3B82F6', bg: '#EFF6FF' },
-                    { label: '💙 Rp 250rb', value: 250000, color: '#6366F1', bg: '#EEF2FF' },
-                    { label: '🧡 Rp 500rb', value: 500000, color: '#F97316', bg: '#FFF7ED' },
-                    { label: '💎 Rp 1jt', value: 1000000, color: '#E11D48', bg: '#FFF1F2' },
-                  ].map(({ label, value, color, bg }) => (
-                    <button
-                      key={value}
-                      onClick={() => setBudget(value)}
-                      style={{
-                        padding: '4px 12px', borderRadius: '50px', fontSize: '0.75rem',
-                        fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s',
-                        fontFamily: 'Outfit, sans-serif',
-                        border: budget === value ? `2px solid ${color}` : '2px solid #E5E9F0',
-                        background: budget === value ? bg : 'white',
-                        color: budget === value ? color : '#8B98A9',
-                        transform: budget === value ? 'scale(1.05)' : 'scale(1)',
-                      }}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-
-                <style>{`
-                  .budget-slider::-webkit-slider-thumb {
-                    -webkit-appearance: none;
-                    width: 24px; height: 24px;
-                    border-radius: 50%;
-                    background: white;
-                    border: 3px solid #0A4A5E;
-                    box-shadow: 0 2px 8px rgba(10,74,94,0.35);
-                    cursor: pointer;
-                    transition: border-color 0.3s, transform 0.15s;
-                  }
-                  .budget-slider::-webkit-slider-thumb:hover {
-                    transform: scale(1.2);
-                    box-shadow: 0 4px 16px rgba(10,74,94,0.45);
-                  }
-                  .budget-slider::-webkit-slider-runnable-track {
-                    height: 8px; border-radius: 50px;
-                    background: transparent;
-                  }
-                  .budget-slider::-moz-range-thumb {
-                    width: 22px; height: 22px;
-                    border-radius: 50%;
-                    background: white;
-                    border: 3px solid #0A4A5E;
-                    box-shadow: 0 2px 8px rgba(10,74,94,0.35);
-                    cursor: pointer;
-                  }
-                  .budget-slider::-moz-range-track {
-                    height: 8px; border-radius: 50px; background: transparent;
-                  }
-                `}</style>
-              </div>
-
-              {/* Area — multi-select */}
-              <div>
-                <label style={{ display: 'block', fontWeight: 700, fontSize: '0.95rem', color: '#1A2332', marginBottom: '0.25rem' }}>
-                  Area tujuan di Surabaya
-                </label>
-                <p style={{ fontSize: '0.82rem', color: '#8B98A9', marginBottom: '0.85rem' }}>
-                  Pilih satu atau lebih area — kosongkan untuk semua area
+                <p style={{ fontSize: '0.82rem', color: '#8B98A9', marginBottom: '1.25rem', marginLeft: '42px' }}>
+                  Pilih tanggal mulai &amp; selesai — durasi otomatis dihitung (maks 7 hari)
                 </p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem' }}>
                   {AREAS.map((a) => {
@@ -1097,132 +834,204 @@ function ItineraryContent() {
               </div>
 
               {/* Max destinations per day */}
-              <div>
-                <label style={{ display: 'block', fontWeight: 700, fontSize: '0.95rem', color: '#1A2332', marginBottom: '1rem' }}>
-                  Destinasi per hari: <span style={{ color: '#0A4A5E' }}>{maxDestinations}</span>
-                </label>
+              <div style={{ background: '#F8FAFC', borderRadius: '20px', padding: '1.5rem', border: '1px solid #EEF1F5' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
+                  <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'linear-gradient(135deg, #FF6B35, #E84D1C)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span style={{ fontSize: '0.9rem' }}>🎯</span>
+                  </div>
+                  <label style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', margin: 0 }}>
+                    Destinasi per hari: <span style={{ color: '#FF6B35' }}>{maxDestinations} tempat</span>
+                  </label>
+                </div>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
-                  {[2, 3, 4, 5].map((n) => (
+                  {[
+                    { n: 2, label: 'Santai', desc: 'Lebih banyak waktu tiap tempat' },
+                    { n: 3, label: 'Sedang', desc: 'Keseimbangan sempurna' },
+                    { n: 4, label: 'Aktif', desc: 'Banyak eksplorasi' },
+                    { n: 5, label: 'Petualang', desc: 'Maksimalkan trip!' },
+                  ].map(({ n, label, desc }) => (
                     <button
                       key={n}
                       onClick={() => setMaxDestinations(n)}
                       style={{
-                        width: '56px',
-                        height: '56px',
-                        borderRadius: '14px',
+                        flex: 1,
+                        padding: '0.875rem 0.5rem',
+                        borderRadius: '16px',
                         border: maxDestinations === n ? '2px solid #FF6B35' : '2px solid #E5E9F0',
-                        background: maxDestinations === n ? '#FFF5F1' : 'white',
-                        color: maxDestinations === n ? '#FF6B35' : '#1A2332',
+                        background: maxDestinations === n ? 'linear-gradient(135deg, #FF6B35, #E84D1C)' : 'white',
+                        color: maxDestinations === n ? 'white' : '#1A2332',
                         fontWeight: 700,
-                        fontSize: '1rem',
+                        fontSize: '1.1rem',
                         cursor: 'pointer',
                         fontFamily: 'Outfit, sans-serif',
                         transition: 'all 0.2s',
+                        textAlign: 'center',
+                        boxShadow: maxDestinations === n ? '0 4px 14px rgba(255,107,53,0.35)' : 'none',
+                        transform: maxDestinations === n ? 'translateY(-2px)' : 'translateY(0)',
                       }}
                     >
-                      {n}
+                      <div style={{ fontSize: '1.4rem', marginBottom: '4px' }}>
+                        {n === 2 ? '🌿' : n === 3 ? '⚡' : n === 4 ? '🚀' : '🔥'}
+                      </div>
+                      <div>{n}</div>
+                      <div style={{ fontSize: '0.65rem', fontWeight: 600, opacity: 0.8, marginTop: '2px' }}>{label}</div>
                     </button>
                   ))}
+                </div>
+                <div style={{ marginTop: '0.875rem', fontSize: '0.78rem', color: '#8B98A9', textAlign: 'center' }}>
+                  {maxDestinations === 2 ? '☕ Cocok buat yang suka santai dan menikmati tiap destinasi' :
+                   maxDestinations === 3 ? '⚡ Pilihan paling populer — tidak terlalu padat, tidak terlalu longgar' :
+                   maxDestinations === 4 ? '🚀 Buat kamu yang energik dan ingin explore banyak tempat' :
+                   '🔥 Mode petualang — penuh aktivitas dari pagi sampai malam!'}
                 </div>
               </div>
             </div>
 
             <button
               onClick={() => setStep(2)}
-              className="btn-primary"
               disabled={!tripStartDate || !tripEndDate}
               style={{
                 marginTop: '2rem', width: '100%', justifyContent: 'center',
-                padding: '1rem', fontSize: '1rem',
-                opacity: (!tripStartDate || !tripEndDate) ? 0.5 : 1,
-                cursor: (!tripStartDate || !tripEndDate) ? 'not-allowed' : 'pointer',
+                padding: '1.1rem', fontSize: '1rem', fontWeight: 800,
+                borderRadius: '18px', border: 'none', cursor: (!tripStartDate || !tripEndDate) ? 'not-allowed' : 'pointer',
+                fontFamily: 'Outfit, sans-serif',
+                background: (!tripStartDate || !tripEndDate)
+                  ? '#E5E9F0'
+                  : 'linear-gradient(135deg, #0A4A5E 0%, #1E6FA8 60%, #FF6B35 200%)',
+                color: (!tripStartDate || !tripEndDate) ? '#8B98A9' : 'white',
+                display: 'flex', alignItems: 'center', gap: '10px',
+                boxShadow: (!tripStartDate || !tripEndDate) ? 'none' : '0 8px 24px rgba(10,74,94,0.3)',
+                transform: 'translateY(0)',
+                transition: 'all 0.2s',
+                opacity: 1,
               }}
+              onMouseEnter={(e) => { if (tripStartDate && tripEndDate) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(10,74,94,0.4)' } }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = tripStartDate && tripEndDate ? '0 8px 24px rgba(10,74,94,0.3)' : 'none' }}
             >
               {!tripStartDate || !tripEndDate
-                ? '📅 Pilih tanggal perjalanan dahulu'
-                : `Lanjut — Trip ${duration} Hari 🚀`}
-              {tripStartDate && tripEndDate && <ChevronRight size={18} />}
+                ? <><span>📅</span> Pilih tanggal perjalanan dahulu</>
+                : <><span style={{ fontSize: '1.1rem' }}>🚀</span> Lanjut Pilih Minat — Trip {duration} Hari <ChevronRight size={18} /></>}
             </button>
+          </div>
           </div>
         )}
 
         {/* STEP 2 */}
         {step === 2 && (
-          <div style={{ background: 'white', borderRadius: '24px', padding: '2.5rem', border: '1px solid #E5E9F0', boxShadow: '0 8px 30px rgba(10,74,94,0.06)' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1A2332', marginBottom: '0.5rem' }}>
-              Pilih Kategori Minat
-            </h2>
-            <p style={{ color: '#4A5568', marginBottom: '2rem', fontSize: '0.95rem' }}>
-              Pilih kategori wisata yang ingin kamu kunjungi. Kosongkan untuk semua kategori.
-            </p>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => toggleCategory(cat.id)}
-                  style={{
-                    padding: '1.5rem 1rem',
-                    borderRadius: '16px',
-                    border: selectedCategoryIds.includes(cat.id) ? '2px solid #0A4A5E' : '2px solid #E5E9F0',
-                    background: selectedCategoryIds.includes(cat.id) ? '#F0F7FA' : 'white',
-                    cursor: 'pointer',
-                    fontFamily: 'Outfit, sans-serif',
-                    textAlign: 'center',
-                    transition: 'all 0.2s',
-                    position: 'relative',
-                  }}
-                >
-                  {selectedCategoryIds.includes(cat.id) && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: '8px',
-                        right: '8px',
-                        width: '20px',
-                        height: '20px',
-                        borderRadius: '50%',
-                        background: '#0A4A5E',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Check size={12} color="white" strokeWidth={3} />
-                    </div>
-                  )}
-                  <div style={{ fontSize: '2rem', marginBottom: '8px' }}>{cat.icon}</div>
-                  <div style={{ fontWeight: 700, fontSize: '0.875rem', color: '#1A2332' }}>{cat.label}</div>
-                </button>
-              ))}
+          <div style={{ background: 'white', borderRadius: '28px', overflow: 'hidden', border: '1px solid #E5E9F0', boxShadow: '0 12px 40px rgba(10,74,94,0.08)' }}>
+            {/* Step 2 Header */}
+            <div style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #9F1239 60%, #EC4899 130%)', padding: '2rem 2.5rem 4rem', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: '-30px', right: '-30px', width: '200px', height: '200px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
+              <div style={{ position: 'absolute', bottom: '-50px', left: '20%', width: '280px', height: '280px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '0.75rem', position: 'relative' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
+                  <span style={{ fontSize: '1.25rem' }}>✨</span>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,255,255,0.65)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Langkah 2 dari 2</div>
+                  <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'white', margin: 0 }}>Pilih Minat Wisata</h2>
+                </div>
+              </div>
+              <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.875rem', margin: 0, position: 'relative', maxWidth: '400px' }}>
+                Tentukan jenis tempat yang ingin kamu kunjungi — kosongkan untuk semua
+              </p>
+              {/* Trip summary pill */}
+              <div style={{ marginTop: '1rem', display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', borderRadius: '50px', padding: '6px 14px', position: 'relative' }}>
+                <span style={{ fontSize: '0.8rem', color: 'white', fontWeight: 700 }}>
+                  🗓️ {duration} Hari · 💰 {budget === 0 ? 'Gratis' : `Rp ${budget.toLocaleString('id-ID')}`} · 🎯 {maxDestinations}x/hari
+                </span>
+              </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <button
-                onClick={() => setStep(1)}
-                className="btn-secondary"
-                style={{ flex: 1, justifyContent: 'center' }}
-              >
-                <ChevronLeft size={18} /> Kembali
-              </button>
-              <button
-                onClick={generateItinerary}
-                disabled={loading}
-                className="btn-primary"
-                style={{ flex: 2, justifyContent: 'center', padding: '1rem', opacity: loading ? 0.8 : 1 }}
-              >
-                {loading ? (
-                  <>
-                    <Loader size={18} style={{ animation: 'spin 1s linear infinite' }} />
-                    Menyusun Itinerary...
-                  </>
-                ) : (
-                  <>
-                    <Zap size={18} />
-                    Generate Itinerary!
-                  </>
-                )}
-              </button>
+            {/* Category grid */}
+            <div style={{ padding: '0 2rem 0', marginTop: '-2rem', position: 'relative' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '0.875rem', marginBottom: '1.5rem' }}>
+                {categories.map((cat) => {
+                  const isSelected = selectedCategoryIds.includes(cat.id)
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => toggleCategory(cat.id)}
+                      style={{
+                        padding: '1.25rem 0.75rem',
+                        borderRadius: '18px',
+                        border: isSelected ? '2px solid transparent' : '2px solid #E5E9F0',
+                        background: isSelected
+                          ? 'linear-gradient(135deg, #7C3AED, #9F1239)'
+                          : 'white',
+                        cursor: 'pointer',
+                        fontFamily: 'Outfit, sans-serif',
+                        textAlign: 'center',
+                        transition: 'all 0.22s cubic-bezier(0.34,1.56,0.64,1)',
+                        position: 'relative',
+                        boxShadow: isSelected ? '0 6px 20px rgba(124,58,237,0.3)' : '0 1px 4px rgba(0,0,0,0.04)',
+                        transform: isSelected ? 'translateY(-3px) scale(1.02)' : 'translateY(0) scale(1)',
+                      }}
+                      onMouseEnter={(e) => { if (!isSelected) { e.currentTarget.style.borderColor = '#7C3AED'; e.currentTarget.style.background = '#FAF5FF' } }}
+                      onMouseLeave={(e) => { if (!isSelected) { e.currentTarget.style.borderColor = '#E5E9F0'; e.currentTarget.style.background = 'white' } }}
+                    >
+                      {isSelected && (
+                        <div style={{ position: 'absolute', top: '8px', right: '8px', width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Check size={11} color="white" strokeWidth={3} />
+                        </div>
+                      )}
+                      <div style={{ fontSize: '2.2rem', marginBottom: '8px', filter: isSelected ? 'brightness(1.1)' : 'none' }}>{cat.icon}</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.82rem', color: isSelected ? 'white' : '#1A2332', lineHeight: 1.3 }}>{cat.label}</div>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Selected summary */}
+              <div style={{ marginBottom: '1.5rem', padding: '0.875rem 1rem', borderRadius: '14px', background: selectedCategoryIds.length === 0 ? '#F0FDF4' : '#FAF5FF', border: `1px solid ${selectedCategoryIds.length === 0 ? '#BBF7D0' : '#DDD6FE'}`, fontSize: '0.82rem', fontWeight: 600, color: selectedCategoryIds.length === 0 ? '#065F46' : '#4C1D95', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {selectedCategoryIds.length === 0
+                  ? <><span>🌍</span> Semua kategori wisata akan diikutsertakan — semakin beragam semakin seru!</>
+                  : <><span>✨</span> {selectedCategoryIds.length} kategori dipilih — itinerary akan disesuaikan dengan minatmu</>}
+              </div>
+
+              {/* Navigation buttons */}
+              <div style={{ display: 'flex', gap: '1rem', paddingBottom: '2rem' }}>
+                <button
+                  onClick={() => setStep(1)}
+                  style={{
+                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                    padding: '1rem', borderRadius: '16px', border: '2px solid #E5E9F0',
+                    background: 'white', color: '#4A5568', fontWeight: 700, fontSize: '0.9rem',
+                    cursor: 'pointer', fontFamily: 'Outfit, sans-serif', transition: 'all 0.15s',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#0A4A5E'; e.currentTarget.style.color = '#0A4A5E' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#E5E9F0'; e.currentTarget.style.color = '#4A5568' }}
+                >
+                  <ChevronLeft size={18} /> Kembali
+                </button>
+                <button
+                  onClick={generateItinerary}
+                  disabled={loading}
+                  style={{
+                    flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+                    padding: '1rem', borderRadius: '16px', border: 'none',
+                    background: loading ? '#E5E9F0' : 'linear-gradient(135deg, #7C3AED, #9F1239)',
+                    color: loading ? '#8B98A9' : 'white', fontWeight: 800, fontSize: '1rem',
+                    cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'Outfit, sans-serif',
+                    boxShadow: loading ? 'none' : '0 8px 24px rgba(124,58,237,0.35)',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={(e) => { if (!loading) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(124,58,237,0.45)' } }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = loading ? 'none' : '0 8px 24px rgba(124,58,237,0.35)' }}
+                >
+                  {loading ? (
+                    <>
+                      <Loader size={18} style={{ animation: 'spin 1s linear infinite' }} />
+                      Menyusun Itinerary AI...
+                    </>
+                  ) : (
+                    <>
+                      <Zap size={18} />
+                      Generate Smart Itinerary! ✨
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         )}
