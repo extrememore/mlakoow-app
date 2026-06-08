@@ -26,6 +26,13 @@ interface MapWrapperProps {
   height?: string
   zoom?: number
   showRoute?: boolean
+  onLocationFound?: (lat: number, lng: number) => void
+  radiusMode?: {
+    active: boolean
+    centerLat: number
+    centerLng: number
+    radiusKm: number
+  }
 }
 
 export default function MapWrapper(props: MapWrapperProps) {

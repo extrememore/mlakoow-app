@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet'
+import { useEffect, useState, useRef } from 'react'
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, Circle } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { LocateFixed } from 'lucide-react'
@@ -35,6 +35,13 @@ interface MapDisplayProps {
   height?: string
   zoom?: number
   showRoute?: boolean
+  onLocationFound?: (lat: number, lng: number) => void
+  radiusMode?: {
+    active: boolean
+    centerLat: number
+    centerLng: number
+    radiusKm: number
+  }
 }
 
 const customIcon = (pin: MapPin) => {
@@ -70,23 +77,33 @@ const customIcon = (pin: MapPin) => {
   })
 }
 
-function LocateControl() {
+function LocateControl({ onLocationFound }: { onLocationFound?: (lat: number, lng: number) => void }) {
   const map = useMap()
   const [locating, setLocating] = useState(false)
+  const markerRef = useRef<L.Marker | null>(null)
 
   const handleLocate = () => {
     setLocating(true)
     map.locate({ setView: false, maxZoom: 15 }).on("locationfound", function (e) {
       setLocating(false)
       map.flyTo(e.latlng, 15, { duration: 1.5 })
-      L.marker(e.latlng, {
-        icon: L.divIcon({
-          className: '',
-          html: `<div style="width:20px;height:20px;background:#3B82F6;border:4px solid white;border-radius:50%;box-shadow:0 0 15px rgba(59,130,246,0.6);"></div>`,
-          iconSize: [20, 20],
-          iconAnchor: [10, 10]
-        })
-      }).addTo(map).bindPopup("Lokasi Anda").openPopup()
+      
+      if (markerRef.current) {
+        markerRef.current.setLatLng(e.latlng)
+      } else {
+        markerRef.current = L.marker(e.latlng, {
+          icon: L.divIcon({
+            className: '',
+            html: `<div style="width:20px;height:20px;background:#3B82F6;border:4px solid white;border-radius:50%;box-shadow:0 0 15px rgba(59,130,246,0.6);"></div>`,
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+          })
+        }).addTo(map).bindPopup("Lokasi Anda")
+      }
+      
+      if (onLocationFound) {
+        onLocationFound(e.latlng.lat, e.latlng.lng)
+      }
     }).on("locationerror", function (e) {
       setLocating(false)
       alert("Gagal mendeteksi lokasi. Pastikan izin GPS aktif di browser Anda.")
@@ -113,6 +130,8 @@ export default function MapDisplay({
   height = '300px',
   zoom = 13,
   showRoute = false,
+  onLocationFound,
+  radiusMode,
 }: MapDisplayProps) {
   useEffect(() => {
     fixLeafletIcon()
@@ -153,7 +172,16 @@ export default function MapDisplay({
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
         
-        <LocateControl />
+        <LocateControl onLocationFound={onLocationFound} />
+
+        {/* Radius Circle */}
+        {radiusMode?.active && (
+          <Circle
+            center={[radiusMode.centerLat, radiusMode.centerLng]}
+            radius={radiusMode.radiusKm * 1000}
+            pathOptions={{ color: '#0A4A5E', fillColor: '#0A4A5E', fillOpacity: 0.1, weight: 2, dashArray: '5, 5' }}
+          />
+        )}
 
         {/* Route polyline */}
         {showRoute && pins.length > 1 && (
