@@ -128,8 +128,8 @@ function ItineraryContent() {
   const [generated, setGenerated] = useState<GeneratedItinerary | null>(null)
   const [savedId, setSavedId] = useState<number | null>(null)
 
-  // Canvas: destinasi yang di-pin dari luar (via ?canvas=ID)
-  const [canvasDest, setCanvasDest] = useState<DestinationData | null>(null)
+  // Canvas: destinasi yang di-pin dari luar (via ?canvas=ID atau ?canvas=1,2,3)
+  const [canvasDests, setCanvasDests] = useState<DestinationData[]>([])
   const [canvasLoading, setCanvasLoading] = useState(false)
 
   // Trip start & end date (from Step 1 date range picker)
@@ -174,18 +174,24 @@ function ItineraryContent() {
   ]
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([])
 
-  // Fetch canvas destination from ?canvas=ID query param
+  // Fetch canvas destinations from ?canvas=ID,ID2,ID3 query param
   useEffect(() => {
-    const canvasId = searchParams.get('canvas')
-    if (!canvasId) return
+    const canvasParam = searchParams.get('canvas')
+    if (!canvasParam) return
+    const ids = canvasParam.split(',').map((s) => s.trim()).filter(Boolean)
+    if (ids.length === 0) return
     setCanvasLoading(true)
-    fetch(`/api/destinations/by-id/${canvasId}`)
-      .then((r) => r.ok ? r.json() : null)
-      .then((data) => {
-        if (data) setCanvasDest(data)
-        setCanvasLoading(false)
-      })
-      .catch(() => setCanvasLoading(false))
+    Promise.all(
+      ids.map((id) =>
+        fetch(`/api/destinations/by-id/${id}`)
+          .then((r) => r.ok ? r.json() : null)
+          .catch(() => null)
+      )
+    ).then((results) => {
+      const valid = results.filter(Boolean) as DestinationData[]
+      setCanvasDests(valid)
+      setCanvasLoading(false)
+    })
   }, [searchParams])
 
   const toggleCategory = (id: number) => {
@@ -219,30 +225,29 @@ function ItineraryContent() {
         area: selectedAreas.length > 0 ? selectedAreas.join(',') : 'Semua Area',
         areas: selectedAreas,
         categoryIds: selectedCategoryIds,
-        maxDestinations,
-        // Kirim canvas destination agar system pasti menyertakannya
-        pinnedDestinationId: canvasDest?.id,
+        maxDestinations: Math.max(maxDestinations, canvasDests.length),
+        pinnedDestinationIds: canvasDests.map((d) => d.id),
       }),
     })
     const data = await res.json()
 
-    // Jika ada canvas destination, inject manual jika belum masuk dari API
+    // Inject semua canvas destinations yang belum masuk dari API
     let items = data.items as ItineraryItem[]
-    if (canvasDest) {
-      const alreadyIn = items.some((i) => i.destination.id === canvasDest.id)
+    canvasDests.forEach((pinned, idx) => {
+      const alreadyIn = items.some((i) => i.destination.id === pinned.id)
       if (!alreadyIn) {
-        const pinned: ItineraryItem = {
-          destination: canvasDest,
-          order: 0,
-          day: 1,
+        const pinnedItem: ItineraryItem = {
+          destination: pinned,
+          order: idx,
+          day: Math.min(idx + 1, duration),
           startTime: '09:00',
-          estimatedVisitTime: canvasDest.estimatedDuration,
-          estimatedCost: canvasDest.ticketPrice,
-          transportNote: 'Mulai perjalanan dari lokasi Anda',
+          estimatedVisitTime: pinned.estimatedDuration,
+          estimatedCost: pinned.ticketPrice,
+          transportNote: idx === 0 ? 'Mulai perjalanan dari lokasi Anda' : `Lanjut menggunakan Grab/Gojek`,
         }
-        items = [pinned, ...items]
+        items = [pinnedItem, ...items]
       }
-    }
+    })
 
     setGenerated(data)
     setEditableItems(recalcItems(items, duration))
@@ -547,26 +552,51 @@ function ItineraryContent() {
             <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1A2332', marginBottom: '0.5rem' }}>
               Preferensi Perjalanan
             </h2>
-            <p style={{ color: '#4A5568', marginBottom: canvasDest ? '1rem' : '2rem', fontSize: '0.95rem' }}>
+            <p style={{ color: '#4A5568', marginBottom: canvasDests.length > 0 ? '1rem' : '2rem', fontSize: '0.95rem' }}>
               Pilih tanggal trip, budget, dan area tujuan kamu
             </p>
 
             {/* Canvas banner — shown when destination was pre-loaded */}
-            {(canvasDest || canvasLoading) && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'linear-gradient(135deg, #EFF6FF, #DBEAFE)', border: '1.5px solid #93C5FD', borderRadius: '14px', padding: '1rem 1.25rem', marginBottom: '1.5rem' }}>
+            {/* Canvas banner — shown when destinations were pre-loaded from wishlist/detail */}
+            {(canvasDests.length > 0 || canvasLoading) && (
+              <div style={{ background: 'linear-gradient(135deg, #EFF6FF, #DBEAFE)', border: '1.5px solid #93C5FD', borderRadius: '16px', padding: '1rem 1.25rem', marginBottom: '1.5rem' }}>
                 {canvasLoading ? (
-                  <div style={{ color: '#3B82F6', fontSize: '0.9rem' }}>⏳ Memuat destinasi...</div>
+                  <div style={{ color: '#3B82F6', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Loader size={16} style={{ animation: 'spin 1s linear infinite' }} /> Memuat destinasi...
+                  </div>
                 ) : (
                   <>
-                    {canvasDest?.mainImage && (
-                      <img src={canvasDest.mainImage} alt={canvasDest.name} style={{ width: '52px', height: '44px', borderRadius: '10px', objectFit: 'cover', flexShrink: 0 }} onError={(e) => { e.currentTarget.style.display = 'none' }} />
-                    )}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#1E40AF', letterSpacing: '0.08em', marginBottom: '2px' }}>📌 DESTINASI TERPILIH</div>
-                      <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1E3A5F', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{canvasDest?.name}</div>
-                      <div style={{ fontSize: '0.78rem', color: '#6B7280' }}>{canvasDest?.area} • akan otomatis masuk di itinerary</div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                      <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#1E40AF', letterSpacing: '0.08em' }}>
+                        📌 {canvasDests.length} DESTINASI DARI WISHLIST
+                      </div>
+                      <button
+                        onClick={() => setCanvasDests([])}
+                        style={{ background: 'none', border: 'none', color: '#93C5FD', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, fontFamily: 'Outfit, sans-serif', display: 'flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <X size={12} /> Hapus semua
+                      </button>
                     </div>
-                    <button onClick={() => setCanvasDest(null)} style={{ background: 'none', border: 'none', color: '#93C5FD', cursor: 'pointer', padding: '4px', fontSize: '1rem', lineHeight: 1 }} title="Hapus pin">✕</button>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      {canvasDests.map((d) => (
+                        <div
+                          key={d.id}
+                          style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'white', borderRadius: '50px', padding: '4px 10px 4px 4px', border: '1px solid #BFDBFE', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+                        >
+                          <img src={d.mainImage} alt={d.name} style={{ width: '26px', height: '26px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                          <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#1E40AF', whiteSpace: 'nowrap', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.name}</span>
+                          <button
+                            onClick={() => setCanvasDests((prev) => prev.filter((x) => x.id !== d.id))}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#93C5FD', padding: '0', lineHeight: 1, marginLeft: '2px' }}
+                          >
+                            <X size={11} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#6B7280', marginTop: '0.625rem' }}>
+                      Semua destinasi ini akan otomatis masuk di itinerary yang dihasilkan
+                    </div>
                   </>
                 )}
               </div>
