@@ -301,11 +301,20 @@ export default async function DetailDestinasiPage({
                   <Star size={18} /> Tambah ke Wishlist
                 </Link>
               ) : (
-                <BookingButton
-                  destinationId={destination.id}
-                  destinationName={destination.name}
-                  ticketPrice={destination.ticketPrice}
-                />
+                <>
+                  <BookingButton
+                    destinationId={destination.id}
+                    destinationName={destination.name}
+                    ticketPrice={destination.ticketPrice}
+                  />
+                  <Link
+                    href={`/wishlist?add=${destination.id}`}
+                    className="btn-secondary"
+                    style={{ width: '100%', justifyContent: 'center', display: 'flex', fontSize: '0.875rem', marginBottom: '0.75rem', gap: '8px', alignItems: 'center' }}
+                  >
+                    <Star size={16} /> Tambah ke Wishlist
+                  </Link>
+                </>
               )}
 
               <Link
