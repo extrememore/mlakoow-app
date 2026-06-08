@@ -13,6 +13,7 @@ import MapWrapper from '@/components/ui/MapWrapper'
 import ReviewSection from '@/components/ui/ReviewSection'
 import ImageGallery from '@/components/ui/ImageGallery'
 import TransportEstimator from '@/components/ui/TransportEstimator'
+import MenuImage from '@/components/ui/MenuImage'
 import {
   MapPin,
   Clock,
@@ -228,9 +229,7 @@ export default async function DetailKulinerPage({
                   {menus.map((menu: any, index: number) => (
                     <div key={index} style={{ display: 'flex', gap: '1.25rem', borderBottom: index < menus.length - 1 ? '1px dashed #E5E9F0' : 'none', paddingBottom: index < menus.length - 1 ? '1.25rem' : '0', paddingTop: index > 0 ? '0.25rem' : '0' }}>
                       {menu.image ? (
-                        <div style={{ flexShrink: 0, width: '80px', height: '80px', borderRadius: '12px', overflow: 'hidden' }}>
-                          <img src={menu.image} alt={menu.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        </div>
+                        <MenuImage src={menu.image} alt={menu.name} />
                       ) : (
                         <div style={{ flexShrink: 0, width: '80px', height: '80px', borderRadius: '12px', background: '#F8F6F2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <UtensilsCrossed size={24} color="#8B98A9" />
