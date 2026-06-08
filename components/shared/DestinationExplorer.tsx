@@ -31,6 +31,8 @@ export interface Destination {
   facilities: string
   category: Category
   distance?: number
+  lat: number
+  lng: number
 }
 
 const AREAS = ['Surabaya Pusat', 'Surabaya Utara', 'Surabaya Selatan', 'Surabaya Timur', 'Surabaya Barat']
@@ -161,6 +163,21 @@ export default function DestinationExplorer({
     if (params.has('search')) setSearch(params.get('search') || '')
     if (params.has('area')) setSelectedArea(params.get('area') || '')
     if (params.has('tag')) setActiveTag(params.get('tag') || '')
+
+    // Attempt to get user location silently on mount (or prompt)
+    if ('geolocation' in navigator && !userLocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          })
+        },
+        (error) => {
+          console.log("Geolocation permission denied or error on mount:", error)
+        }
+      )
+    }
   }, [fixedCategory])
 
   useEffect(() => {
@@ -388,6 +405,8 @@ export default function DestinationExplorer({
                   isKuliner={pageType === 'kuliner'}
                   facilities={dest.facilities}
                   distance={dest.distance}
+                  lat={dest.lat}
+                  lng={dest.lng}
                 />
               ))}
             </div>

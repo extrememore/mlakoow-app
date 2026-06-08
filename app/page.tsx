@@ -471,6 +471,8 @@ export default async function HomePage() {
                   estimatedDuration={dest.estimatedDuration}
                   category={dest.category}
                   description={dest.description}
+                  lat={dest.lat}
+                  lng={dest.lng}
                 />
               ))}
             </div>
@@ -656,6 +658,8 @@ export default async function HomePage() {
                   estimatedDuration={dest.estimatedDuration}
                   category={dest.category}
                   description={dest.description}
+                  lat={dest.lat}
+                  lng={dest.lng}
                 />
               ))}
             </div>

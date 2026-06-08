@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useState, useEffect } from 'react'
 import { MapPin, Star, Clock, Wallet } from 'lucide-react'
 
 interface DestinationCardProps {
@@ -25,6 +26,8 @@ interface DestinationCardProps {
   isKuliner?: boolean
   facilities?: string
   distance?: number
+  lat?: number
+  lng?: number
 }
 
 export default function DestinationCard({
@@ -42,8 +45,29 @@ export default function DestinationCard({
   description,
   isKuliner,
   facilities,
-  distance,
+  distance: initialDistance,
+  lat,
+  lng,
 }: DestinationCardProps) {
+  const [distance, setDistance] = useState<number | undefined>(initialDistance)
+
+  useEffect(() => {
+    // If distance wasn't provided by SSR/parent, but we have lat/lng, try to get it
+    if (initialDistance === undefined && lat !== undefined && lng !== undefined && 'geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        const R = 6371; // Radius of the earth in km
+        const dLat = (lat - pos.coords.latitude) * Math.PI / 180;
+        const dLon = (lng - pos.coords.longitude) * Math.PI / 180; 
+        const a = 
+          Math.sin(dLat/2) * Math.sin(dLat/2) +
+          Math.cos(pos.coords.latitude * Math.PI / 180) * Math.cos(lat * Math.PI / 180) * 
+          Math.sin(dLon/2) * Math.sin(dLon/2); 
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+        setDistance(R * c)
+      }, () => {})
+    }
+  }, [initialDistance, lat, lng])
+
   const href = category.slug === 'kuliner' ? `/kuliner/${slug}` : `/destinasi/${slug}`
   return (
     <Link href={href} style={{ textDecoration: 'none' }}>
