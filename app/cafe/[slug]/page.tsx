@@ -111,7 +111,7 @@ export default async function DetailCafePage({
       />
 
       {/* Hero info bar */}
-      <div style={{ background: 'linear-gradient(135deg, #7B1A00 0%, #C0392B 100%)', padding: '1.5rem 1.5rem 1.25rem' }}>
+      <div style={{ background: 'linear-gradient(135deg, #4C1D95 0%, #7C3AED 100%)', padding: '1.5rem 1.5rem 1.25rem' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
             <span className="badge" style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.3)' }}>

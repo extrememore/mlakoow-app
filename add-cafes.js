@@ -305,11 +305,25 @@ async function seed() {
     const gallery = cafe.gallery || JSON.stringify([img1, img2, img3]);
 
     if (!cafe.menus) {
-      cafe.menus = JSON.stringify([
-        { name: "Signature Coffee", price: 28000, desc: "Kopi susu signature dengan resep rahasia", image: foodImages[0], recommended: true },
-        { name: "Caffe Latte", price: 35000, desc: "Espresso dengan susu steamed", image: foodImages[1] },
-        { name: "French Fries", price: 20000, desc: "Kentang goreng renyah", image: foodImages[2], recommended: true }
-      ]);
+      const menuSets = [
+        [
+          { name: "Signature Coffee", price: 28000, desc: "Kopi susu signature dengan resep rahasia", image: foodImages[0], recommended: true },
+          { name: "Caffe Latte", price: 35000, desc: "Espresso dengan susu steamed", image: foodImages[1] },
+          { name: "French Fries", price: 20000, desc: "Kentang goreng renyah", image: foodImages[2], recommended: true }
+        ],
+        [
+          { name: "V60 Manual Brew", price: 32000, desc: "Biji kopi single origin pilihan", image: foodImages[1], recommended: true },
+          { name: "Caramel Macchiato", price: 38000, desc: "Perpaduan kopi, susu, dan karamel", image: foodImages[0] },
+          { name: "Classic Croissant", price: 25000, desc: "Croissant butter yang renyah", image: foodImages[2] },
+          { name: "Spaghetti Aglio Olio", price: 45000, desc: "Pasta klasik dengan garlic & olive oil", image: foodImages[3], recommended: true }
+        ],
+        [
+          { name: "Matcha Latte", price: 30000, desc: "Green tea matcha asli Jepang", image: foodImages[0], recommended: true },
+          { name: "Cold Brew Coffee", price: 35000, desc: "Kopi ekstraksi dingin yang menyegarkan", image: foodImages[1] },
+          { name: "Truffle Fries", price: 35000, desc: "Kentang goreng dengan aroma truffle", image: foodImages[2], recommended: true }
+        ]
+      ];
+      cafe.menus = JSON.stringify(menuSets[i % menuSets.length]);
     }
 
     await prisma.destination.upsert({
