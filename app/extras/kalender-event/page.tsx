@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import { Calendar, MapPin, Search } from 'lucide-react'
+import { Calendar, MapPin, Search, Filter } from 'lucide-react'
 import EventBookmarkButton from '@/components/ui/EventBookmarkButton'
 import Link from 'next/link'
 
@@ -19,6 +19,7 @@ export default async function KalenderEventPage({
   const resolvedParams = await searchParams
   const search = resolvedParams?.search || ''
   const category = resolvedParams?.category || ''
+  const sort = resolvedParams?.sort || 'Terdekat'
 
   const where: any = {}
   if (search) {
@@ -31,10 +32,26 @@ export default async function KalenderEventPage({
     where.category = category
   }
 
-  const events = await prisma.event.findMany({
+  let events = await prisma.event.findMany({
     where,
-    orderBy: { startDate: 'asc' },
+    orderBy: { startDate: 'asc' }, // default sort
   })
+
+  // Parse price logic for sorting
+  const parsePrice = (priceStr: string) => {
+    if (!priceStr || priceStr.toLowerCase().includes('gratis')) return 0
+    const num = parseInt(priceStr.replace(/[^0-9]/g, ''))
+    return isNaN(num) ? 0 : num
+  }
+
+  // Handle Sort
+  if (sort === 'Termurah') {
+    events.sort((a, b) => parsePrice(a.price) - parsePrice(b.price))
+  } else if (sort === 'Termahal') {
+    events.sort((a, b) => parsePrice(b.price) - parsePrice(a.price))
+  } else if (sort === 'Gratis') {
+    events = events.filter(e => parsePrice(e.price) === 0)
+  }
 
   // Get saved events for user
   const savedEvents = userId ? await prisma.savedEvent.findMany({
@@ -59,32 +76,56 @@ export default async function KalenderEventPage({
   return (
     <>
       <Navbar />
-      <main style={{ minHeight: '100vh', background: '#F8FAFC', paddingBottom: '4rem' }}>
-        {/* Header */}
-        <div style={{ background: 'linear-gradient(135deg, #0A4A5E 0%, #FF6B35 100%)', padding: '4rem 1.5rem', color: 'white', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '0.5rem' }}>Kalender Event</h1>
-          <p style={{ fontSize: '1.1rem', opacity: 0.9, maxWidth: '600px', margin: '0 auto' }}>
-            Temukan berbagai festival, pameran, dan acara menarik yang sedang dan akan berlangsung di Surabaya.
-          </p>
+      <main style={{ minHeight: '100vh', background: '#F4F7F6', paddingBottom: '4rem' }}>
+        {/* Header - Rich Aesthetics */}
+        <div style={{ position: 'relative', background: 'linear-gradient(135deg, #1A2332 0%, #0A4A5E 100%)', padding: '6rem 1.5rem 5rem', color: 'white', textAlign: 'center', overflow: 'hidden' }}>
+          {/* Decorative Pattern */}
+          <div style={{ position: 'absolute', inset: 0, opacity: 0.1, backgroundImage: 'radial-gradient(#FF6B35 2px, transparent 2px)', backgroundSize: '30px 30px' }} />
+          <div style={{ position: 'absolute', top: '-100px', left: '-100px', width: '300px', height: '300px', background: '#FF6B35', filter: 'blur(100px)', borderRadius: '50%', opacity: 0.3 }} />
+          <div style={{ position: 'absolute', bottom: '-100px', right: '-100px', width: '300px', height: '300px', background: '#0D6E84', filter: 'blur(100px)', borderRadius: '50%', opacity: 0.5 }} />
+          
+          <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
+            <h1 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 900, marginBottom: '1rem', letterSpacing: '-1px', textShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>Kalender Event</h1>
+            <p style={{ fontSize: '1.15rem', opacity: 0.9, maxWidth: '600px', margin: '0 auto', lineHeight: 1.6 }}>
+              Temukan berbagai festival, pameran, dan acara menarik yang sedang dan akan berlangsung di Surabaya.
+            </p>
+          </div>
         </div>
 
         {/* Content */}
-        <div style={{ maxWidth: '1000px', margin: '-2rem auto 0', padding: '0 1.5rem', position: 'relative', zIndex: 10 }}>
+        <div style={{ maxWidth: '1100px', margin: '-3rem auto 0', padding: '0 1.5rem', position: 'relative', zIndex: 10 }}>
           
-          {/* Filters & Search */}
-          <div style={{ background: 'white', padding: '1.5rem', borderRadius: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', marginBottom: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <form method="GET" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-              <div style={{ flex: '1 1 300px', position: 'relative' }}>
-                <Search size={18} color="#8B98A9" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }} />
+          {/* Filters & Search Bar */}
+          <div style={{ background: 'white', padding: '1.25rem', borderRadius: '24px', boxShadow: '0 10px 40px rgba(10,74,94,0.1)', marginBottom: '3rem', border: '1px solid rgba(229,233,240,0.8)' }}>
+            <form method="GET" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <div style={{ flex: '1 1 250px', position: 'relative' }}>
+                <Search size={20} color="#8B98A9" style={{ position: 'absolute', left: '1.25rem', top: '50%', transform: 'translateY(-50%)' }} />
                 <input 
                   type="text" 
                   name="search" 
                   defaultValue={search}
                   placeholder="Cari nama atau deskripsi event..." 
-                  style={{ width: '100%', padding: '0.8rem 1rem 0.8rem 2.8rem', borderRadius: '12px', border: '1px solid #E5E9F0', fontSize: '0.95rem', fontFamily: 'Outfit, sans-serif' }} 
+                  style={{ width: '100%', padding: '1rem 1rem 1rem 3.25rem', borderRadius: '16px', border: '1px solid #E5E9F0', fontSize: '1rem', fontFamily: 'Outfit, sans-serif', background: '#F8FAFC', transition: 'all 0.2s' }} 
+                  className="search-input"
                 />
               </div>
-              <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '4px' }} className="hide-scrollbar">
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div style={{ position: 'relative' }}>
+                  <Filter size={16} color="#8B98A9" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }} />
+                  <select name="sort" defaultValue={sort} onChange={(e) => e.target.form?.submit()} style={{ padding: '1rem 1.5rem 1rem 2.5rem', borderRadius: '16px', border: '1px solid #E5E9F0', fontSize: '0.95rem', fontFamily: 'Outfit, sans-serif', background: '#F8FAFC', fontWeight: 600, color: '#1A2332', cursor: 'pointer', appearance: 'none', paddingRight: '2.5rem' }}>
+                    <option value="Terdekat">Urutkan: Terdekat</option>
+                    <option value="Termurah">Urutkan: Termurah</option>
+                    <option value="Termahal">Urutkan: Termahal</option>
+                    <option value="Gratis">Urutkan: Gratis Saja</option>
+                  </select>
+                  <div style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+                    <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1.5L6 6.5L11 1.5" stroke="#8B98A9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '4px', flex: '1 1 100%' }} className="hide-scrollbar">
                 {allCategories.map(cat => {
                   const isActive = (category === cat) || (!category && cat === 'Semua')
                   return (
@@ -94,16 +135,19 @@ export default async function KalenderEventPage({
                       value={cat}
                       type="submit"
                       style={{
-                        padding: '0.6rem 1.2rem',
+                        padding: '0.7rem 1.4rem',
                         borderRadius: '50px',
-                        border: 'none',
-                        background: isActive ? '#0A4A5E' : '#F0F4F8',
+                        border: isActive ? 'none' : '1px solid #E5E9F0',
+                        background: isActive ? '#0A4A5E' : 'white',
                         color: isActive ? 'white' : '#4A5568',
                         fontWeight: 600,
                         fontSize: '0.9rem',
                         cursor: 'pointer',
-                        whiteSpace: 'nowrap'
+                        whiteSpace: 'nowrap',
+                        transition: 'all 0.2s',
+                        boxShadow: isActive ? '0 4px 12px rgba(10,74,94,0.2)' : 'none'
                       }}
+                      className="category-btn"
                     >
                       {cat}
                     </button>
@@ -113,59 +157,61 @@ export default async function KalenderEventPage({
             </form>
           </div>
 
-          <div style={{ display: 'grid', gap: '1.5rem' }}>
+          <div style={{ display: 'grid', gap: '2rem' }}>
             {events.length === 0 ? (
-              <div style={{ background: 'white', padding: '3rem', textAlign: 'center', borderRadius: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-                Tidak ada event yang ditemukan untuk filter tersebut.
+              <div style={{ background: 'white', padding: '5rem 2rem', textAlign: 'center', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', border: '2px dashed #E5E9F0' }}>
+                <Calendar size={48} color="#E5E9F0" style={{ margin: '0 auto 1rem' }} />
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1A2332', marginBottom: '0.5rem' }}>Tidak ada event ditemukan</h3>
+                <p style={{ color: '#8B98A9' }}>Coba ubah filter, urutan, atau kata kunci pencarian Anda.</p>
               </div>
             ) : (
               events.map((event) => {
                 const isSaved = savedEventIds.includes(event.id)
-                // Generate Google Calendar Link
                 const startStr = new Date(event.startDate).toISOString().replace(/-|:|\.\d\d\d/g, "")
                 const endStr = new Date(event.endDate).toISOString().replace(/-|:|\.\d\d\d/g, "")
                 const gCalLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${startStr}/${endStr}&details=${encodeURIComponent(event.description)}&location=${encodeURIComponent(event.location)}`
 
                 return (
-                  <div key={event.id} style={{ background: 'white', borderRadius: '20px', overflow: 'hidden', display: 'flex', flexDirection: 'row', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }} className="event-card">
-                    <div style={{ width: '300px', height: 'auto', minHeight: '250px', flexShrink: 0, position: 'relative' }}>
+                  <div key={event.id} style={{ background: 'white', borderRadius: '24px', overflow: 'hidden', display: 'flex', flexDirection: 'row', boxShadow: '0 4px 20px rgba(10,74,94,0.04)', border: '1px solid #E5E9F0', transition: 'transform 0.3s ease, box-shadow 0.3s ease' }} className="event-card">
+                    <div style={{ width: '320px', height: 'auto', minHeight: '280px', flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
                       <Link href={`/extras/kalender-event/${event.slug}`} style={{ display: 'block', width: '100%', height: '100%' }}>
-                        <img src={event.image} alt={event.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img src={event.image} alt={event.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }} className="event-image" />
+                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.4), transparent 50%)', opacity: 0, transition: 'opacity 0.3s ease' }} className="image-overlay" />
                       </Link>
                     </div>
-                    <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                           {getStatusBadge(event.startDate, event.endDate)}
-                          <span style={{ background: '#E0F2FE', color: '#0A4A5E', padding: '4px 10px', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 700 }}>
+                          <span style={{ background: '#E0F2FE', color: '#0A4A5E', padding: '4px 12px', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 700 }}>
                             {event.category}
                           </span>
                         </div>
-                        <span style={{ fontWeight: 800, color: '#FF6B35', fontSize: '1rem' }}>
+                        <span style={{ fontWeight: 900, color: '#FF6B35', fontSize: '1.1rem' }}>
                           {event.price}
                         </span>
                       </div>
                       
                       <Link href={`/extras/kalender-event/${event.slug}`} style={{ textDecoration: 'none' }}>
-                        <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1A2332', marginBottom: '0.5rem' }}>{event.title}</h2>
+                        <h2 style={{ fontSize: '1.75rem', fontWeight: 900, color: '#1A2332', marginBottom: '0.75rem', lineHeight: 1.2, transition: 'color 0.2s' }} className="event-title">{event.title}</h2>
                       </Link>
                       
-                      <p style={{ color: '#4A5568', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '1rem', flex: 1 }}>
+                      <p style={{ color: '#4A5568', fontSize: '0.95rem', lineHeight: 1.7, marginBottom: '1.5rem', flex: 1 }}>
                         {event.description}
                       </p>
                       
-                      <div style={{ display: 'flex', gap: '1.5rem', color: '#8B98A9', fontSize: '0.85rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <div style={{ display: 'flex', gap: '1.5rem', color: '#8B98A9', fontSize: '0.85rem', marginBottom: '1.5rem', flexWrap: 'wrap', fontWeight: 500 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Calendar size={16} color="#0A4A5E" />
-                          {new Date(event.startDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long' })} - {new Date(event.endDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                          {new Date(event.startDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} - {new Date(event.endDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <MapPin size={16} color="#FF6B35" />
                           {event.location}
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', borderTop: '1px solid #E5E9F0', paddingTop: '1.25rem', marginTop: 'auto' }}>
+                      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', borderTop: '1px solid #F0F4F8', paddingTop: '1.5rem', marginTop: 'auto' }}>
                         <a 
                           href={gCalLink} 
                           target="_blank" 
@@ -174,16 +220,18 @@ export default async function KalenderEventPage({
                             background: '#0A4A5E',
                             color: 'white',
                             textDecoration: 'none',
-                            padding: '8px 16px',
+                            padding: '10px 20px',
                             borderRadius: '50px',
-                            fontWeight: 600,
-                            fontSize: '0.85rem',
+                            fontWeight: 700,
+                            fontSize: '0.9rem',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '6px'
+                            gap: '8px',
+                            transition: 'background 0.2s, transform 0.2s'
                           }}
+                          className="btn-add-cal"
                         >
-                          <Calendar size={14} /> Add to Calendar
+                          <Calendar size={16} /> Add to Calendar
                         </a>
                         
                         <EventBookmarkButton eventId={event.id} initiallySaved={isSaved} sessionExists={!!session?.user} />
@@ -193,12 +241,17 @@ export default async function KalenderEventPage({
                           style={{
                             marginLeft: 'auto',
                             color: '#0A4A5E',
-                            fontWeight: 700,
+                            fontWeight: 800,
                             textDecoration: 'none',
-                            fontSize: '0.85rem'
+                            fontSize: '0.9rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            transition: 'color 0.2s'
                           }}
+                          className="btn-detail"
                         >
-                          Lihat Detail &rarr;
+                          Lihat Detail <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                         </Link>
                       </div>
                     </div>
@@ -213,10 +266,20 @@ export default async function KalenderEventPage({
       <style>{`
         @media (max-width: 768px) {
           .event-card { flex-direction: column !important; }
-          .event-card > div:first-child { width: 100% !important; min-height: 200px !important; }
+          .event-card > div:first-child { width: 100% !important; min-height: 220px !important; }
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .search-input:focus { outline: none; border-color: #0A4A5E !important; box-shadow: 0 0 0 3px rgba(10,74,94,0.1); background: white !important; }
+        .category-btn:hover { transform: translateY(-2px); }
+        
+        .event-card:hover { transform: translateY(-4px); box-shadow: 0 15px 40px rgba(10,74,94,0.1) !important; }
+        .event-card:hover .event-image { transform: scale(1.05); }
+        .event-card:hover .image-overlay { opacity: 1 !important; }
+        .event-title:hover { color: #FF6B35 !important; }
+        .btn-add-cal:hover { background: #083B4C !important; transform: scale(1.02); }
+        .btn-detail:hover { color: #FF6B35 !important; }
       `}</style>
     </>
   )
