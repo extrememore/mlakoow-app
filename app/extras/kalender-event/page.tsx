@@ -4,6 +4,7 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { Calendar, MapPin, Search } from 'lucide-react'
 import EventBookmarkButton from '@/components/ui/EventBookmarkButton'
+import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
@@ -127,8 +128,10 @@ export default async function KalenderEventPage({
 
                 return (
                   <div key={event.id} style={{ background: 'white', borderRadius: '20px', overflow: 'hidden', display: 'flex', flexDirection: 'row', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }} className="event-card">
-                    <div style={{ width: '300px', height: 'auto', minHeight: '250px', flexShrink: 0 }}>
-                      <img src={event.image} alt={event.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <div style={{ width: '300px', height: 'auto', minHeight: '250px', flexShrink: 0, position: 'relative' }}>
+                      <Link href={`/extras/kalender-event/${event.slug}`} style={{ display: 'block', width: '100%', height: '100%' }}>
+                        <img src={event.image} alt={event.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </Link>
                     </div>
                     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
@@ -143,7 +146,9 @@ export default async function KalenderEventPage({
                         </span>
                       </div>
                       
-                      <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1A2332', marginBottom: '0.5rem' }}>{event.title}</h2>
+                      <Link href={`/extras/kalender-event/${event.slug}`} style={{ textDecoration: 'none' }}>
+                        <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1A2332', marginBottom: '0.5rem' }}>{event.title}</h2>
+                      </Link>
                       
                       <p style={{ color: '#4A5568', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '1rem', flex: 1 }}>
                         {event.description}
@@ -182,6 +187,19 @@ export default async function KalenderEventPage({
                         </a>
                         
                         <EventBookmarkButton eventId={event.id} initiallySaved={isSaved} sessionExists={!!session?.user} />
+                        
+                        <Link 
+                          href={`/extras/kalender-event/${event.slug}`}
+                          style={{
+                            marginLeft: 'auto',
+                            color: '#0A4A5E',
+                            fontWeight: 700,
+                            textDecoration: 'none',
+                            fontSize: '0.85rem'
+                          }}
+                        >
+                          Lihat Detail &rarr;
+                        </Link>
                       </div>
                     </div>
                   </div>
