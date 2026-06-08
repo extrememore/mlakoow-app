@@ -95,7 +95,7 @@ export default async function DetailDestinasiPage({
       />
 
       {/* Hero overlay info (name, badges, rating) — kept on top of gallery */}
-      <div style={{ background: 'linear-gradient(135deg, #062E3A 0%, #0A4A5E 100%)', padding: '1.5rem 1.5rem 1.25rem' }}>
+      <div style={{ background: (destination.category.slug === 'hiburan' || destination.category.slug === 'spot-foto') ? 'linear-gradient(135deg, #B45309 0%, #F59E0B 100%)' : 'linear-gradient(135deg, #062E3A 0%, #0A4A5E 100%)', padding: '1.5rem 1.5rem 1.25rem' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
             <span className="badge" style={{ background: destination.category.color + '22', color: destination.category.color, border: `1px solid ${destination.category.color}44` }}>
@@ -146,8 +146,12 @@ export default async function DetailDestinasiPage({
                 },
                 {
                   icon: Wallet,
-                  label: 'Tiket Masuk',
-                  value: destination.ticketPrice === 0 ? 'Gratis' : `Rp ${destination.ticketPrice.toLocaleString('id-ID')}`,
+                  label: destination.category.slug === 'hiburan' || destination.category.slug === 'spot-foto' ? 'Estimasi Biaya' : 'Tiket Masuk',
+                  value: destination.ticketPrice === 0 ? 'Gratis' : (
+                    destination.category.slug === 'hiburan' || destination.category.slug === 'spot-foto'
+                    ? `Rp ${destination.ticketPrice.toLocaleString('id-ID')} - ${(Math.round((destination.ticketPrice * 1.5) / 5000) * 5000).toLocaleString('id-ID')}`
+                    : `Rp ${destination.ticketPrice.toLocaleString('id-ID')}`
+                  ),
                   color: destination.ticketPrice === 0 ? '#10B981' : '#0A4A5E',
                 },
                 {
@@ -288,11 +292,21 @@ export default async function DetailDestinasiPage({
                 )}
               </div>
 
-              <BookingButton
-                destinationId={destination.id}
-                destinationName={destination.name}
-                ticketPrice={destination.ticketPrice}
-              />
+              {destination.category.slug === 'hiburan' || destination.category.slug === 'spot-foto' ? (
+                <Link
+                  href={`/wishlist?add=${destination.id}`}
+                  className="btn-primary"
+                  style={{ width: '100%', justifyContent: 'center', display: 'flex', fontSize: '0.9rem', padding: '0.9rem', marginBottom: '0.75rem', background: 'linear-gradient(135deg, #B45309, #F59E0B)', color: 'white', borderRadius: '10px', textDecoration: 'none', fontWeight: 600, gap: '8px', alignItems: 'center' }}
+                >
+                  <Star size={18} /> Tambah ke Wishlist
+                </Link>
+              ) : (
+                <BookingButton
+                  destinationId={destination.id}
+                  destinationName={destination.name}
+                  ticketPrice={destination.ticketPrice}
+                />
+              )}
 
               <Link
                 href={`/itinerary?add=${destination.id}`}
