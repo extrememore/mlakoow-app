@@ -62,17 +62,26 @@ export default function Navbar() {
         }}
       >
         {/* Logo */}
-        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <img 
             src="/logo.png" 
-            alt="MLAKOOW" 
+            alt="Logo" 
             style={{ 
-              height: '42px', 
-              width: 'auto', 
-              objectFit: 'contain' 
+              width: '38px',
+              height: '38px',
+              objectFit: 'contain',
+              borderRadius: '8px'
             }} 
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
           />
-
+          <div>
+            <div style={{ fontWeight: 900, fontSize: '1.3rem', color: '#0A4A5E', letterSpacing: '-0.5px', lineHeight: 1 }}>
+              MLAKOOW
+            </div>
+            <div style={{ fontSize: '0.65rem', color: '#FF6B35', fontWeight: 600, letterSpacing: '0.5px' }}>
+              SMART TOURISM SURABAYA
+            </div>
+          </div>
         </Link>
 
         {/* Desktop Nav */}
