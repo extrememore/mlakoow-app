@@ -19,12 +19,7 @@ const MapDisplay = dynamic(() => import('./MapDisplay'), {
   ),
 })
 
-interface MapPin {
-  lat: number
-  lng: number
-  label: string
-  order?: number
-}
+import type { MapPin } from './MapDisplay'
 
 interface MapWrapperProps {
   pins: MapPin[]
