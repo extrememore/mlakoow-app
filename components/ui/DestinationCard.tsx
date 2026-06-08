@@ -71,13 +71,14 @@ export default function DestinationCard({
   let href = `/wisata/${slug}`
   if (category.slug === 'kuliner') href = `/kuliner/${slug}`
   if (category.slug === 'cafe') href = `/cafe/${slug}`
+  if (category.slug === 'oleh-oleh') href = `/oleh-oleh/${slug}`
 
   const isCafe = category.slug === 'cafe'
-  const isKulinerOrCafe = isKuliner || isCafe || category.slug === 'kuliner'
+  const isKulinerOrCafeOrOleh = isKuliner || isCafe || category.slug === 'kuliner' || category.slug === 'oleh-oleh'
 
   let priceDisplay = 'Gratis'
   if (ticketPrice > 0) {
-    if (isKulinerOrCafe) {
+    if (isKulinerOrCafeOrOleh) {
       if (ticketPrice < 30000) priceDisplay = '$ (Murah)'
       else if (ticketPrice < 60000) priceDisplay = '$$ (Sedang)'
       else if (ticketPrice < 100000) priceDisplay = '$$$ (Mahal)'
@@ -200,7 +201,7 @@ export default function DestinationCard({
               </div>
 
               {/* Duration or Badges */}
-              {isKulinerOrCafe ? (
+              {isKulinerOrCafeOrOleh ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.82rem' }}>
                   {isCafe && facilities?.includes('WiFi') && <span title="WFC Friendly" style={{ background: '#E0F2FE', color: '#0369A1', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>💻 WFC</span>}
                   {isCafe && facilities?.includes('Live Music') && <span title="Ada Live Music" style={{ background: '#FCE7F3', color: '#BE185D', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>🎶 Live Music</span>}
@@ -224,7 +225,7 @@ export default function DestinationCard({
                 style={{
                   fontWeight: 700,
                   fontSize: '0.9rem',
-                  color: (ticketPrice === 0 && !isKulinerOrCafe) ? '#10B981' : '#0A4A5E',
+                  color: (ticketPrice === 0 && !isKulinerOrCafeOrOleh) ? '#10B981' : '#0A4A5E',
                 }}
               >
                 {priceDisplay}
