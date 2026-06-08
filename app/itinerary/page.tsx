@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Zap,
   MapPin,
@@ -121,11 +121,16 @@ function recalcItems(items: ItineraryItem[], duration: number): ItineraryItem[] 
 
 export default function ItineraryPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [generated, setGenerated] = useState<GeneratedItinerary | null>(null)
   const [savedId, setSavedId] = useState<number | null>(null)
+
+  // Canvas: destinasi yang di-pin dari luar (via ?canvas=ID)
+  const [canvasDest, setCanvasDest] = useState<DestinationData | null>(null)
+  const [canvasLoading, setCanvasLoading] = useState(false)
 
   // Trip start & end date (from Step 1 date range picker)
   const [tripStartDate, setTripStartDate] = useState('')
@@ -169,6 +174,20 @@ export default function ItineraryPage() {
   ]
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([])
 
+  // Fetch canvas destination from ?canvas=ID query param
+  useEffect(() => {
+    const canvasId = searchParams.get('canvas')
+    if (!canvasId) return
+    setCanvasLoading(true)
+    fetch(`/api/destinations/by-id/${canvasId}`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data) setCanvasDest(data)
+        setCanvasLoading(false)
+      })
+      .catch(() => setCanvasLoading(false))
+  }, [searchParams])
+
   const toggleCategory = (id: number) => {
     setSelectedCategoryIds((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
@@ -201,11 +220,32 @@ export default function ItineraryPage() {
         areas: selectedAreas,
         categoryIds: selectedCategoryIds,
         maxDestinations,
+        // Kirim canvas destination agar system pasti menyertakannya
+        pinnedDestinationId: canvasDest?.id,
       }),
     })
     const data = await res.json()
+
+    // Jika ada canvas destination, inject manual jika belum masuk dari API
+    let items = data.items as ItineraryItem[]
+    if (canvasDest) {
+      const alreadyIn = items.some((i) => i.destination.id === canvasDest.id)
+      if (!alreadyIn) {
+        const pinned: ItineraryItem = {
+          destination: canvasDest,
+          order: 0,
+          day: 1,
+          startTime: '09:00',
+          estimatedVisitTime: canvasDest.estimatedDuration,
+          estimatedCost: canvasDest.ticketPrice,
+          transportNote: 'Mulai perjalanan dari lokasi Anda',
+        }
+        items = [pinned, ...items]
+      }
+    }
+
     setGenerated(data)
-    setEditableItems(data.items)
+    setEditableItems(recalcItems(items, duration))
     setSavedId(null)
     setLoading(false)
     setStep(3)
@@ -507,9 +547,30 @@ export default function ItineraryPage() {
             <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1A2332', marginBottom: '0.5rem' }}>
               Preferensi Perjalanan
             </h2>
-            <p style={{ color: '#4A5568', marginBottom: '2rem', fontSize: '0.95rem' }}>
+            <p style={{ color: '#4A5568', marginBottom: canvasDest ? '1rem' : '2rem', fontSize: '0.95rem' }}>
               Pilih tanggal trip, budget, dan area tujuan kamu
             </p>
+
+            {/* Canvas banner — shown when destination was pre-loaded */}
+            {(canvasDest || canvasLoading) && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'linear-gradient(135deg, #EFF6FF, #DBEAFE)', border: '1.5px solid #93C5FD', borderRadius: '14px', padding: '1rem 1.25rem', marginBottom: '1.5rem' }}>
+                {canvasLoading ? (
+                  <div style={{ color: '#3B82F6', fontSize: '0.9rem' }}>⏳ Memuat destinasi...</div>
+                ) : (
+                  <>
+                    {canvasDest?.mainImage && (
+                      <img src={canvasDest.mainImage} alt={canvasDest.name} style={{ width: '52px', height: '44px', borderRadius: '10px', objectFit: 'cover', flexShrink: 0 }} onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#1E40AF', letterSpacing: '0.08em', marginBottom: '2px' }}>📌 DESTINASI TERPILIH</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1E3A5F', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{canvasDest?.name}</div>
+                      <div style={{ fontSize: '0.78rem', color: '#6B7280' }}>{canvasDest?.area} • akan otomatis masuk di itinerary</div>
+                    </div>
+                    <button onClick={() => setCanvasDest(null)} style={{ background: 'none', border: 'none', color: '#93C5FD', cursor: 'pointer', padding: '4px', fontSize: '1rem', lineHeight: 1 }} title="Hapus pin">✕</button>
+                  </>
+                )}
+              </div>
+            )}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
               {/* Date range picker — replaces duration buttons */}

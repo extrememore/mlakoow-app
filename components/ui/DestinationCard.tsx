@@ -2,7 +2,9 @@
 
 import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { MapPin, Star, Clock, Wallet, MoreHorizontal, Heart, CalendarPlus, Ticket, X } from 'lucide-react'
+import ItineraryPickerModal from '@/components/ui/ItineraryPickerModal'
 
 interface DestinationCardProps {
   id: number
@@ -52,7 +54,10 @@ export default function DestinationCard({
 }: DestinationCardProps) {
   const [distance, setDistance] = useState<number | undefined>(initialDistance)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [inWishlist, setInWishlist] = useState(false)
+  const [wishlistLoading, setWishlistLoading] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
 
   useEffect(() => {
     if (initialDistance === undefined && lat !== undefined && lng !== undefined && 'geolocation' in navigator) {
@@ -70,6 +75,31 @@ export default function DestinationCard({
     }
   }, [initialDistance, lat, lng])
 
+  // Check wishlist status when menu opens
+  useEffect(() => {
+    if (!menuOpen) return
+    fetch(`/api/wishlist?check=${id}`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data) setInWishlist(data.inWishlist) })
+      .catch(() => {})
+  }, [menuOpen, id])
+
+  async function toggleWishlist(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setWishlistLoading(true)
+    if (inWishlist) {
+      const res = await fetch(`/api/wishlist?destinationId=${id}`, { method: 'DELETE' })
+      if (res.status === 401) { router.push('/login'); return }
+      if (res.ok) setInWishlist(false)
+    } else {
+      const res = await fetch('/api/wishlist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ destinationId: id }) })
+      if (res.status === 401) { router.push('/login'); return }
+      if (res.ok) setInWishlist(true)
+    }
+    setWishlistLoading(false)
+  }
+
   // Close menu when clicking outside
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -80,6 +110,7 @@ export default function DestinationCard({
     if (menuOpen) document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [menuOpen])
+
 
   let href = `/wisata/${slug}`
   if (category.slug === 'kuliner') href = `/kuliner/${slug}`
@@ -287,50 +318,51 @@ export default function DestinationCard({
                     onClick={(e) => e.stopPropagation()}
                   >
                     {/* Wishlist */}
-                    <a
-                      href={`/wishlist?add=${id}`}
-                      onClick={(e) => { e.stopPropagation(); setMenuOpen(false) }}
+                    <button
+                      onClick={toggleWishlist}
+                      disabled={wishlistLoading}
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        padding: '10px 12px',
-                        borderRadius: '10px',
-                        textDecoration: 'none',
-                        color: '#1A2332',
-                        fontSize: '0.875rem',
-                        fontWeight: 600,
-                        transition: 'background 0.15s',
+                        display: 'flex', alignItems: 'center', gap: '10px',
+                        padding: '10px 12px', borderRadius: '10px', width: '100%',
+                        background: inWishlist ? '#FEF2F2' : 'transparent',
+                        border: 'none', color: inWishlist ? '#DC2626' : '#1A2332',
+                        fontSize: '0.875rem', fontWeight: 600,
+                        transition: 'background 0.15s', cursor: 'pointer',
+                        fontFamily: 'Outfit, sans-serif',
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = '#FFF5F0')}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                      onMouseEnter={(e) => { if (!inWishlist) e.currentTarget.style.background = '#FFF5F0' }}
+                      onMouseLeave={(e) => { if (!inWishlist) e.currentTarget.style.background = 'transparent' }}
                     >
-                      <Heart size={16} color="#EF4444" fill="#EF4444" />
-                      Tambah ke Wishlist
-                    </a>
+                      <Heart size={16} color={inWishlist ? '#DC2626' : '#EF4444'} fill={inWishlist ? '#DC2626' : '#EF4444'} />
+                      {wishlistLoading ? '...' : inWishlist ? '✓ Di Wishlist' : 'Tambah ke Wishlist'}
+                    </button>
 
                     {/* Itinerary */}
-                    <a
-                      href={`/itinerary?add=${id}`}
-                      onClick={(e) => { e.stopPropagation(); setMenuOpen(false) }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        padding: '10px 12px',
-                        borderRadius: '10px',
-                        textDecoration: 'none',
-                        color: '#1A2332',
-                        fontSize: '0.875rem',
-                        fontWeight: 600,
-                        transition: 'background 0.15s',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = '#F0F7FF')}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                    >
-                      <CalendarPlus size={16} color="#0A4A5E" />
-                      Tambah ke Itinerary
-                    </a>
+                    <div onClick={(e) => { e.stopPropagation() }}>
+                      <ItineraryPickerModal
+                        destinationId={id}
+                        destinationName={name}
+                        destinationSlug={slug}
+                        trigger={
+                          <button
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: '10px',
+                              padding: '10px 12px', borderRadius: '10px', width: '100%',
+                              background: 'transparent', border: 'none',
+                              color: '#1A2332', fontSize: '0.875rem', fontWeight: 600,
+                              transition: 'background 0.15s', cursor: 'pointer',
+                              fontFamily: 'Outfit, sans-serif',
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = '#F0F7FF')}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                          >
+                            <CalendarPlus size={16} color="#0A4A5E" />
+                            Tambah ke Itinerary
+                          </button>
+                        }
+                      />
+                    </div>
 
                     {/* Booking — wisata non-gratis only */}
                     {isBookableWisata && (

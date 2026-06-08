@@ -10,6 +10,8 @@ import ReviewSection from '@/components/ui/ReviewSection'
 import ImageGallery from '@/components/ui/ImageGallery'
 import TransportEstimator from '@/components/ui/TransportEstimator'
 import DistanceBadge from '@/components/ui/DistanceBadge'
+import WishlistButton from '@/components/ui/WishlistButton'
+import ItineraryPickerModal from '@/components/ui/ItineraryPickerModal'
 import {
   MapPin,
   Clock,
@@ -248,21 +250,16 @@ export default async function DetailHiburanPage({
                 )}
               </div>
 
-              <Link
-                href={`/wishlist?add=${destination.id}`}
-                className="btn-primary"
-                style={{ width: '100%', justifyContent: 'center', display: 'flex', fontSize: '0.9rem', padding: '0.9rem', marginBottom: '0.75rem', background: 'linear-gradient(135deg, #B45309, #F59E0B)', color: 'white', borderRadius: '10px', textDecoration: 'none', fontWeight: 600, gap: '8px', alignItems: 'center' }}
-              >
-                <Star size={18} /> Tambah ke Wishlist
-              </Link>
+              <WishlistButton
+                destinationId={destination.id}
+                style={{ background: 'linear-gradient(135deg, #B45309, #F59E0B)', marginBottom: '0.75rem' }}
+              />
 
-              <Link
-                href={`/itinerary?add=${destination.id}`}
-                className="btn-secondary"
-                style={{ width: '100%', justifyContent: 'center', display: 'flex', fontSize: '0.875rem' }}
-              >
-                + Tambah ke Itinerary
-              </Link>
+              <ItineraryPickerModal
+                destinationId={destination.id}
+                destinationName={destination.name}
+                destinationSlug={destination.slug}
+              />
             </div>
 
             {/* Related */}
