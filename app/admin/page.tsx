@@ -2,6 +2,8 @@ import { prisma } from '@/lib/prisma'
 import { MapPin, Users, Ticket, Star, TrendingUp, BookOpen, CheckCircle, Clock } from 'lucide-react'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+
 async function getStats() {
   const [
     totalDestinations,

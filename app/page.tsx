@@ -5,6 +5,9 @@ import Footer from '@/components/layout/Footer'
 import DestinationCard from '@/components/ui/DestinationCard'
 import CTAJoin from '@/components/ui/CTAJoin'
 import NearbyRecommendations from '@/components/ui/NearbyRecommendations'
+
+export const dynamic = 'force-dynamic'
+
 import {
   Search,
   MapPin,

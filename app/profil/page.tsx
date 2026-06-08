@@ -3,6 +3,9 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
+
+export const dynamic = 'force-dynamic'
+
 import Footer from '@/components/layout/Footer'
 import LogoutButton from '@/components/ui/LogoutButton'
 import { QRModal } from '@/components/ui/QRModal'

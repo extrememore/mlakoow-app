@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma'
 import { Users, Calendar } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminUsersPage() {
   const users = await prisma.user.findMany({
     orderBy: { createdAt: 'desc' },

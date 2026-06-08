@@ -2,6 +2,8 @@ import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { CheckCircle, XCircle, Clock, Ticket, Calendar } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+
 async function getBookings() {
   return prisma.booking.findMany({
     orderBy: { createdAt: 'desc' },
