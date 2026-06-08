@@ -15,7 +15,8 @@ export default function WisataPage() {
       gradient="linear-gradient(135deg, #062E3A 0%, #0A4A5E 100%)"
       icon={<MapPin size={18} color="white" />}
       showCategoryFilter={true}
-      excludeCategory="kuliner,cafe,hiburan,spot-foto"
+      fixedCategory="sejarah,alam,keluarga,budaya,hidden-gem"
+      allowedCategories="sejarah,alam,keluarga,budaya,hidden-gem"
       tags={[
         { label: 'Semua', value: '' },
         { label: '⭐ Populer', value: 'featured' },

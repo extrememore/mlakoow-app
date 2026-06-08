@@ -43,6 +43,7 @@ interface DestinationExplorerProps {
   description?: string
   fixedCategory?: string
   excludeCategory?: string
+  allowedCategories?: string  // comma-separated slugs to show in dropdown, within fixedCategory set
   gradient?: string
   icon?: ReactNode
   showCategoryFilter?: boolean
@@ -57,6 +58,7 @@ export default function DestinationExplorer({
   description,
   fixedCategory,
   excludeCategory,
+  allowedCategories,
   gradient = 'linear-gradient(135deg, #062E3A 0%, #0A4A5E 100%)',
   icon = <MapPin size={16} color="#FF8C5E" />,
   showCategoryFilter = false,
@@ -95,7 +97,9 @@ export default function DestinationExplorer({
       const params = new URLSearchParams()
       if (debouncedSearch) params.set('search', debouncedSearch)
       
-      const categoryToFetch = fixedCategory || selectedCategory
+      // If user selected a sub-category (and it's within allowedCategories), use that
+      // Otherwise fall back to fixedCategory (could be multi-slug)
+      const categoryToFetch = (selectedCategory && selectedCategory !== '') ? selectedCategory : (fixedCategory || '')
       if (categoryToFetch) params.set('category', categoryToFetch)
       
       if (excludeCategory && !categoryToFetch) params.set('excludeCategory', excludeCategory)
@@ -260,7 +264,7 @@ export default function DestinationExplorer({
           </div>
 
           {/* Category filter */}
-          {showCategoryFilter && !fixedCategory && (
+          {showCategoryFilter && (
             <div style={{ position: 'relative' }}>
               <select
                 value={selectedCategory}
@@ -269,9 +273,14 @@ export default function DestinationExplorer({
                 style={{ paddingTop: '0.65rem', paddingBottom: '0.65rem', paddingRight: '2.5rem', appearance: 'none', cursor: 'pointer', minWidth: '160px' }}
               >
                 <option value="">Semua Kategori</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.slug}>{cat.icon} {cat.name}</option>
-                ))}
+                {categories
+                  .filter(cat => {
+                    if (!allowedCategories) return !fixedCategory  // default: only show when no fixedCategory
+                    return allowedCategories.split(',').includes(cat.slug)
+                  })
+                  .map((cat) => (
+                    <option key={cat.id} value={cat.slug}>{cat.icon} {cat.name}</option>
+                  ))}
               </select>
               <ChevronDown size={16} color="#8B98A9" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
             </div>
