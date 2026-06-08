@@ -30,6 +30,7 @@ export interface Destination {
   description: string
   facilities: string
   category: Category
+  distance?: number
 }
 
 const AREAS = ['Surabaya Pusat', 'Surabaya Utara', 'Surabaya Selatan', 'Surabaya Timur', 'Surabaya Barat']
@@ -82,6 +83,10 @@ export default function DestinationExplorer({
   // Modal state
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
 
+  // Geolocation
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null)
+  const [isLocating, setIsLocating] = useState(false)
+
   const fetchDestinations = useCallback(async () => {
     setLoading(true)
     try {
@@ -102,9 +107,12 @@ export default function DestinationExplorer({
       if (price) params.set('price', price)
       if (facilities.length > 0) params.set('facilities', facilities.join(','))
       
-      params.set('limit', '24')
+      if (userLocation) {
+        params.set('userLat', userLocation.lat.toString())
+        params.set('userLng', userLocation.lng.toString())
+      }
 
-      const res = await fetch(`/api/destinations?${params}`)
+      const res = await fetch(`/api/destinations?${params.toString()}`)
       const data = await res.json()
       setDestinations(data.destinations || [])
       setTotal(data.total || 0)
@@ -114,7 +122,37 @@ export default function DestinationExplorer({
     } finally {
       setLoading(false)
     }
-  }, [debouncedSearch, selectedCategory, selectedArea, activeTag, fixedCategory, excludeCategory, sort, price, facilities])
+  }, [debouncedSearch, selectedCategory, selectedArea, activeTag, fixedCategory, excludeCategory, sort, price, facilities, pageType, userLocation])
+
+  // Handle Sort Change with Geolocation request
+  const handleSortChange = (newSort: string) => {
+    if (newSort === 'jarak' && !userLocation) {
+      setIsLocating(true)
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            setUserLocation({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            })
+            setSort(newSort)
+            setIsLocating(false)
+          },
+          (error) => {
+            console.error("Error getting location:", error)
+            alert("Gagal mendapatkan lokasi Anda. Pastikan izin lokasi aktif.")
+            setIsLocating(false)
+            setSort('')
+          }
+        )
+      } else {
+        alert("Browser Anda tidak mendukung deteksi lokasi.")
+        setIsLocating(false)
+      }
+    } else {
+      setSort(newSort)
+    }
+  }
 
   // Read URL params on mount
   useEffect(() => {
@@ -242,15 +280,17 @@ export default function DestinationExplorer({
           <div style={{ position: 'relative' }}>
             <select
               value={sort}
-              onChange={(e) => setSort(e.target.value)}
+              onChange={(e) => handleSortChange(e.target.value)}
+              disabled={isLocating}
               className="input-field"
-              style={{ paddingTop: '0.65rem', paddingBottom: '0.65rem', paddingRight: '2.5rem', appearance: 'none', cursor: 'pointer', minWidth: '140px' }}
+              style={{ paddingTop: '0.65rem', paddingBottom: '0.65rem', paddingRight: '2.5rem', appearance: 'none', cursor: 'pointer', minWidth: '180px' }}
             >
-              <option value="">Urutkan: Relevansi</option>
-              <option value="populer">Terpopuler</option>
-              <option value="rating">Rating Tertinggi</option>
-              <option value="harga-murah">Harga: Termurah</option>
-              <option value="harga-mahal">Harga: Termahal</option>
+              <option value="">Rekomendasi Utama</option>
+              <option value="jarak">{isLocating ? 'Melacak...' : 'Jarak Terdekat'}</option>
+              <option value="populer">Paling Populer</option>
+              <option value="rating">Ulasan Tertinggi</option>
+              <option value="harga-murah">Harga Termurah</option>
+              <option value="harga-mahal">Harga Tertinggi</option>
             </select>
             <ChevronDown size={16} color="#8B98A9" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
           </div>
@@ -293,7 +333,7 @@ export default function DestinationExplorer({
           {/* Reset */}
           {hasFilters && (
             <button
-              onClick={() => { setSearch(''); setSelectedCategory(''); setSelectedArea(''); setActiveTag(''); setSort(''); setPrice(''); setFacilities([]) }}
+              onClick={() => { setSearch(''); setSelectedCategory(''); setSelectedArea(''); setActiveTag(''); setSort(''); setPrice(''); setFacilities([]); setUserLocation(null) }}
               style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#FEE2E2', border: 'none', borderRadius: '12px', padding: '0.65rem 1rem', color: '#B91C1C', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', fontFamily: 'Outfit, sans-serif', flexShrink: 0 }}
             >
               <X size={16} /> Reset
@@ -347,6 +387,7 @@ export default function DestinationExplorer({
                   description={dest.description}
                   isKuliner={pageType === 'kuliner'}
                   facilities={dest.facilities}
+                  distance={dest.distance}
                 />
               ))}
             </div>

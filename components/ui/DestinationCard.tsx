@@ -24,6 +24,7 @@ interface DestinationCardProps {
   description?: string
   isKuliner?: boolean
   facilities?: string
+  distance?: number
 }
 
 export default function DestinationCard({
@@ -41,6 +42,7 @@ export default function DestinationCard({
   description,
   isKuliner,
   facilities,
+  distance,
 }: DestinationCardProps) {
   const href = category.slug === 'kuliner' ? `/kuliner/${slug}` : `/destinasi/${slug}`
   return (
@@ -122,9 +124,14 @@ export default function DestinationCard({
             </h3>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#8B98A9', fontSize: '0.82rem' }}>
-            <MapPin size={12} />
-            <span>{area}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#8B98A9', marginBottom: '0.75rem' }}>
+            <MapPin size={14} color="#C0392B" /> {area}
+            {distance !== undefined && (
+              <>
+                <span>•</span>
+                <span style={{ color: '#C0392B', fontWeight: 600 }}>{distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`}</span>
+              </>
+            )}
           </div>
 
           {description && (

@@ -9,6 +9,7 @@ import BookingButton from '@/components/ui/BookingButton'
 import MapWrapper from '@/components/ui/MapWrapper'
 import ReviewSection from '@/components/ui/ReviewSection'
 import ImageGallery from '@/components/ui/ImageGallery'
+import TransportEstimator from '@/components/ui/TransportEstimator'
 import {
   MapPin,
   Clock,
@@ -78,33 +79,6 @@ export default async function DetailDestinasiPage({
 
   const gallery: string[] = JSON.parse(destination.gallery || '[]')
   const facilities: string[] = JSON.parse(destination.facilities || '[]')
-
-  const transportOptions = [
-    {
-      icon: '🛵',
-      mode: 'Ojek Online (Grab/Gojek)',
-      duration: '10-30 menit',
-      cost: 'Rp 10.000 – 35.000',
-      note: 'Paling fleksibel dan praktis untuk wisatawan',
-      recommended: true,
-    },
-    {
-      icon: '🚌',
-      mode: 'Bus Suroboyo',
-      duration: '20-45 menit',
-      cost: 'Rp 5.000',
-      note: 'Hemat, tersedia di rute utama kota',
-      recommended: false,
-    },
-    {
-      icon: '🚗',
-      mode: 'Taksi / Rental Mobil',
-      duration: '10-25 menit',
-      cost: 'Rp 30.000 – 80.000',
-      note: 'Cocok untuk rombongan keluarga',
-      recommended: false,
-    },
-  ]
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
@@ -262,45 +236,11 @@ export default async function DetailDestinasiPage({
               </div>
             )}
 
-            {/* Transport */}
-            <div style={{ background: 'white', borderRadius: '20px', padding: '2rem', border: '1px solid #E5E9F0' }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1A2332', marginBottom: '1.25rem' }}>
-                🚌 Rekomendasi Transportasi
-              </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {transportOptions.map((t) => (
-                  <div
-                    key={t.mode}
-                    style={{
-                      display: 'flex',
-                      gap: '1rem',
-                      alignItems: 'flex-start',
-                      padding: '1.25rem',
-                      background: t.recommended ? '#F0F7FA' : '#F8F6F2',
-                      borderRadius: '14px',
-                      border: t.recommended ? '2px solid #BAE6FD' : '1px solid #E5E9F0',
-                    }}
-                  >
-                    <span style={{ fontSize: '1.8rem', flexShrink: 0 }}>{t.icon}</span>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                        <strong style={{ fontSize: '0.95rem', color: '#1A2332' }}>{t.mode}</strong>
-                        {t.recommended && (
-                          <span className="badge" style={{ background: '#0A4A5E', color: 'white', fontSize: '0.7rem' }}>
-                            Direkomendasikan
-                          </span>
-                        )}
-                      </div>
-                      <div style={{ fontSize: '0.85rem', color: '#4A5568', marginBottom: '4px' }}>{t.note}</div>
-                      <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.82rem' }}>
-                        <span style={{ color: '#8B98A9' }}>⏱ {t.duration}</span>
-                        <span style={{ color: '#10B981', fontWeight: 600 }}>💰 {t.cost}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            {/* Transport Estimator (Client Component) */}
+            <TransportEstimator
+              destinationLat={destination.lat}
+              destinationLng={destination.lng}
+            />
 
             {/* Map */}
             <div style={{ background: 'white', borderRadius: '20px', border: '1px solid #E5E9F0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>

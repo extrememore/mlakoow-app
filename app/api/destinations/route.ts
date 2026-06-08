@@ -20,6 +20,24 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(searchParams.get('limit') || '20')
   const page = parseInt(searchParams.get('page') || '1')
   const skip = (page - 1) * limit
+  
+  const userLatStr = searchParams.get('userLat')
+  const userLngStr = searchParams.get('userLng')
+  const userLat = userLatStr ? parseFloat(userLatStr) : null
+  const userLng = userLngStr ? parseFloat(userLngStr) : null
+
+  // Helper Haversine
+  function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180; 
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2); 
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    return R * c; 
+  }
 
   const where: Prisma.DestinationWhereInput = {}
   const andConditions: Prisma.DestinationWhereInput[] = []
@@ -66,7 +84,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Sorting
-  let orderBy: Prisma.DestinationOrderByWithRelationInput[] = []
+  let orderBy: Prisma.DestinationOrderByWithRelationInput[] | undefined = undefined
   if (sort === 'rating') {
     orderBy = [{ rating: 'desc' }, { reviewCount: 'desc' }]
   } else if (sort === 'populer') {
@@ -75,21 +93,57 @@ export async function GET(request: NextRequest) {
     orderBy = [{ ticketPrice: 'asc' }, { rating: 'desc' }]
   } else if (sort === 'harga-mahal') {
     orderBy = [{ ticketPrice: 'desc' }, { rating: 'desc' }]
+  } else if (sort === 'jarak') {
+    // If distance, we will handle sorting in memory
+    orderBy = undefined
   } else {
     // Default
     orderBy = [{ featured: 'desc' }, { rating: 'desc' }]
   }
 
-  const [destinations, total] = await Promise.all([
-    prisma.destination.findMany({
+  let destinations: any[] = []
+  let total = 0
+
+  if (sort === 'jarak' && userLat !== null && userLng !== null) {
+    // Fetch all matching without pagination to sort in memory
+    const allMatching = await prisma.destination.findMany({
       where,
-      include: { category: true },
-      orderBy,
-      skip,
-      take: limit,
-    }),
-    prisma.destination.count({ where }),
-  ])
+      include: { category: true }
+    })
+    total = allMatching.length
+    
+    // Add distance and sort
+    const withDistance = allMatching.map((d) => ({
+      ...d,
+      distance: getDistanceFromLatLonInKm(userLat, userLng, d.lat, d.lng)
+    }))
+    withDistance.sort((a, b) => a.distance - b.distance)
+    
+    // Paginate manually
+    destinations = withDistance.slice(skip, skip + limit)
+  } else {
+    // Use Prisma for pagination and sorting
+    const [fetchedDestinations, count] = await Promise.all([
+      prisma.destination.findMany({
+        where,
+        include: { category: true },
+        orderBy,
+        skip,
+        take: limit,
+      }),
+      prisma.destination.count({ where }),
+    ])
+    
+    total = count
+    
+    // Attach distance if coordinates exist (even if not sorted by distance)
+    destinations = fetchedDestinations.map(d => {
+      const dist = (userLat !== null && userLng !== null) 
+        ? getDistanceFromLatLonInKm(userLat, userLng, d.lat, d.lng) 
+        : undefined;
+      return { ...d, distance: dist }
+    })
+  }
 
   return Response.json({ destinations, total, page, limit })
 }
