@@ -25,20 +25,20 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
-              <div
-                style={{
+              <img 
+                src="/logo.png" 
+                alt="Logo" 
+                style={{ 
                   width: '42px',
                   height: '42px',
+                  objectFit: 'contain',
+                  background: 'white',
                   borderRadius: '12px',
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,107,53,0.6))',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  padding: '2px',
                   border: '1px solid rgba(255,255,255,0.3)',
-                }}
-              >
-                <MapPin size={22} color="white" />
-              </div>
+                }} 
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+              />
               <div>
                 <div style={{ fontWeight: 900, fontSize: '1.4rem', letterSpacing: '-0.5px' }}>MLAKOOW</div>
                 <div style={{ fontSize: '0.65rem', color: '#FF8C5E', fontWeight: 600, letterSpacing: '0.5px' }}>
