@@ -25,6 +25,11 @@ interface Props {
     itineraries: Itinerary[]
     bookings: Booking[]
     reviews: Review[]
+    savedEvents: Array<{
+      id: number
+      savedAt: string
+      event: { id: number, title: string, slug: string, image: string, category: string, startDate: string, endDate: string, location: string }
+    }>
   }
 }
 
@@ -83,10 +88,11 @@ const TABS = [
   { id: 'itinerary', label: '🗺️ Itinerary', icon: BookOpen },
   { id: 'booking', label: '🎟️ Booking', icon: Ticket },
   { id: 'review', label: '⭐ Review', icon: Star },
+  { id: 'events', label: '📅 Event Tersimpan', icon: Calendar },
 ]
 
 export default function ProfileClient({ data }: Props) {
-  const { user, stats, itineraries, bookings, reviews } = data
+  const { user, stats, itineraries, bookings, reviews, savedEvents } = data
   const [activeTab, setActiveTab] = useState('overview')
 
   const initial = user.name.charAt(0).toUpperCase()
@@ -569,6 +575,66 @@ export default function ProfileClient({ data }: Props) {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ════ EVENTS TAB ════ */}
+        {activeTab === 'events' && (
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <h2 style={{ fontWeight: 800, fontSize: '1.25rem', color: '#1A2332', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Calendar size={20} color="#EF4444" /> Event Tersimpan ({savedEvents.length})
+              </h2>
+            </div>
+
+            {savedEvents.length === 0 ? (
+              <div style={{ background: 'white', borderRadius: '20px', padding: '4rem 2rem', textAlign: 'center', border: '2px dashed #E5E9F0' }}>
+                <Calendar size={48} color="#E5E9F0" style={{ marginBottom: '1rem' }} />
+                <h3 style={{ fontWeight: 800, color: '#1A2332', marginBottom: '0.5rem' }}>Belum ada event tersimpan</h3>
+                <p style={{ color: '#8B98A9', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Eksplorasi Kalender Event dan simpan yang menarik!</p>
+                <Link href="/extras/kalender-event" className="btn-primary">Lihat Kalender Event 📅</Link>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.25rem' }}>
+                {savedEvents.map(s => {
+                  const ev = s.event
+                  return (
+                    <div key={s.id} style={{ background: 'white', borderRadius: '20px', border: '1px solid #E5E9F0', overflow: 'hidden', boxShadow: '0 2px 12px rgba(10,74,94,0.04)', display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ position: 'relative', height: '180px', overflow: 'hidden' }}>
+                        <img src={ev.image} alt={ev.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'white', color: '#EF4444', padding: '6px', borderRadius: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Heart size={16} fill="#EF4444" />
+                        </div>
+                        <div style={{ position: 'absolute', top: '10px', left: '10px', background: '#0A4A5E', color: 'white', padding: '4px 10px', borderRadius: '50px', fontSize: '0.7rem', fontWeight: 700 }}>
+                          {ev.category}
+                        </div>
+                      </div>
+
+                      <div style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1A2332', marginBottom: '0.5rem' }}>{ev.title}</h3>
+                        
+                        <div style={{ display: 'flex', gap: '10px', color: '#8B98A9', fontSize: '0.8rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Calendar size={14} />
+                            {new Date(ev.startDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} - {new Date(ev.endDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <MapPin size={14} />
+                            {ev.location}
+                          </div>
+                        </div>
+
+                        <div style={{ marginTop: 'auto', textAlign: 'center' }}>
+                          <Link href="/extras/kalender-event" style={{ fontSize: '0.875rem', color: '#0A4A5E', fontWeight: 700, textDecoration: 'none' }}>
+                            Lihat di Kalender →
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>

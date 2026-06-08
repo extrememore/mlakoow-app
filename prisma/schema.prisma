@@ -20,6 +20,7 @@ model User {
   reviews     Review[]
   itineraries Itinerary[]
   bookings    Booking[]
+  savedEvents SavedEvent[]
 }
 
 model Category {
@@ -128,4 +129,18 @@ model Event {
   category    String
   price       String   @default("Gratis")
   createdAt   DateTime @default(now())
+
+  savedBy     SavedEvent[]
+}
+
+model SavedEvent {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  eventId   Int
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
 }

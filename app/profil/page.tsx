@@ -17,7 +17,7 @@ export default async function ProfilPage() {
 
   const userId = parseInt(session.user.id as string)
 
-  const [user, itineraries, bookings, reviews] = await Promise.all([
+  const [user, itineraries, bookings, reviews, savedEvents] = await Promise.all([
     prisma.user.findUnique({ where: { id: userId } }),
     prisma.itinerary.findMany({
       where: { userId },
@@ -38,6 +38,11 @@ export default async function ProfilPage() {
       where: { userId },
       include: { destination: { select: { name: true, slug: true, mainImage: true } } },
       orderBy: { createdAt: 'desc' },
+    }),
+    prisma.savedEvent.findMany({
+      where: { userId },
+      include: { event: true },
+      orderBy: { createdAt: 'desc' }
     }),
   ])
 
@@ -114,6 +119,20 @@ export default async function ProfilPage() {
         mainImage: r.destination.mainImage,
       },
     })),
+    savedEvents: savedEvents.map(s => ({
+      id: s.id,
+      savedAt: s.createdAt.toISOString(),
+      event: {
+        id: s.event.id,
+        title: s.event.title,
+        slug: s.event.slug,
+        image: s.event.image,
+        category: s.event.category,
+        startDate: s.event.startDate.toISOString(),
+        endDate: s.event.endDate.toISOString(),
+        location: s.event.location
+      }
+    }))
   }
 
   return (
