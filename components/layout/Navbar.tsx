@@ -15,6 +15,7 @@ export default function Navbar() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const navLinks = [
+    { href: '/', label: 'Beranda' },
     { href: '/destinasi', label: 'Destinasi' },
     { href: '/kuliner', label: 'Kuliner & Oleh-oleh' },
     { href: '/itinerary', label: 'Smart Itinerary' },
