@@ -115,3 +115,17 @@ model Booking {
   user        User        @relation(fields: [userId], references: [id])
   destination Destination @relation(fields: [destinationId], references: [id])
 }
+
+model Event {
+  id          Int      @id @default(autoincrement())
+  title       String
+  slug        String   @unique
+  description String   @db.Text
+  location    String
+  startDate   DateTime
+  endDate     DateTime
+  image       String
+  category    String
+  price       String   @default("Gratis")
+  createdAt   DateTime @default(now())
+}

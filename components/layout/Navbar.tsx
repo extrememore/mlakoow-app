@@ -13,6 +13,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const [extrasMenuOpen, setExtrasMenuOpen] = useState(false)
 
   const navLinks = [
     { href: '/', label: 'Beranda' },
@@ -104,6 +105,60 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
+          
+          {/* Extras Dropdown Desktop */}
+          <div 
+            style={{ position: 'relative' }} 
+            onMouseEnter={() => setExtrasMenuOpen(true)}
+            onMouseLeave={() => setExtrasMenuOpen(false)}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontWeight: 600,
+                fontSize: '0.9rem',
+                color: (pathname.startsWith('/extras')) ? '#0A4A5E' : '#4A5568',
+                borderBottom: (pathname.startsWith('/extras')) ? '2px solid #FF6B35' : '2px solid transparent',
+                paddingBottom: '4px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              Extras <ChevronDown size={14} style={{ transform: extrasMenuOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }} />
+            </div>
+            
+            {extrasMenuOpen && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                background: 'white',
+                minWidth: '200px',
+                borderRadius: '12px',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                padding: '0.5rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px',
+                marginTop: '10px',
+                border: '1px solid #E5E9F0'
+              }}>
+                <Link href="/extras/kalender-event" onClick={() => setExtrasMenuOpen(false)} style={{
+                  padding: '10px 14px', textDecoration: 'none', color: '#1A2332', fontSize: '0.9rem', fontWeight: 500, borderRadius: '8px', transition: 'background 0.2s'
+                }} className="dropdown-item">
+                  Kalender Event
+                </Link>
+                <Link href="/extras/peta-interaktif" onClick={() => setExtrasMenuOpen(false)} style={{
+                  padding: '10px 14px', textDecoration: 'none', color: '#1A2332', fontSize: '0.9rem', fontWeight: 500, borderRadius: '8px', transition: 'background 0.2s'
+                }} className="dropdown-item">
+                  Peta Interaktif
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Auth — Desktop */}
@@ -316,6 +371,39 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
+          
+          {/* Extras Mobile */}
+          <div style={{ padding: '0.85rem 0', borderBottom: '1px solid #E5E9F0' }}>
+            <div 
+              onClick={() => setExtrasMenuOpen(!extrasMenuOpen)}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                fontWeight: 600,
+                fontSize: '1.05rem',
+                color: (pathname.startsWith('/extras')) ? '#0A4A5E' : '#4A5568',
+                cursor: 'pointer',
+              }}
+            >
+              Extras <ChevronDown size={18} style={{ transform: extrasMenuOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }} />
+            </div>
+            
+            {extrasMenuOpen && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.85rem', paddingLeft: '1rem' }}>
+                <Link href="/extras/kalender-event" onClick={() => { setMobileOpen(false); setExtrasMenuOpen(false); }} style={{
+                  textDecoration: 'none', color: '#4A5568', fontWeight: 500, padding: '0.5rem 0'
+                }}>
+                  Kalender Event
+                </Link>
+                <Link href="/extras/peta-interaktif" onClick={() => { setMobileOpen(false); setExtrasMenuOpen(false); }} style={{
+                  textDecoration: 'none', color: '#4A5568', fontWeight: 500, padding: '0.5rem 0'
+                }}>
+                  Peta Interaktif
+                </Link>
+              </div>
+            )}
+          </div>
           
           {session?.user ? (
             <div style={{ display: 'flex', flexDirection: 'column', marginTop: '0.5rem' }}>
