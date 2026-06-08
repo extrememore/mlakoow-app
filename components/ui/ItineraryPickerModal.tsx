@@ -161,7 +161,7 @@ export default function ItineraryPickerModal({
           <div
             style={{
               background: 'white', borderRadius: '24px',
-              width: '100%', maxWidth: '420px',
+              width: '100%', maxWidth: '540px',
               boxShadow: '0 30px 80px rgba(0,0,0,0.25)',
               overflow: 'hidden',
               animation: 'modalPop 0.22s cubic-bezier(0.34,1.56,0.64,1)',
@@ -294,16 +294,16 @@ export default function ItineraryPickerModal({
 
                   {/* Existing canvases */}
                   {!creatingCanvas && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '320px', overflowY: 'auto' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '380px', overflowY: 'auto', paddingRight: '2px' }}>
                       {loading ? (
                         <div style={{ textAlign: 'center', padding: '2rem', color: '#8B98A9' }}>
                           <Loader size={24} style={{ animation: 'spin 1s linear infinite' }} />
                         </div>
                       ) : canvases.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '1.5rem', color: '#8B98A9' }}>
-                          <Sparkles size={28} style={{ marginBottom: '8px', color: '#CBD5E0' }} />
-                          <p style={{ fontSize: '0.875rem', margin: 0 }}>Belum ada kanvas tersimpan.</p>
-                          <p style={{ fontSize: '0.8rem', margin: '4px 0 0', color: '#A0ADB8' }}>Buat kanvas baru di atas!</p>
+                        <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#8B98A9' }}>
+                          <Sparkles size={32} style={{ marginBottom: '10px', color: '#CBD5E0' }} />
+                          <p style={{ fontSize: '0.9rem', fontWeight: 600, margin: 0, color: '#4A5568' }}>Belum ada kanvas tersimpan.</p>
+                          <p style={{ fontSize: '0.8rem', margin: '6px 0 0', color: '#A0ADB8' }}>Buat kanvas baru di atas untuk mulai mengumpulkan destinasi!</p>
                         </div>
                       ) : (
                         canvases.map((canvas) => {
@@ -314,63 +314,102 @@ export default function ItineraryPickerModal({
                             <div
                               key={canvas.id}
                               style={{
-                                display: 'flex', alignItems: 'center', gap: '12px',
-                                padding: '0.875rem 1rem', borderRadius: '14px',
-                                border: isAdded ? '1.5px solid #10B981' : '1.5px solid #E5E9F0',
-                                background: isAdded ? '#F0FDF4' : '#FAFBFC',
+                                borderRadius: '16px',
+                                border: isAdded ? '2px solid #10B981' : alreadyHas ? '1.5px solid #BAE6FD' : '1.5px solid #E5E9F0',
+                                background: isAdded ? '#F0FDF4' : alreadyHas ? '#EFF8FF' : '#FAFBFC',
                                 cursor: alreadyHas || isAdded ? 'default' : 'pointer',
                                 transition: 'all 0.15s',
+                                overflow: 'hidden',
                               }}
                               onClick={() => { if (!alreadyHas && !isAdded && !isAdding) addToCanvas(canvas.id, canvas.title) }}
-                              onMouseEnter={(e) => { if (!alreadyHas && !isAdded) e.currentTarget.style.borderColor = '#0A4A5E' }}
-                              onMouseLeave={(e) => { if (!isAdded) e.currentTarget.style.borderColor = '#E5E9F0' }}
+                              onMouseEnter={(e) => { if (!alreadyHas && !isAdded) { e.currentTarget.style.borderColor = '#0A4A5E'; e.currentTarget.style.background = '#F0F7FA' } }}
+                              onMouseLeave={(e) => { if (!isAdded && !alreadyHas) { e.currentTarget.style.borderColor = '#E5E9F0'; e.currentTarget.style.background = '#FAFBFC' } }}
                             >
-                              {/* Mini thumbnail grid */}
-                              <div style={{ display: 'flex', flexShrink: 0 }}>
-                                {canvas.items.slice(0, 3).map((item, idx) => (
-                                  <img
-                                    key={item.destination.id}
-                                    src={item.destination.mainImage}
-                                    alt=""
-                                    style={{
-                                      width: '32px', height: '32px', borderRadius: '8px',
-                                      objectFit: 'cover', border: '2px solid white',
-                                      marginLeft: idx > 0 ? '-8px' : 0,
-                                    }}
-                                    onError={(e) => { e.currentTarget.style.display = 'none' }}
-                                  />
-                                ))}
-                                {canvas.items.length === 0 && (
-                                  <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#E5E9F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <MapPin size={14} color="#8B98A9" />
+                              {/* Canvas header row */}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '0.875rem 1rem 0.75rem' }}>
+                                {/* Stacked thumbnails */}
+                                <div style={{ display: 'flex', flexShrink: 0 }}>
+                                  {canvas.items.slice(0, 3).map((item, idx) => (
+                                    <img
+                                      key={item.destination.id}
+                                      src={item.destination.mainImage}
+                                      alt={item.destination.name}
+                                      style={{
+                                        width: '38px', height: '38px', borderRadius: '10px',
+                                        objectFit: 'cover', border: '2.5px solid white',
+                                        marginLeft: idx > 0 ? '-10px' : 0,
+                                        boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
+                                      }}
+                                      onError={(e) => { e.currentTarget.style.display = 'none' }}
+                                    />
+                                  ))}
+                                  {canvas.items.length === 0 && (
+                                    <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#E5E9F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                      <MapPin size={16} color="#8B98A9" />
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Title + count */}
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#1A2332', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {canvas.title}
                                   </div>
-                                )}
+                                  <div style={{ fontSize: '0.75rem', color: '#8B98A9', marginTop: '1px' }}>
+                                    {canvas.items.length === 0 ? 'Kanvas kosong' : `${canvas.items.length} destinasi`}
+                                    {alreadyHas && <span style={{ color: '#3B82F6', fontWeight: 600 }}> · sudah ada</span>}
+                                  </div>
+                                </div>
+
+                                {/* Action button */}
+                                <div style={{ flexShrink: 0 }}>
+                                  {isAdding ? (
+                                    <Loader size={18} color="#0A4A5E" style={{ animation: 'spin 1s linear infinite' }} />
+                                  ) : isAdded || alreadyHas ? (
+                                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: isAdded ? '#10B981' : '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 2px 8px ${isAdded ? 'rgba(16,185,129,0.35)' : 'rgba(59,130,246,0.3)'}` }}>
+                                      <Check size={16} color="white" strokeWidth={3} />
+                                    </div>
+                                  ) : (
+                                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1.5px solid #0A4A5E', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}>
+                                      <Plus size={16} color="#0A4A5E" />
+                                    </div>
+                                  )}
+                                </div>
                               </div>
 
-                              {/* Info */}
-                              <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1A2332', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                  {canvas.title}
+                              {/* Destination name tags — shown if canvas has items */}
+                              {canvas.items.length > 0 && (
+                                <div style={{ padding: '0 1rem 0.875rem', display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                                  {canvas.items.slice(0, 6).map((item) => (
+                                    <span
+                                      key={item.destination.id}
+                                      style={{
+                                        display: 'inline-flex', alignItems: 'center', gap: '4px',
+                                        background: item.destination.id === destinationId ? '#DBEAFE' : 'white',
+                                        border: `1px solid ${item.destination.id === destinationId ? '#93C5FD' : '#E5E9F0'}`,
+                                        borderRadius: '50px',
+                                        padding: '3px 9px 3px 4px',
+                                        fontSize: '0.72rem',
+                                        fontWeight: 600,
+                                        color: item.destination.id === destinationId ? '#1E40AF' : '#4A5568',
+                                      }}
+                                    >
+                                      <img
+                                        src={item.destination.mainImage}
+                                        alt=""
+                                        style={{ width: '16px', height: '16px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+                                        onError={(e) => { e.currentTarget.style.display = 'none' }}
+                                      />
+                                      {item.destination.name.length > 18 ? item.destination.name.slice(0, 16) + '…' : item.destination.name}
+                                    </span>
+                                  ))}
+                                  {canvas.items.length > 6 && (
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 9px', background: '#F0F4F8', border: '1px solid #E5E9F0', borderRadius: '50px', fontSize: '0.72rem', fontWeight: 600, color: '#8B98A9' }}>
+                                      +{canvas.items.length - 6} lainnya
+                                    </span>
+                                  )}
                                 </div>
-                                <div style={{ fontSize: '0.75rem', color: '#8B98A9' }}>
-                                  {canvas.items.length} destinasi{alreadyHas ? ' · sudah ada' : ''}
-                                </div>
-                              </div>
-
-                              {/* Status */}
-                              <div style={{ flexShrink: 0 }}>
-                                {isAdding ? (
-                                  <Loader size={16} color="#0A4A5E" style={{ animation: 'spin 1s linear infinite' }} />
-                                ) : isAdded || alreadyHas ? (
-                                  <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <Check size={14} color="white" strokeWidth={3} />
-                                  </div>
-                                ) : (
-                                  <div style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1.5px solid #E5E9F0', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <Plus size={14} color="#0A4A5E" />
-                                  </div>
-                                )}
-                              </div>
+                              )}
                             </div>
                           )
                         })
