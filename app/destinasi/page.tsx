@@ -46,18 +46,24 @@ export default function DestinasiPage() {
 
   const fetchDestinations = useCallback(async () => {
     setLoading(true)
-    const params = new URLSearchParams()
-    if (search) params.set('search', search)
-    if (selectedCategory) params.set('category', selectedCategory)
-    if (selectedArea) params.set('area', selectedArea)
-    params.set('limit', '24')
-    params.set('excludeCategory', 'kuliner')
+    try {
+      const params = new URLSearchParams()
+      if (search) params.set('search', search)
+      if (selectedCategory) params.set('category', selectedCategory)
+      if (selectedArea) params.set('area', selectedArea)
+      params.set('limit', '24')
+      params.set('excludeCategory', 'kuliner')
 
-    const res = await fetch(`/api/destinations?${params}`)
-    const data = await res.json()
-    setDestinations(data.destinations || [])
-    setTotal(data.total || 0)
-    setLoading(false)
+      const res = await fetch(`/api/destinations?${params}`)
+      const data = await res.json()
+      setDestinations(data.destinations || [])
+      setTotal(data.total || 0)
+    } catch (err) {
+      console.error('Failed to fetch destinations:', err)
+      setDestinations([])
+    } finally {
+      setLoading(false)
+    }
   }, [search, selectedCategory, selectedArea])
 
   useEffect(() => {
@@ -83,6 +89,7 @@ export default function DestinasiPage() {
         })
         setCategories(Array.from(cats.values()))
       })
+      .catch(() => {})
 
     // Load URL params
     const params = new URLSearchParams(window.location.search)

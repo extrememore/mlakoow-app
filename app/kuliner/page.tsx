@@ -50,19 +50,25 @@ export default function KulinerPage() {
 
   const fetchKuliner = useCallback(async () => {
     setLoading(true)
-    const params = new URLSearchParams()
-    params.set('category', 'kuliner')
-    params.set('limit', '24')
-    if (search) params.set('search', search)
-    if (selectedArea) params.set('area', selectedArea)
-    if (activeTag === 'featured') params.set('featured', 'true')
-    if (activeTag === 'hidden') params.set('hiddenGem', 'true')
+    try {
+      const params = new URLSearchParams()
+      params.set('category', 'kuliner')
+      params.set('limit', '24')
+      if (search) params.set('search', search)
+      if (selectedArea) params.set('area', selectedArea)
+      if (activeTag === 'featured') params.set('featured', 'true')
+      if (activeTag === 'hidden') params.set('hiddenGem', 'true')
 
-    const res = await fetch(`/api/destinations?${params}`)
-    const data = await res.json()
-    setDestinations(data.destinations || [])
-    setTotal(data.total || 0)
-    setLoading(false)
+      const res = await fetch(`/api/destinations?${params}`)
+      const data = await res.json()
+      setDestinations(data.destinations || [])
+      setTotal(data.total || 0)
+    } catch (err) {
+      console.error('Failed to fetch kuliner:', err)
+      setDestinations([])
+    } finally {
+      setLoading(false)
+    }
   }, [search, selectedArea, activeTag])
 
   useEffect(() => {

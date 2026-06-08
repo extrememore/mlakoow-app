@@ -22,10 +22,10 @@ export async function GET(request: NextRequest) {
     ]
   }
   if (category) where.category = { slug: category }
+  else if (excludeCategory) where.category = { slug: { not: excludeCategory } }
   if (area) where.area = area
   if (featured) where.featured = true
   if (hiddenGem) where.hiddenGem = true
-  if (excludeCategory) where.NOT = { category: { slug: excludeCategory } }
 
   const [destinations, total] = await Promise.all([
     prisma.destination.findMany({
