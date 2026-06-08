@@ -86,14 +86,11 @@ export default function ImageGallery({ mainImage, gallery, altBase, backLink }: 
             key={activeIdx}
             src={allImages[activeIdx]}
             alt={`${altBase} ${activeIdx + 1}`}
-            onLoad={() => setImgLoaded(true)}
             style={{
               position: 'relative',
               width: '100%', 
               height: '100%', 
               objectFit: 'contain',
-              transition: 'opacity 0.3s',
-              opacity: imgLoaded ? 1 : 0,
               zIndex: 1
             }}
           />
@@ -106,55 +103,60 @@ export default function ImageGallery({ mainImage, gallery, altBase, backLink }: 
             zIndex: 2
           }} />
 
-          {/* Back button */}
-          {backLink && (
-            <a
-              href={backLink}
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                position: 'absolute', top: '1rem', left: '1rem',
+          {/* Overlay elements wrapper (aligned to 1200px) */}
+          <div style={{ position: 'absolute', inset: 0, maxWidth: '1200px', margin: '0 auto', pointerEvents: 'none', zIndex: 5 }}>
+            {/* Back button */}
+            {backLink && (
+              <a
+                href={backLink}
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  position: 'absolute', top: '1.5rem', left: '1.5rem',
+                  background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)',
+                  borderRadius: '50px', padding: '8px 16px',
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  color: 'white', fontSize: '0.85rem', fontWeight: 600,
+                  textDecoration: 'none', pointerEvents: 'auto',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.7)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.45)' }}
+              >
+                <ArrowLeft size={16} /> Kembali
+              </a>
+            )}
+
+            {/* Zoom hint */}
+            {hasMultiple && (
+              <div style={{
+                position: 'absolute', top: '1.5rem', right: '1.5rem',
                 background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)',
-                borderRadius: '50px', padding: '8px 16px',
-                display: 'flex', alignItems: 'center', gap: '8px',
-                color: 'white', fontSize: '0.85rem', fontWeight: 600,
-                textDecoration: 'none', zIndex: 5,
-                border: '1px solid rgba(255,255,255,0.2)',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.7)' }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.45)' }}
-            >
-              <ArrowLeft size={16} /> Kembali
-            </a>
-          )}
+                borderRadius: '50px', padding: '6px 12px',
+                display: 'flex', alignItems: 'center', gap: '5px',
+                color: 'white', fontSize: '0.72rem', fontWeight: 600,
+                pointerEvents: 'none'
+              }}>
+                <ZoomIn size={13} />
+                Klik untuk perbesar
+              </div>
+            )}
+          </div>
 
-          {/* Zoom hint */}
-          {hasMultiple && (
-            <div style={{
-              position: 'absolute', top: '1rem', right: '1rem',
-              background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)',
-              borderRadius: '50px', padding: '6px 12px',
-              display: 'flex', alignItems: 'center', gap: '5px',
-              color: 'white', fontSize: '0.72rem', fontWeight: 600,
-              pointerEvents: 'none', zIndex: 5
-            }}>
-              <ZoomIn size={13} />
-              Klik untuk perbesar
-            </div>
-          )}
-
-          {/* Image counter */}
-          {hasMultiple && (
-            <div style={{
-              position: 'absolute', bottom: '5.5rem', right: '1rem',
-              background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
-              borderRadius: '50px', padding: '4px 10px',
-              color: 'white', fontSize: '0.72rem', fontWeight: 700,
-              pointerEvents: 'none', zIndex: 5
-            }}>
-              {activeIdx + 1} / {allImages.length}
-            </div>
-          )}
+          {/* Image counter (aligned to 1200px wrapper) */}
+          <div style={{ position: 'absolute', inset: 0, maxWidth: '1200px', margin: '0 auto', pointerEvents: 'none', zIndex: 5 }}>
+            {hasMultiple && (
+              <div style={{
+                position: 'absolute', bottom: '1.5rem', right: '1.5rem',
+                background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
+                borderRadius: '50px', padding: '4px 10px',
+                color: 'white', fontSize: '0.72rem', fontWeight: 700,
+                pointerEvents: 'none'
+              }}>
+                {activeIdx + 1} / {allImages.length}
+              </div>
+            )}
+          </div>
 
           {/* Prev / Next arrows on hero */}
           {hasMultiple && (
