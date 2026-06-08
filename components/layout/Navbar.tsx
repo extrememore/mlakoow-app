@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import { MapPin, Menu, X, User, LogOut, Map, Compass, ChevronDown, UtensilsCrossed } from 'lucide-react'
+import { MapPin, Menu, X, User, LogOut, Map, Compass, ChevronDown, UtensilsCrossed, Coffee, Camera } from 'lucide-react'
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -146,6 +146,18 @@ export default function Navbar() {
                 }} className="dropdown-item">
                   <UtensilsCrossed size={18} color="#FF6B35" />
                   Kuliner Legendaris
+                </Link>
+                <Link href="/kuliner?tag=cafe" onClick={() => setDestinasiMenuOpen(false)} style={{
+                  display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', textDecoration: 'none', color: '#1A2332', fontSize: '0.9rem', fontWeight: 600, borderRadius: '8px', transition: 'background 0.2s'
+                }} className="dropdown-item">
+                  <Coffee size={18} color="#8B5CF6" />
+                  Cafe & Nongkrong
+                </Link>
+                <Link href="/destinasi?category=hiburan" onClick={() => setDestinasiMenuOpen(false)} style={{
+                  display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', textDecoration: 'none', color: '#1A2332', fontSize: '0.9rem', fontWeight: 600, borderRadius: '8px', transition: 'background 0.2s'
+                }} className="dropdown-item">
+                  <Camera size={18} color="#F59E0B" />
+                  Spot Foto & Hiburan
                 </Link>
                 <Link href="/kuliner?tag=hidden" onClick={() => setDestinasiMenuOpen(false)} style={{
                   display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', textDecoration: 'none', color: '#1A2332', fontSize: '0.9rem', fontWeight: 600, borderRadius: '8px', transition: 'background 0.2s'
@@ -458,6 +470,16 @@ export default function Navbar() {
                   textDecoration: 'none', color: '#4A5568', fontWeight: 500, padding: '0.5rem 0', display: 'flex', alignItems: 'center', gap: '8px'
                 }}>
                   <UtensilsCrossed size={16} /> Kuliner Legendaris
+                </Link>
+                <Link href="/kuliner?tag=cafe" onClick={() => { setMobileOpen(false); setDestinasiMenuOpen(false); }} style={{
+                  textDecoration: 'none', color: '#4A5568', fontWeight: 500, padding: '0.5rem 0', display: 'flex', alignItems: 'center', gap: '8px'
+                }}>
+                  <Coffee size={16} /> Cafe & Nongkrong
+                </Link>
+                <Link href="/destinasi?category=hiburan" onClick={() => { setMobileOpen(false); setDestinasiMenuOpen(false); }} style={{
+                  textDecoration: 'none', color: '#4A5568', fontWeight: 500, padding: '0.5rem 0', display: 'flex', alignItems: 'center', gap: '8px'
+                }}>
+                  <Camera size={16} /> Spot Foto & Hiburan
                 </Link>
                 <Link href="/kuliner?tag=hidden" onClick={() => { setMobileOpen(false); setDestinasiMenuOpen(false); }} style={{
                   textDecoration: 'none', color: '#4A5568', fontWeight: 500, padding: '0.5rem 0', display: 'flex', alignItems: 'center', gap: '8px'

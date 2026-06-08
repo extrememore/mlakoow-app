@@ -37,6 +37,7 @@ const KULINER_TAGS = [
   { label: 'Semua', value: '' },
   { label: '⭐ Populer', value: 'featured' },
   { label: '💎 Hidden Gem', value: 'hidden' },
+  { label: '☕ Cafe', value: 'cafe' },
 ]
 
 export default function KulinerPage() {
@@ -52,8 +53,15 @@ export default function KulinerPage() {
     setLoading(true)
     try {
       const params = new URLSearchParams()
-      params.set('category', 'kuliner')
       params.set('limit', '24')
+      
+      // Jika tab cafe aktif, fetch category cafe. Jika tidak, fetch kuliner
+      if (activeTag === 'cafe') {
+        params.set('category', 'cafe')
+      } else {
+        params.set('category', 'kuliner')
+      }
+
       if (search) params.set('search', search)
       if (selectedArea) params.set('area', selectedArea)
       if (activeTag === 'featured') params.set('featured', 'true')
@@ -70,6 +78,13 @@ export default function KulinerPage() {
       setLoading(false)
     }
   }, [search, selectedArea, activeTag])
+
+  // Read URL params on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.has('tag')) setActiveTag(params.get('tag') || '')
+    if (params.has('search')) setSearch(params.get('search') || '')
+  }, [])
 
   useEffect(() => {
     fetchKuliner()

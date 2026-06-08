@@ -66,6 +66,14 @@ export default function DestinasiPage() {
     }
   }, [search, selectedCategory, selectedArea])
 
+  // Read URL params on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.has('category')) setSelectedCategory(params.get('category') || '')
+    if (params.has('search')) setSearch(params.get('search') || '')
+    if (params.has('area')) setSelectedArea(params.get('area') || '')
+  }, [])
+
   useEffect(() => {
     fetch('/api/destinations?limit=0')
       .then((r) => r.json())
