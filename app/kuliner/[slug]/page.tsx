@@ -226,10 +226,19 @@ export default async function DetailKulinerPage({
                 </h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {menus.map((menu: any, index: number) => (
-                    <div key={index} style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', borderBottom: index < menus.length - 1 ? '1px dashed #E5E9F0' : 'none', paddingBottom: index < menus.length - 1 ? '1.25rem' : '0', paddingTop: index > 0 ? '0.25rem' : '0' }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: '#1A2332', margin: 0 }}>{menu.name}</h4>
+                    <div key={index} style={{ display: 'flex', gap: '1.25rem', borderBottom: index < menus.length - 1 ? '1px dashed #E5E9F0' : 'none', paddingBottom: index < menus.length - 1 ? '1.25rem' : '0', paddingTop: index > 0 ? '0.25rem' : '0' }}>
+                      {menu.image ? (
+                        <div style={{ flexShrink: 0, width: '80px', height: '80px', borderRadius: '12px', overflow: 'hidden' }}>
+                          <img src={menu.image} alt={menu.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                      ) : (
+                        <div style={{ flexShrink: 0, width: '80px', height: '80px', borderRadius: '12px', background: '#F8F6F2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <UtensilsCrossed size={24} color="#8B98A9" />
+                        </div>
+                      )}
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                          <h4 style={{ fontSize: '1rem', fontWeight: 800, color: '#1A2332', margin: 0 }}>{menu.name}</h4>
                           {menu.recommended && (
                             <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#D97706', background: '#FEF3C7', padding: '2px 8px', borderRadius: '50px' }}>⭐ Rekomendasi</span>
                           )}
@@ -238,7 +247,7 @@ export default async function DetailKulinerPage({
                           <p style={{ fontSize: '0.85rem', color: '#8B98A9', margin: 0, lineHeight: 1.5 }}>{menu.desc}</p>
                         )}
                       </div>
-                      <div style={{ fontWeight: 800, color: '#C0392B', fontSize: '1rem', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontWeight: 900, color: '#C0392B', fontSize: '1.05rem', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
                         Rp {menu.price.toLocaleString('id-ID')}
                       </div>
                     </div>
