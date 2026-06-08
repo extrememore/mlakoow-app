@@ -9,12 +9,14 @@ import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
-export default async function EventDetailPage({ params }: { params: { slug: string } }) {
+export default async function EventDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const session = await auth()
   const userId = session?.user ? parseInt(session.user.id as string) : null
 
+  const resolvedParams = await params
+
   const event = await prisma.event.findUnique({
-    where: { slug: params.slug }
+    where: { slug: resolvedParams.slug }
   })
 
   if (!event) return notFound()
