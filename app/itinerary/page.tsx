@@ -132,6 +132,14 @@ function ItineraryContent() {
   const [canvasDests, setCanvasDests] = useState<DestinationData[]>([])
   const [canvasLoading, setCanvasLoading] = useState(false)
 
+  // User's saved canvases
+  const [userCanvases, setUserCanvases] = useState<{ id: number; title: string; items: { destination: DestinationData }[] }[]>([])
+  const [canvasesLoading, setCanvasesLoading] = useState(false)
+  const [selectedCanvasIds, setSelectedCanvasIds] = useState<Set<number>>(new Set())
+  const [creatingNewCanvas, setCreatingNewCanvas] = useState(false)
+  const [newCanvasName, setNewCanvasName] = useState('')
+  const [savingNewCanvas, setSavingNewCanvas] = useState(false)
+
   // Trip start & end date (from Step 1 date range picker)
   const [tripStartDate, setTripStartDate] = useState('')
   const [tripEndDate, setTripEndDate] = useState('')
@@ -194,6 +202,45 @@ function ItineraryContent() {
     })
   }, [searchParams])
 
+  // Fetch user's saved canvases
+  useEffect(() => {
+    setCanvasesLoading(true)
+    fetch('/api/itineraries?type=canvas')
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => {
+        setUserCanvases(Array.isArray(data) ? data : [])
+        setCanvasesLoading(false)
+      })
+      .catch(() => setCanvasesLoading(false))
+  }, [])
+
+  function toggleCanvasSelection(canvasId: number) {
+    setSelectedCanvasIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(canvasId)) next.delete(canvasId)
+      else next.add(canvasId)
+      return next
+    })
+  }
+
+  async function createNewCanvas() {
+    const title = newCanvasName.trim()
+    if (!title) return
+    setSavingNewCanvas(true)
+    const res = await fetch('/api/itineraries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isCanvas: true, title }),
+    })
+    if (res.ok) {
+      const canvas = await res.json()
+      setUserCanvases((prev) => [canvas, ...prev])
+      setCreatingNewCanvas(false)
+      setNewCanvasName('')
+    }
+    setSavingNewCanvas(false)
+  }
+
   const toggleCategory = (id: number) => {
     setSelectedCategoryIds((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
@@ -216,6 +263,15 @@ function ItineraryContent() {
 
   async function generateItinerary() {
     setLoading(true)
+
+    // Kumpulkan semua pinned destinations: dari canvas URL param + dari canvas yang dipilih user
+    const selectedCanvasItems = userCanvases
+      .filter((c) => selectedCanvasIds.has(c.id))
+      .flatMap((c) => c.items.map((i) => i.destination))
+    const allPinned = [...canvasDests, ...selectedCanvasItems].filter(
+      (d, idx, arr) => arr.findIndex((x) => x.id === d.id) === idx // dedupe
+    )
+
     const res = await fetch('/api/itineraries/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -225,15 +281,15 @@ function ItineraryContent() {
         area: selectedAreas.length > 0 ? selectedAreas.join(',') : 'Semua Area',
         areas: selectedAreas,
         categoryIds: selectedCategoryIds,
-        maxDestinations: Math.max(maxDestinations, canvasDests.length),
-        pinnedDestinationIds: canvasDests.map((d) => d.id),
+        maxDestinations: Math.max(maxDestinations, allPinned.length),
+        pinnedDestinationIds: allPinned.map((d) => d.id),
       }),
     })
     const data = await res.json()
 
-    // Inject semua canvas destinations yang belum masuk dari API
+    // Inject pinned destinations yang belum masuk dari API
     let items = data.items as ItineraryItem[]
-    canvasDests.forEach((pinned, idx) => {
+    allPinned.forEach((pinned, idx) => {
       const alreadyIn = items.some((i) => i.destination.id === pinned.id)
       if (!alreadyIn) {
         const pinnedItem: ItineraryItem = {
@@ -243,7 +299,7 @@ function ItineraryContent() {
           startTime: '09:00',
           estimatedVisitTime: pinned.estimatedDuration,
           estimatedCost: pinned.ticketPrice,
-          transportNote: idx === 0 ? 'Mulai perjalanan dari lokasi Anda' : `Lanjut menggunakan Grab/Gojek`,
+          transportNote: idx === 0 ? 'Mulai perjalanan dari lokasi Anda' : 'Lanjut menggunakan Grab/Gojek',
         }
         items = [pinnedItem, ...items]
       }
@@ -544,9 +600,118 @@ function ItineraryContent() {
         </div>
       </div>
 
+      {/* Canvas Section */}
+      <div style={{ maxWidth: '800px', margin: '2rem auto 0', padding: '0 1.5rem', width: '100%' }}>
+        <div style={{ background: 'white', borderRadius: '20px', border: '1px solid #E5E9F0', boxShadow: '0 4px 20px rgba(10,74,94,0.06)', overflow: 'hidden' }}>
+          {/* Canvas header */}
+          <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #F0F4F8', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+            <div>
+              <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', margin: 0 }}>📌 Kanvas Itinerary</h2>
+              <p style={{ fontSize: '0.78rem', color: '#8B98A9', margin: '2px 0 0' }}>Pilih kanvas — destinasinya otomatis masuk ke Smart Itinerary</p>
+            </div>
+            {!creatingNewCanvas && (
+              <button
+                onClick={() => setCreatingNewCanvas(true)}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '10px', background: '#F0F7FA', border: '1.5px solid #BAE6FD', color: '#0A4A5E', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'Outfit, sans-serif' }}
+              >
+                <Plus size={14} /> Buat Kanvas Baru
+              </button>
+            )}
+          </div>
+
+          {/* New canvas form */}
+          {creatingNewCanvas && (
+            <div style={{ padding: '1.25rem 1.5rem', background: '#F8FAFF', borderBottom: '1px solid #E5E9F0', display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <input
+                autoFocus
+                value={newCanvasName}
+                onChange={(e) => setNewCanvasName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') createNewCanvas(); if (e.key === 'Escape') { setCreatingNewCanvas(false); setNewCanvasName('') } }}
+                placeholder="Nama kanvas, cth: Weekend Surabaya..."
+                style={{ flex: 1, padding: '0.65rem 1rem', borderRadius: '10px', border: '1.5px solid #BAE6FD', fontSize: '0.9rem', fontFamily: 'Outfit, sans-serif', outline: 'none' }}
+              />
+              <button onClick={() => { setCreatingNewCanvas(false); setNewCanvasName('') }} style={{ padding: '0.65rem 1rem', borderRadius: '10px', border: '1.5px solid #E5E9F0', background: 'white', color: '#4A5568', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'Outfit, sans-serif', whiteSpace: 'nowrap' }}>Batal</button>
+              <button
+                onClick={createNewCanvas}
+                disabled={!newCanvasName.trim() || savingNewCanvas}
+                style={{ padding: '0.65rem 1rem', borderRadius: '10px', border: 'none', background: newCanvasName.trim() ? '#0A4A5E' : '#E5E9F0', color: newCanvasName.trim() ? 'white' : '#8B98A9', fontWeight: 700, fontSize: '0.8rem', cursor: newCanvasName.trim() ? 'pointer' : 'not-allowed', fontFamily: 'Outfit, sans-serif', display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap' }}
+              >
+                {savingNewCanvas ? <Loader size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={13} />} Simpan
+              </button>
+            </div>
+          )}
+
+          {/* Canvas list */}
+          <div style={{ padding: '1rem 1.5rem' }}>
+            {canvasesLoading ? (
+              <div style={{ textAlign: 'center', padding: '1.5rem', color: '#8B98A9' }}>
+                <Loader size={20} style={{ animation: 'spin 1s linear infinite' }} />
+              </div>
+            ) : userCanvases.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '1.5rem', color: '#8B98A9' }}>
+                <div style={{ fontSize: '0.875rem' }}>Belum ada kanvas — buat kanvas baru di atas untuk menyimpan destinasi pilihanmu.</div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {userCanvases.map((canvas) => {
+                  const isSelected = selectedCanvasIds.has(canvas.id)
+                  return (
+                    <div
+                      key={canvas.id}
+                      onClick={() => toggleCanvasSelection(canvas.id)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '12px',
+                        padding: '0.875rem 1rem', borderRadius: '14px',
+                        border: isSelected ? '2px solid #0A4A5E' : '1.5px solid #E5E9F0',
+                        background: isSelected ? '#EFF8FC' : '#FAFBFC',
+                        cursor: 'pointer', transition: 'all 0.15s',
+                        boxShadow: isSelected ? '0 2px 10px rgba(10,74,94,0.12)' : 'none',
+                      }}
+                    >
+                      {/* Checkbox */}
+                      <div style={{ width: '22px', height: '22px', borderRadius: '6px', border: isSelected ? 'none' : '2px solid #D1D5DB', background: isSelected ? '#0A4A5E' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s' }}>
+                        {isSelected && <Check size={13} color="white" strokeWidth={3} />}
+                      </div>
+                      {/* Destination thumbnails */}
+                      <div style={{ display: 'flex', flexShrink: 0 }}>
+                        {canvas.items.slice(0, 4).map((item, idx) => (
+                          <img key={item.destination.id} src={item.destination.mainImage} alt="" style={{ width: '30px', height: '30px', borderRadius: '8px', objectFit: 'cover', border: '2px solid white', marginLeft: idx > 0 ? '-8px' : 0 }} onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                        ))}
+                        {canvas.items.length === 0 && (
+                          <div style={{ width: '30px', height: '30px', borderRadius: '8px', background: '#E5E9F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <MapPin size={13} color="#8B98A9" />
+                          </div>
+                        )}
+                      </div>
+                      {/* Info */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.9rem', color: isSelected ? '#0A4A5E' : '#1A2332' }}>{canvas.title}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#8B98A9' }}>
+                          {canvas.items.length === 0 ? 'Belum ada destinasi' : `${canvas.items.length} destinasi`}
+                          {canvas.items.length > 0 && ` · ${canvas.items.slice(0, 2).map((i) => i.destination.name.split(' ')[0]).join(', ')}${canvas.items.length > 2 ? '...' : ''}`}
+                        </div>
+                      </div>
+                      {isSelected && (
+                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#0A4A5E', background: '#BAE6FD', padding: '3px 8px', borderRadius: '50px', flexShrink: 0 }}>Dipilih</div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+            {selectedCanvasIds.size > 0 && (
+              <div style={{ marginTop: '0.875rem', padding: '0.75rem 1rem', background: '#EFF8FC', borderRadius: '12px', fontSize: '0.8rem', color: '#0A4A5E', fontWeight: 600 }}>
+                ✓ {selectedCanvasIds.size} kanvas dipilih — semua destinasinya akan otomatis masuk ke itinerary yang dibuat
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Content */}
-      <div style={{ maxWidth: '800px', margin: '2.5rem auto', padding: '0 1.5rem', width: '100%', flex: 1 }}>
+      <div style={{ maxWidth: '800px', margin: '1.5rem auto', padding: '0 1.5rem', width: '100%', flex: 1 }}>
         {/* STEP 1 */}
+
         {step === 1 && (
           <div style={{ background: 'white', borderRadius: '24px', padding: '2.5rem', border: '1px solid #E5E9F0', boxShadow: '0 8px 30px rgba(10,74,94,0.06)' }}>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1A2332', marginBottom: '0.5rem' }}>

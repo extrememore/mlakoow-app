@@ -81,12 +81,13 @@ model Itinerary {
   id                Int             @id @default(autoincrement())
   userId            Int
   title             String
-  duration          Int
-  budget            Int
-  area              String
+  duration          Int             @default(1)
+  budget            Int             @default(0)
+  area              String          @default("Semua Area")
   totalEstimatedCost Int            @default(0)
   notes             String?         @db.Text
   startDate         DateTime?
+  isCanvas          Boolean         @default(false)
   createdAt         DateTime        @default(now())
 
   user  User            @relation(fields: [userId], references: [id])

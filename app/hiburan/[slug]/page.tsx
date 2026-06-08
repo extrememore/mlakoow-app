@@ -21,6 +21,7 @@ import {
   Navigation,
   CheckCircle,
   Gamepad2,
+  CalendarPlus,
 } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -259,6 +260,11 @@ export default async function DetailHiburanPage({
                 destinationId={destination.id}
                 destinationName={destination.name}
                 destinationSlug={destination.slug}
+                trigger={
+                  <button style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0.875rem', borderRadius: '14px', background: 'linear-gradient(135deg, #F59E0B, #D97706)', border: 'none', color: 'white', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', fontFamily: 'Outfit, sans-serif', boxShadow: '0 4px 14px rgba(245,158,11,0.35)' }}>
+                    <CalendarPlus size={18} /> Tambah ke Itinerary
+                  </button>
+                }
               />
             </div>
 
