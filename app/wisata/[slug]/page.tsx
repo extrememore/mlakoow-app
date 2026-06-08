@@ -10,6 +10,7 @@ import MapWrapper from '@/components/ui/MapWrapper'
 import ReviewSection from '@/components/ui/ReviewSection'
 import ImageGallery from '@/components/ui/ImageGallery'
 import TransportEstimator from '@/components/ui/TransportEstimator'
+import DistanceBadge from '@/components/ui/DistanceBadge'
 import {
   MapPin,
   Clock,
@@ -136,6 +137,7 @@ export default async function DetailDestinasiPage({
               <Star size={15} fill="#F59E0B" color="#F59E0B" />
               <strong>{destination.rating > 0 ? destination.rating.toFixed(1) : 'Baru'}</strong>
               {destination.reviewCount > 0 && <span>({destination.reviewCount} review)</span>}
+              <DistanceBadge lat={destination.lat} lng={destination.lng} />
             </div>
           </div>
         </div>
