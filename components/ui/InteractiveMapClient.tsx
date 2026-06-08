@@ -34,7 +34,7 @@ export default function InteractiveMapClient({ initialPins, categories }: Intera
   if (isRadiusActive && userLocation) {
     filteredPins = filteredPins.filter(pin => {
       const dist = getDistanceKm(userLocation.lat, userLocation.lng, pin.lat, pin.lng)
-      return dist <= 5 // 5KM radius
+      return dist <= 2 // 2KM radius
     })
   }
 
@@ -70,7 +70,7 @@ export default function InteractiveMapClient({ initialPins, categories }: Intera
         overflowX: 'auto',
         maxWidth: '90%',
         pointerEvents: 'auto'
-      }}>
+      }} className="hide-scrollbar">
         {/* Radius Button */}
         <button
           onClick={toggleRadius}
@@ -88,10 +88,10 @@ export default function InteractiveMapClient({ initialPins, categories }: Intera
             boxShadow: isRadiusActive ? '0 4px 12px rgba(255,107,53,0.3)' : 'none'
           }}
         >
-          📍 Di Sekitarku (5KM)
+          📍 Di Sekitarku (2KM)
         </button>
         
-        <div style={{ width: '1px', background: '#E5E9F0', margin: '0 4px' }} />
+        <div style={{ width: '1px', background: '#E5E9F0', margin: '0 4px', flexShrink: 0 }} />
 
         {['Semua', ...categories].map(cat => {
           const isActive = activeCategory === cat
@@ -128,7 +128,7 @@ export default function InteractiveMapClient({ initialPins, categories }: Intera
             active: true,
             centerLat: userLocation.lat,
             centerLng: userLocation.lng,
-            radiusKm: 5
+            radiusKm: 2
           } : undefined}
         />
       </div>
