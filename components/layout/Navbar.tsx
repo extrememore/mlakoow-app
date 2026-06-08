@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import { MapPin, Menu, X, User, LogOut, Map, Compass, ChevronDown, UtensilsCrossed, Coffee, Camera } from 'lucide-react'
+import { MapPin, Menu, X, User, LogOut, Map, Compass, ChevronDown, UtensilsCrossed, Coffee, Camera, Heart, BookOpen } from 'lucide-react'
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -249,7 +249,7 @@ export default function Navbar() {
         </div>
 
         {/* Auth — Desktop */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }} className="hidden-mobile">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }} className="hidden-mobile">
           {isLoading ? (
             // Skeleton saat session sedang dimuat
             <div
@@ -262,7 +262,27 @@ export default function Navbar() {
               }}
             />
           ) : session?.user ? (
-            <div style={{ position: 'relative' }}>
+            <>
+              {/* Wishlist shortcut button */}
+              <Link
+                href="/wishlist"
+                title="Wishlist Saya"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  padding: '8px 14px', borderRadius: '50px',
+                  background: pathname.startsWith('/wishlist') ? '#FDF4FF' : '#F9F0FF',
+                  border: `1.5px solid ${pathname.startsWith('/wishlist') ? '#A855F7' : 'transparent'}`,
+                  color: '#7C3AED', textDecoration: 'none', fontWeight: 700, fontSize: '0.82rem',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#FDF4FF'; e.currentTarget.style.borderColor = '#A855F7' }}
+                onMouseLeave={(e) => { if (!pathname.startsWith('/wishlist')) { e.currentTarget.style.background = '#F9F0FF'; e.currentTarget.style.borderColor = 'transparent' } }}
+              >
+                <Heart size={15} fill={pathname.startsWith('/wishlist') ? '#7C3AED' : 'none'} />
+                Wishlist
+              </Link>
+
+              <div style={{ position: 'relative' }}>
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 style={{
@@ -333,6 +353,24 @@ export default function Navbar() {
                     Profil Saya
                   </Link>
                   <Link
+                    href="/wishlist"
+                    onClick={() => setUserMenuOpen(false)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      padding: '14px 18px',
+                      textDecoration: 'none',
+                      color: '#1A2332',
+                      fontWeight: 500,
+                      fontSize: '0.9rem',
+                    }}
+                    className="menu-item"
+                  >
+                    <Heart size={16} color="#7C3AED" />
+                    Wishlist Saya
+                  </Link>
+                  <Link
                     href="/itinerary/riwayat"
                     onClick={() => setUserMenuOpen(false)}
                     style={{
@@ -347,7 +385,7 @@ export default function Navbar() {
                     }}
                     className="menu-item"
                   >
-                    <Map size={16} color="#0A4A5E" />
+                    <BookOpen size={16} color="#0A4A5E" />
                     Itinerary Saya
                   </Link>
                   {(session.user as any).role === 'admin' && (
@@ -395,6 +433,7 @@ export default function Navbar() {
                 </div>
               )}
             </div>
+            </>
           ) : (
             <>
               <Link href="/login" className="btn-secondary" style={{ padding: '0.6rem 1.25rem', fontSize: '0.875rem' }}>
@@ -560,11 +599,18 @@ export default function Navbar() {
                 <User size={18} color="#0A4A5E" /> Profil Saya
               </Link>
               <Link
+                href="/wishlist"
+                onClick={() => setMobileOpen(false)}
+                style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0.85rem 0', textDecoration: 'none', color: '#1A2332', fontWeight: 600, borderBottom: '1px solid #E5E9F0' }}
+              >
+                <Heart size={18} color="#7C3AED" /> Wishlist Saya
+              </Link>
+              <Link
                 href="/itinerary/riwayat"
                 onClick={() => setMobileOpen(false)}
                 style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0.85rem 0', textDecoration: 'none', color: '#1A2332', fontWeight: 600, borderBottom: '1px solid #E5E9F0' }}
               >
-                <Map size={18} color="#0A4A5E" /> Itinerary Saya
+                <BookOpen size={18} color="#0A4A5E" /> Itinerary Saya
               </Link>
               {(session.user as any).role === 'admin' && (
                 <Link
