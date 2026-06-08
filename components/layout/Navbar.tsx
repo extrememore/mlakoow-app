@@ -13,12 +13,11 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const [destinasiMenuOpen, setDestinasiMenuOpen] = useState(false)
   const [extrasMenuOpen, setExtrasMenuOpen] = useState(false)
 
   const navLinks = [
     { href: '/', label: 'Beranda' },
-    { href: '/destinasi', label: 'Destinasi' },
-    { href: '/kuliner', label: 'Kuliner & Oleh-oleh' },
     { href: '/itinerary', label: 'Smart Itinerary' },
     { href: '/bantuan', label: 'Bantuan' },
   ]
@@ -89,7 +88,81 @@ export default function Navbar() {
 
         {/* Desktop Nav */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }} className="hidden-mobile">
-          {navLinks.map((link) => (
+          
+          <Link href="/" style={{
+            textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem', color: isActive('/') ? '#0A4A5E' : '#4A5568', borderBottom: isActive('/') ? '2px solid #FF6B35' : '2px solid transparent', paddingBottom: '4px', transition: 'all 0.2s',
+          }}>Beranda</Link>
+
+          {/* Destinasi Dropdown Desktop */}
+          <div 
+            style={{ position: 'relative' }} 
+            onMouseEnter={() => setDestinasiMenuOpen(true)}
+            onMouseLeave={() => setDestinasiMenuOpen(false)}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontWeight: 600,
+                fontSize: '0.9rem',
+                color: (pathname.startsWith('/destinasi') || pathname.startsWith('/kuliner') || pathname.startsWith('/extras/peta-interaktif')) ? '#0A4A5E' : '#4A5568',
+                borderBottom: (pathname.startsWith('/destinasi') || pathname.startsWith('/kuliner') || pathname.startsWith('/extras/peta-interaktif')) ? '2px solid #FF6B35' : '2px solid transparent',
+                paddingBottom: '4px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              Destinasi <ChevronDown size={14} style={{ transform: destinasiMenuOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }} />
+            </div>
+            
+            {destinasiMenuOpen && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                background: 'white',
+                minWidth: '220px',
+                borderRadius: '16px',
+                boxShadow: '0 10px 40px rgba(0,0,0,0.12)',
+                padding: '0.75rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px',
+                marginTop: '10px',
+                border: '1px solid #E5E9F0'
+              }}>
+                <Link href="/destinasi" onClick={() => setDestinasiMenuOpen(false)} style={{
+                  display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', textDecoration: 'none', color: '#1A2332', fontSize: '0.9rem', fontWeight: 600, borderRadius: '8px', transition: 'background 0.2s'
+                }} className="dropdown-item">
+                  <MapPin size={18} color="#0A4A5E" />
+                  Wisata & Atraksi
+                </Link>
+                <Link href="/kuliner" onClick={() => setDestinasiMenuOpen(false)} style={{
+                  display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', textDecoration: 'none', color: '#1A2332', fontSize: '0.9rem', fontWeight: 600, borderRadius: '8px', transition: 'background 0.2s'
+                }} className="dropdown-item">
+                  <UtensilsCrossed size={18} color="#FF6B35" />
+                  Kuliner Legendaris
+                </Link>
+                <Link href="/kuliner?tag=hidden" onClick={() => setDestinasiMenuOpen(false)} style={{
+                  display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', textDecoration: 'none', color: '#1A2332', fontSize: '0.9rem', fontWeight: 600, borderRadius: '8px', transition: 'background 0.2s'
+                }} className="dropdown-item">
+                  <span style={{ fontSize: '1.1rem' }}>🛍️</span>
+                  Pusat Oleh-oleh
+                </Link>
+                <div style={{ height: '1px', background: '#E5E9F0', margin: '4px 0' }} />
+                <Link href="/extras/peta-interaktif" onClick={() => setDestinasiMenuOpen(false)} style={{
+                  display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', textDecoration: 'none', color: '#1A2332', fontSize: '0.9rem', fontWeight: 600, borderRadius: '8px', transition: 'background 0.2s'
+                }} className="dropdown-item">
+                  <Map size={18} color="#10B981" />
+                  Peta Interaktif
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {navLinks.filter(l => l.href !== '/').map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -151,11 +224,6 @@ export default function Navbar() {
                   padding: '10px 14px', textDecoration: 'none', color: '#1A2332', fontSize: '0.9rem', fontWeight: 500, borderRadius: '8px', transition: 'background 0.2s'
                 }} className="dropdown-item">
                   Kalender Event
-                </Link>
-                <Link href="/extras/peta-interaktif" onClick={() => setExtrasMenuOpen(false)} style={{
-                  padding: '10px 14px', textDecoration: 'none', color: '#1A2332', fontSize: '0.9rem', fontWeight: 500, borderRadius: '8px', transition: 'background 0.2s'
-                }} className="dropdown-item">
-                  Peta Interaktif
                 </Link>
               </div>
             )}
@@ -354,7 +422,52 @@ export default function Navbar() {
           }}
           className="show-mobile"
         >
-          {navLinks.map((link) => (
+          <Link href="/" onClick={() => setMobileOpen(false)} style={{ display: 'block', padding: '0.85rem 0', textDecoration: 'none', fontWeight: 600, fontSize: '1.05rem', color: isActive('/') ? '#0A4A5E' : '#4A5568', borderBottom: '1px solid #E5E9F0' }}>Beranda</Link>
+
+          {/* Destinasi Mobile */}
+          <div style={{ padding: '0.85rem 0', borderBottom: '1px solid #E5E9F0' }}>
+            <div 
+              onClick={() => setDestinasiMenuOpen(!destinasiMenuOpen)}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                fontWeight: 600,
+                fontSize: '1.05rem',
+                color: (pathname.startsWith('/destinasi') || pathname.startsWith('/kuliner') || pathname.startsWith('/extras/peta-interaktif')) ? '#0A4A5E' : '#4A5568',
+                cursor: 'pointer',
+              }}
+            >
+              Destinasi <ChevronDown size={18} style={{ transform: destinasiMenuOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }} />
+            </div>
+            
+            {destinasiMenuOpen && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.85rem', paddingLeft: '1rem' }}>
+                <Link href="/destinasi" onClick={() => { setMobileOpen(false); setDestinasiMenuOpen(false); }} style={{
+                  textDecoration: 'none', color: '#4A5568', fontWeight: 500, padding: '0.5rem 0', display: 'flex', alignItems: 'center', gap: '8px'
+                }}>
+                  <MapPin size={16} /> Wisata & Atraksi
+                </Link>
+                <Link href="/kuliner" onClick={() => { setMobileOpen(false); setDestinasiMenuOpen(false); }} style={{
+                  textDecoration: 'none', color: '#4A5568', fontWeight: 500, padding: '0.5rem 0', display: 'flex', alignItems: 'center', gap: '8px'
+                }}>
+                  <UtensilsCrossed size={16} /> Kuliner Legendaris
+                </Link>
+                <Link href="/kuliner?tag=hidden" onClick={() => { setMobileOpen(false); setDestinasiMenuOpen(false); }} style={{
+                  textDecoration: 'none', color: '#4A5568', fontWeight: 500, padding: '0.5rem 0', display: 'flex', alignItems: 'center', gap: '8px'
+                }}>
+                  <span style={{ fontSize: '1rem' }}>🛍️</span> Pusat Oleh-oleh
+                </Link>
+                <Link href="/extras/peta-interaktif" onClick={() => { setMobileOpen(false); setDestinasiMenuOpen(false); }} style={{
+                  textDecoration: 'none', color: '#4A5568', fontWeight: 500, padding: '0.5rem 0', display: 'flex', alignItems: 'center', gap: '8px'
+                }}>
+                  <Map size={16} /> Peta Interaktif
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {navLinks.filter(l => l.href !== '/').map((link) => (
             <Link
               key={link.href}
               href={link.href}
