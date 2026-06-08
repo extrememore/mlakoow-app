@@ -114,7 +114,7 @@ export default async function DetailDestinasiPage({
       <div style={{ background: 'white', borderBottom: '1px solid #E5E9F0' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1rem 1.5rem' }}>
           <Link
-            href="/destinasi"
+            href="/wisata"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -425,7 +425,7 @@ export default async function DetailDestinasiPage({
       {related.length > 0 && (
         <div style={{ background: 'white', padding: '3rem 0', borderTop: '1px solid #E5E9F0' }}>
           <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1.5rem', textAlign: 'center' }}>
-            <Link href="/destinasi" className="btn-primary" style={{ fontSize: '1rem' }}>
+            <Link href="/wisata" className="btn-primary" style={{ fontSize: '1rem' }}>
               Lihat Semua Destinasi Surabaya
             </Link>
           </div>

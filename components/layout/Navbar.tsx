@@ -106,8 +106,8 @@ export default function Navbar() {
                 gap: '4px',
                 fontWeight: 600,
                 fontSize: '0.9rem',
-                color: (pathname.startsWith('/destinasi') || pathname.startsWith('/kuliner') || pathname.startsWith('/extras/peta-interaktif')) ? '#0A4A5E' : '#4A5568',
-                borderBottom: (pathname.startsWith('/destinasi') || pathname.startsWith('/kuliner') || pathname.startsWith('/extras/peta-interaktif')) ? '2px solid #FF6B35' : '2px solid transparent',
+                color: (pathname.startsWith('/wisata') || pathname.startsWith('/kuliner') || pathname.startsWith('/cafe') || pathname.startsWith('/hiburan') || pathname.startsWith('/oleh-oleh') || pathname.startsWith('/extras/peta-interaktif')) ? '#0A4A5E' : '#4A5568',
+                borderBottom: (pathname.startsWith('/wisata') || pathname.startsWith('/kuliner') || pathname.startsWith('/cafe') || pathname.startsWith('/hiburan') || pathname.startsWith('/oleh-oleh') || pathname.startsWith('/extras/peta-interaktif')) ? '2px solid #FF6B35' : '2px solid transparent',
                 paddingBottom: '4px',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
@@ -135,7 +135,7 @@ export default function Navbar() {
                   gap: '4px',
                   border: '1px solid #E5E9F0'
                 }}>
-                <Link href="/destinasi" onClick={() => setDestinasiMenuOpen(false)} style={{
+                <Link href="/wisata" onClick={() => setDestinasiMenuOpen(false)} style={{
                   display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', textDecoration: 'none', color: '#1A2332', fontSize: '0.9rem', fontWeight: 600, borderRadius: '8px', transition: 'background 0.2s'
                 }} className="dropdown-item">
                   <MapPin size={18} color="#0A4A5E" />
@@ -147,19 +147,19 @@ export default function Navbar() {
                   <UtensilsCrossed size={18} color="#FF6B35" />
                   Kuliner Legendaris
                 </Link>
-                <Link href="/kuliner?tag=cafe" onClick={() => setDestinasiMenuOpen(false)} style={{
+                <Link href="/cafe" onClick={() => setDestinasiMenuOpen(false)} style={{
                   display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', textDecoration: 'none', color: '#1A2332', fontSize: '0.9rem', fontWeight: 600, borderRadius: '8px', transition: 'background 0.2s'
                 }} className="dropdown-item">
                   <Coffee size={18} color="#8B5CF6" />
                   Cafe & Nongkrong
                 </Link>
-                <Link href="/destinasi?category=hiburan" onClick={() => setDestinasiMenuOpen(false)} style={{
+                <Link href="/hiburan" onClick={() => setDestinasiMenuOpen(false)} style={{
                   display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', textDecoration: 'none', color: '#1A2332', fontSize: '0.9rem', fontWeight: 600, borderRadius: '8px', transition: 'background 0.2s'
                 }} className="dropdown-item">
                   <Camera size={18} color="#F59E0B" />
                   Spot Foto & Hiburan
                 </Link>
-                <Link href="/kuliner?tag=hidden" onClick={() => setDestinasiMenuOpen(false)} style={{
+                <Link href="/oleh-oleh" onClick={() => setDestinasiMenuOpen(false)} style={{
                   display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', textDecoration: 'none', color: '#1A2332', fontSize: '0.9rem', fontWeight: 600, borderRadius: '8px', transition: 'background 0.2s'
                 }} className="dropdown-item">
                   <span style={{ fontSize: '1.1rem' }}>🛍️</span>
@@ -461,7 +461,7 @@ export default function Navbar() {
             
             {destinasiMenuOpen && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.85rem', paddingLeft: '1rem' }}>
-                <Link href="/destinasi" onClick={() => { setMobileOpen(false); setDestinasiMenuOpen(false); }} style={{
+                <Link href="/wisata" onClick={() => { setMobileOpen(false); setDestinasiMenuOpen(false); }} style={{
                   textDecoration: 'none', color: '#4A5568', fontWeight: 500, padding: '0.5rem 0', display: 'flex', alignItems: 'center', gap: '8px'
                 }}>
                   <MapPin size={16} /> Wisata & Atraksi
@@ -471,17 +471,17 @@ export default function Navbar() {
                 }}>
                   <UtensilsCrossed size={16} /> Kuliner Legendaris
                 </Link>
-                <Link href="/kuliner?tag=cafe" onClick={() => { setMobileOpen(false); setDestinasiMenuOpen(false); }} style={{
+                <Link href="/cafe" onClick={() => { setMobileOpen(false); setDestinasiMenuOpen(false); }} style={{
                   textDecoration: 'none', color: '#4A5568', fontWeight: 500, padding: '0.5rem 0', display: 'flex', alignItems: 'center', gap: '8px'
                 }}>
                   <Coffee size={16} /> Cafe & Nongkrong
                 </Link>
-                <Link href="/destinasi?category=hiburan" onClick={() => { setMobileOpen(false); setDestinasiMenuOpen(false); }} style={{
+                <Link href="/hiburan" onClick={() => { setMobileOpen(false); setDestinasiMenuOpen(false); }} style={{
                   textDecoration: 'none', color: '#4A5568', fontWeight: 500, padding: '0.5rem 0', display: 'flex', alignItems: 'center', gap: '8px'
                 }}>
                   <Camera size={16} /> Spot Foto & Hiburan
                 </Link>
-                <Link href="/kuliner?tag=hidden" onClick={() => { setMobileOpen(false); setDestinasiMenuOpen(false); }} style={{
+                <Link href="/oleh-oleh" onClick={() => { setMobileOpen(false); setDestinasiMenuOpen(false); }} style={{
                   textDecoration: 'none', color: '#4A5568', fontWeight: 500, padding: '0.5rem 0', display: 'flex', alignItems: 'center', gap: '8px'
                 }}>
                   <span style={{ fontSize: '1rem' }}>🛍️</span> Pusat Oleh-oleh

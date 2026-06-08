@@ -210,7 +210,7 @@ export default async function HomePage() {
             </p>
 
             {/* Search bar */}
-            <form action="/destinasi" method="GET" style={{ marginBottom: '2.5rem' }}>
+            <form action="/wisata" method="GET" style={{ marginBottom: '2.5rem' }}>
               <div
                 style={{
                   display: 'flex',
@@ -259,7 +259,7 @@ export default async function HomePage() {
             {/* CTA Buttons */}
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
               <Link
-                href="/destinasi"
+                href="/wisata"
                 className="btn-primary"
                 style={{ background: 'linear-gradient(135deg, #FF6B35, #E5522A)' }}
               >
@@ -369,7 +369,7 @@ export default async function HomePage() {
               return (
                 <Link
                   key={cat.id}
-                  href={`/destinasi?category=${cat.slug}`}
+                  href={['wisata', 'kuliner', 'cafe', 'hiburan', 'oleh-oleh'].includes(cat.slug) ? `/${cat.slug}` : `/wisata?category=${cat.slug}`}
                   style={{ textDecoration: 'none' }}
                 >
                   <div
@@ -431,7 +431,7 @@ export default async function HomePage() {
               </p>
             </div>
             <Link
-              href="/destinasi?featured=true"
+              href="/wisata?tag=featured"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -618,7 +618,7 @@ export default async function HomePage() {
                 </p>
               </div>
               <Link
-                href="/destinasi?hiddenGem=true"
+                href="/wisata?tag=hidden"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -698,7 +698,7 @@ export default async function HomePage() {
             {areas.map((area) => (
               <Link
                 key={area.name}
-                href={`/destinasi?area=${encodeURIComponent(area.name)}`}
+                href={`/wisata?area=${encodeURIComponent(area.name)}`}
                 style={{ textDecoration: 'none' }}
               >
                 <div
