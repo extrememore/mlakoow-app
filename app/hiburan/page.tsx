@@ -12,7 +12,7 @@ export default function HiburanPage() {
       title="Spot Foto & Hiburan"
       subtitle="AKTIVITAS & GAYA HIDUP"
       description="Temukan {total} tempat hiburan modern, self-photo studio, photobox estetik, dan aktivitas seru untuk menghabiskan waktu luang."
-      fixedCategory="hiburan"
+      fixedCategory="hiburan,spot-foto"
       gradient="linear-gradient(135deg, #B45309 0%, #F59E0B 100%)"
       icon={<Camera size={18} color="white" />}
       tags={[

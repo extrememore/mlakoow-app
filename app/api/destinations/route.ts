@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
   const facilities = searchParams.get('facilities') || ''
   const pageType = searchParams.get('pageType') || 'default'
 
-  const limit = parseInt(searchParams.get('limit') || '20')
+  const limit = parseInt(searchParams.get('limit') || '50')
   const page = parseInt(searchParams.get('page') || '1')
   const skip = (page - 1) * limit
   
@@ -51,7 +51,11 @@ export async function GET(request: NextRequest) {
   }
 
   if (category) {
-    where.category = { slug: category }
+    if (category.includes(',')) {
+      where.category = { slug: { in: category.split(',') } }
+    } else {
+      where.category = { slug: category }
+    }
   } else if (excludeCategory) {
     where.NOT = { category: { slug: excludeCategory } }
   }
