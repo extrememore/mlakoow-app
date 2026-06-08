@@ -1197,7 +1197,7 @@ export default function ItineraryPage() {
                                 </span>
                               </div>
                               <Link
-                                href={`/destinasi/${item.destination.slug}`}
+                                href={`/wisata/${item.destination.slug}`}
                                 style={{ textDecoration: 'none', color: '#1A2332', fontWeight: 700, fontSize: '0.92rem', lineHeight: 1.3 }}
                               >
                                 {item.destination.name}

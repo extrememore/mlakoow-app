@@ -497,7 +497,7 @@ export default function ProfileClient({ data }: Props) {
                               status={booking.status}
                             />
                             <Link
-                              href={`/destinasi/${booking.destination.slug}`}
+                              href={`/wisata/${booking.destination.slug}`}
                               style={{ fontSize: '0.72rem', color: '#0A4A5E', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '3px' }}
                             >
                               Lihat destinasi <ExternalLink size={11} />
@@ -547,10 +547,10 @@ export default function ProfileClient({ data }: Props) {
                     <div style={{ position: 'relative', height: '80px', overflow: 'hidden' }}>
                       <img src={review.destination.mainImage} alt={review.destination.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       <div style={{ position: 'absolute', inset: 0, background: 'rgba(10,30,50,0.5)' }} />
-                      <Link href={`/destinasi/${review.destination.slug}`} style={{ position: 'absolute', bottom: '8px', left: '12px', color: 'white', fontWeight: 800, fontSize: '0.9rem', textDecoration: 'none' }}>
+                      <Link href={`/wisata/${review.destination.slug}`} style={{ position: 'absolute', bottom: '8px', left: '12px', color: 'white', fontWeight: 800, fontSize: '0.9rem', textDecoration: 'none' }}>
                         {review.destination.name}
                       </Link>
-                      <Link href={`/destinasi/${review.destination.slug}`} style={{ position: 'absolute', bottom: '8px', right: '10px', color: 'rgba(255,255,255,0.7)' }}>
+                      <Link href={`/wisata/${review.destination.slug}`} style={{ position: 'absolute', bottom: '8px', right: '10px', color: 'rgba(255,255,255,0.7)' }}>
                         <ExternalLink size={14} />
                       </Link>
                     </div>

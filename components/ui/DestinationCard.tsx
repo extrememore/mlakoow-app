@@ -68,7 +68,7 @@ export default function DestinationCard({
     }
   }, [initialDistance, lat, lng])
 
-  const href = category.slug === 'kuliner' ? `/kuliner/${slug}` : `/destinasi/${slug}`
+  const href = category.slug === 'kuliner' ? `/kuliner/${slug}` : `/wisata/${slug}`
   return (
     <Link href={href} style={{ textDecoration: 'none' }}>
       <div

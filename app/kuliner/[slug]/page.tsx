@@ -58,7 +58,7 @@ export default async function DetailKulinerPage({
 
   // If someone navigates here but it's not a kuliner destination, redirect to destinasi
   if (destination.category.slug !== 'kuliner') {
-    redirect(`/destinasi/${slug}`)
+    redirect(`/wisata/${slug}`)
   }
 
   const session = await auth()

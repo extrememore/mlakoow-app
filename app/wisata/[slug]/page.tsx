@@ -330,7 +330,7 @@ export default async function DetailDestinasiPage({
                   {related.map((rel) => (
                     <Link
                       key={rel.id}
-                      href={`/destinasi/${rel.slug}`}
+                      href={`/wisata/${rel.slug}`}
                       style={{ textDecoration: 'none', display: 'flex', gap: '12px', alignItems: 'center' }}
                     >
                       <SafeImage

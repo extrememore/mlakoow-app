@@ -320,8 +320,8 @@ export default function ItineraryDetailPage() {
 
                           {/* Destination card */}
                           <Link
-                            href={`/destinasi/${item.destination.slug}`}
-                            style={{ textDecoration: 'none' }}
+                            href={`/wisata/${item.destination.slug}`}
+                            style={{ textDecoration: 'none', color: 'inherit' }}
                           >
                             <div style={{ display: 'flex', gap: '1rem', background: '#F8F6F2', borderRadius: '14px', padding: '1rem', border: '1px solid #E5E9F0', transition: 'all 0.2s', cursor: 'pointer' }}
                               onMouseEnter={(e) => (e.currentTarget.style.background = '#EEF6FF')}
