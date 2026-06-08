@@ -338,31 +338,28 @@ export default function DestinationCard({
                     </button>
 
                     {/* Itinerary */}
-                    <div onClick={(e) => { e.stopPropagation() }}>
-                      <ItineraryPickerModal
-                        destinationId={id}
-                        destinationName={name}
-                        destinationSlug={slug}
-                        trigger={
-                          <button
-                            onClick={(e) => e.stopPropagation()}
-                            style={{
-                              display: 'flex', alignItems: 'center', gap: '10px',
-                              padding: '10px 12px', borderRadius: '10px', width: '100%',
-                              background: 'transparent', border: 'none',
-                              color: '#1A2332', fontSize: '0.875rem', fontWeight: 600,
-                              transition: 'background 0.15s', cursor: 'pointer',
-                              fontFamily: 'Outfit, sans-serif',
-                            }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = '#F0F7FF')}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                          >
-                            <CalendarPlus size={16} color="#0A4A5E" />
-                            Tambah ke Itinerary
-                          </button>
-                        }
-                      />
-                    </div>
+                    <ItineraryPickerModal
+                      destinationId={id}
+                      destinationName={name}
+                      destinationSlug={slug}
+                      trigger={
+                        <button
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: '10px',
+                            padding: '10px 12px', borderRadius: '10px', width: '100%',
+                            background: 'transparent', border: 'none',
+                            color: '#1A2332', fontSize: '0.875rem', fontWeight: 600,
+                            transition: 'background 0.15s', cursor: 'pointer',
+                            fontFamily: 'Outfit, sans-serif',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = '#F0F7FF')}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                        >
+                          <CalendarPlus size={16} color="#0A4A5E" />
+                          Tambah ke Itinerary
+                        </button>
+                      }
+                    />
 
                     {/* Booking — wisata non-gratis only */}
                     {isBookableWisata && (
