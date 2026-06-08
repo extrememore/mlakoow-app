@@ -68,7 +68,25 @@ export default function DestinationCard({
     }
   }, [initialDistance, lat, lng])
 
-  const href = category.slug === 'kuliner' ? `/kuliner/${slug}` : `/wisata/${slug}`
+  let href = `/wisata/${slug}`
+  if (category.slug === 'kuliner') href = `/kuliner/${slug}`
+  if (category.slug === 'cafe') href = `/cafe/${slug}`
+
+  const isCafe = category.slug === 'cafe'
+  const isKulinerOrCafe = isKuliner || isCafe || category.slug === 'kuliner'
+
+  let priceDisplay = 'Gratis'
+  if (ticketPrice > 0) {
+    if (isKulinerOrCafe) {
+      if (ticketPrice < 30000) priceDisplay = '$ (Murah)'
+      else if (ticketPrice < 60000) priceDisplay = '$$ (Sedang)'
+      else if (ticketPrice < 100000) priceDisplay = '$$$ (Mahal)'
+      else priceDisplay = '$$$$ (Premium)'
+    } else {
+      priceDisplay = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(ticketPrice)
+    }
+  }
+
   return (
     <Link href={href} style={{ textDecoration: 'none' }}>
       <div
@@ -178,11 +196,14 @@ export default function DestinationCard({
               </div>
 
               {/* Duration or Badges */}
-              {isKuliner ? (
+              {isKulinerOrCafe ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.82rem' }}>
-                  {facilities?.includes('Legendaris') && <span title="Legendaris" style={{ background: '#FEF3C7', color: '#D97706', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>🏆 Legendaris</span>}
-                  {facilities?.includes('Halal') && <span title="100% Halal" style={{ background: '#D1FAE5', color: '#059669', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>🟢 Halal</span>}
-                  {facilities?.includes('Pedes') && <span title="Pedes Nampol" style={{ background: '#FEE2E2', color: '#DC2626', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>🔥 Pedes</span>}
+                  {isCafe && facilities?.includes('WiFi') && <span title="WFC Friendly" style={{ background: '#E0F2FE', color: '#0369A1', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>💻 WFC</span>}
+                  {isCafe && facilities?.includes('Live Music') && <span title="Ada Live Music" style={{ background: '#FCE7F3', color: '#BE185D', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>🎶 Live Music</span>}
+                  
+                  {!isCafe && facilities?.includes('Legendaris') && <span title="Legendaris" style={{ background: '#FEF3C7', color: '#D97706', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>🏆 Legendaris</span>}
+                  {!isCafe && facilities?.includes('Halal') && <span title="100% Halal" style={{ background: '#D1FAE5', color: '#059669', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>🟢 Halal</span>}
+                  {!isCafe && facilities?.includes('Pedes') && <span title="Pedes Nampol" style={{ background: '#FEE2E2', color: '#DC2626', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>🔥 Pedes</span>}
                 </div>
               ) : (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#8B98A9', fontSize: '0.82rem' }}>
@@ -199,13 +220,10 @@ export default function DestinationCard({
                 style={{
                   fontWeight: 700,
                   fontSize: '0.9rem',
-                  color: (ticketPrice === 0 && !isKuliner) ? '#10B981' : '#0A4A5E',
+                  color: (ticketPrice === 0 && !isKulinerOrCafe) ? '#10B981' : '#0A4A5E',
                 }}
               >
-                {isKuliner 
-                  ? (ticketPrice === 0 ? 'Bervariasi' : ticketPrice < 25000 ? '$ (Murah)' : ticketPrice <= 75000 ? '$$ (Standar)' : '$$$ (Premium)')
-                  : (ticketPrice === 0 ? 'Gratis' : `Rp ${ticketPrice.toLocaleString('id-ID')}`)
-                }
+                {priceDisplay}
               </span>
             </div>
           </div>
