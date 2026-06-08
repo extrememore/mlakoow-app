@@ -72,6 +72,8 @@ export default function DestinationCard({
   if (category.slug === 'kuliner') href = `/kuliner/${slug}`
   if (category.slug === 'cafe') href = `/cafe/${slug}`
   if (category.slug === 'oleh-oleh') href = `/oleh-oleh/${slug}`
+  if (category.slug === 'hiburan') href = `/hiburan/${slug}`
+  if (category.slug === 'spot-foto') href = `/hiburan/${slug}`
 
   const isCafe = category.slug === 'cafe'
   const isKulinerOrCafeOrOleh = isKuliner || isCafe || category.slug === 'kuliner' || category.slug === 'oleh-oleh'
