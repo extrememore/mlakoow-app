@@ -80,6 +80,12 @@ export default async function DetailKulinerPage({
 
   const gallery: string[] = JSON.parse(destination.gallery || '[]')
   const facilities: string[] = JSON.parse(destination.facilities || '[]')
+  let menus: any[] = []
+  if (destination.menus) {
+    try {
+      menus = JSON.parse(destination.menus)
+    } catch(e) {}
+  }
 
   const transportOptions = [
     {
@@ -232,6 +238,35 @@ export default async function DetailKulinerPage({
                 {destination.description}
               </p>
             </div>
+
+            {/* Menu List */}
+            {menus.length > 0 && (
+              <div style={{ background: 'white', borderRadius: '20px', padding: '2rem', border: '1px solid #E5E9F0' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1A2332', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <UtensilsCrossed size={20} color="#C0392B" /> Menu & Harga
+                </h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {menus.map((menu: any, index: number) => (
+                    <div key={index} style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', borderBottom: index < menus.length - 1 ? '1px dashed #E5E9F0' : 'none', paddingBottom: index < menus.length - 1 ? '1.25rem' : '0', paddingTop: index > 0 ? '0.25rem' : '0' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: '#1A2332', margin: 0 }}>{menu.name}</h4>
+                          {menu.recommended && (
+                            <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#D97706', background: '#FEF3C7', padding: '2px 8px', borderRadius: '50px' }}>⭐ Rekomendasi</span>
+                          )}
+                        </div>
+                        {menu.desc && (
+                          <p style={{ fontSize: '0.85rem', color: '#8B98A9', margin: 0, lineHeight: 1.5 }}>{menu.desc}</p>
+                        )}
+                      </div>
+                      <div style={{ fontWeight: 800, color: '#C0392B', fontSize: '1rem', whiteSpace: 'nowrap' }}>
+                        Rp {menu.price.toLocaleString('id-ID')}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Facilities */}
             {facilities.length > 0 && (

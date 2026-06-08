@@ -153,7 +153,7 @@ async function main() {
       lng: 112.7302,
       openHour: '06:00',
       closeHour: '18:00',
-      ticketPrice: 0,
+      ticketPrice: 15000,
       mainImage: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&q=80',
       gallery: JSON.stringify([]),
       rating: 4.2,

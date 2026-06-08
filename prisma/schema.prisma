@@ -53,6 +53,7 @@ model Destination {
   hiddenGem         Boolean  @default(false)
   estimatedDuration Int      @default(60)
   facilities        String   @db.Text
+  menus             String?  @db.Text
   createdAt         DateTime @default(now())
 
   category       Category        @relation(fields: [categoryId], references: [id])
