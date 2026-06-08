@@ -10,13 +10,14 @@ export const dynamic = 'force-dynamic'
 export default async function KalenderEventPage({
   searchParams,
 }: {
-  searchParams: { search?: string; category?: string }
+  searchParams: Promise<{ [key: string]: string | undefined }>
 }) {
   const session = await auth()
   const userId = session?.user ? parseInt(session.user.id as string) : null
 
-  const search = searchParams?.search || ''
-  const category = searchParams?.category || ''
+  const resolvedParams = await searchParams
+  const search = resolvedParams?.search || ''
+  const category = resolvedParams?.category || ''
 
   const where: any = {}
   if (search) {
