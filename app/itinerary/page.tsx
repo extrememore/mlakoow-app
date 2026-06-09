@@ -54,7 +54,7 @@ interface DestinationData {
   rating: number
   ticketPrice: number
   estimatedDuration: number
-  category: { id?: number; name: string; icon: string; color: string }
+  category: { id?: number; name: string; slug?: string; icon: string; color: string }
   categoryId?: number
 }
 
@@ -470,7 +470,14 @@ function ItineraryContent() {
     return d.toISOString().split('T')[0]
   }
 
-  const paidEditableItems = editableItems.filter((i) => i.estimatedCost > 0)
+  // Categories that are NOT tourism venues and should NOT be booked as ticket destinations
+  const NON_BOOKING_CATEGORY_SLUGS = ['kuliner', 'cafe', 'hiburan', 'oleh-oleh']
+
+  const paidEditableItems = editableItems.filter((i) =>
+    i.estimatedCost > 0 &&
+    !NON_BOOKING_CATEGORY_SLUGS.includes(i.destination.category.slug ?? '')
+  )
+
   const selectedBookingTotal = paidEditableItems
     .filter((i) => selectedBookingIds.includes(i.destination.id))
     .reduce((sum, i) => sum + i.estimatedCost * bookingTicketCount, 0)
