@@ -601,8 +601,9 @@ function ItineraryContent() {
       </div>
 
       {/* Canvas Section */}
-      <div style={{ maxWidth: '800px', margin: '2rem auto 0', padding: '0 1.5rem', width: '100%' }}>
-        <div style={{ background: 'white', borderRadius: '20px', border: '1px solid #E5E9F0', boxShadow: '0 4px 20px rgba(10,74,94,0.06)', overflow: 'hidden' }}>
+      {step === 1 && (
+        <div style={{ maxWidth: '800px', margin: '2rem auto 0', padding: '0 1.5rem', width: '100%' }}>
+          <div style={{ background: 'white', borderRadius: '20px', border: '1px solid #E5E9F0', boxShadow: '0 4px 20px rgba(10,74,94,0.06)', overflow: 'hidden' }}>
           {/* Canvas header */}
           <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #F0F4F8', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
             <div>
@@ -707,6 +708,7 @@ function ItineraryContent() {
           </div>
         </div>
       </div>
+      )}
 
       {/* Content */}
       <div style={{ maxWidth: '800px', margin: '1.5rem auto', padding: '0 1.5rem', width: '100%', flex: 1 }}>
