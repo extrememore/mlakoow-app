@@ -1138,31 +1138,55 @@ function ItineraryContent() {
               </div>
             </div>
 
-            <button
-              onClick={() => setStep(2)}
-              disabled={!tripStartDate || !tripEndDate}
-              style={{
-                marginTop: '2rem', width: '100%', justifyContent: 'center',
-                padding: '1.1rem', fontSize: '1rem', fontWeight: 800,
-                borderRadius: '18px', border: 'none', cursor: (!tripStartDate || !tripEndDate) ? 'not-allowed' : 'pointer',
-                fontFamily: 'Outfit, sans-serif',
-                background: (!tripStartDate || !tripEndDate)
-                  ? '#E5E9F0'
-                  : 'linear-gradient(135deg, #0A4A5E 0%, #1E6FA8 60%, #FF6B35 200%)',
-                color: (!tripStartDate || !tripEndDate) ? '#8B98A9' : 'white',
-                display: 'flex', alignItems: 'center', gap: '10px',
-                boxShadow: (!tripStartDate || !tripEndDate) ? 'none' : '0 8px 24px rgba(10,74,94,0.3)',
-                transform: 'translateY(0)',
-                transition: 'all 0.2s',
-                opacity: 1,
-              }}
-              onMouseEnter={(e) => { if (tripStartDate && tripEndDate) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(10,74,94,0.4)' } }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = tripStartDate && tripEndDate ? '0 8px 24px rgba(10,74,94,0.3)' : 'none' }}
-            >
-              {!tripStartDate || !tripEndDate
-                ? <><span>📅</span> Pilih tanggal perjalanan dahulu</>
-                : <><span style={{ fontSize: '1.1rem' }}>🚀</span> Lanjut Pilih Minat — Trip {duration} Hari <ChevronRight size={18} /></>}
-            </button>
+            <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <button
+                onClick={() => setStep(2)}
+                disabled={!tripStartDate || !tripEndDate}
+                style={{
+                  width: '100%', justifyContent: 'center',
+                  padding: '1.1rem', fontSize: '1rem', fontWeight: 800,
+                  borderRadius: '18px', border: 'none', cursor: (!tripStartDate || !tripEndDate) ? 'not-allowed' : 'pointer',
+                  fontFamily: 'Outfit, sans-serif',
+                  background: (!tripStartDate || !tripEndDate)
+                    ? '#E5E9F0'
+                    : 'linear-gradient(135deg, #0A4A5E 0%, #1E6FA8 60%, #FF6B35 200%)',
+                  color: (!tripStartDate || !tripEndDate) ? '#8B98A9' : 'white',
+                  display: 'flex', alignItems: 'center', gap: '10px',
+                  boxShadow: (!tripStartDate || !tripEndDate) ? 'none' : '0 8px 24px rgba(10,74,94,0.3)',
+                  transform: 'translateY(0)',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => { if (tripStartDate && tripEndDate) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(10,74,94,0.4)' } }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = tripStartDate && tripEndDate ? '0 8px 24px rgba(10,74,94,0.3)' : 'none' }}
+              >
+                {!tripStartDate || !tripEndDate
+                  ? <><span>📅</span> Pilih tanggal perjalanan dahulu</>
+                  : <><span style={{ fontSize: '1.1rem' }}>🚀</span> Lanjut Pilih Minat — Trip {duration} Hari <ChevronRight size={18} /></>}
+              </button>
+
+              {(selectedCanvasIds.size > 0 || canvasDests.length > 0) && (
+                <button
+                  onClick={generateItinerary}
+                  disabled={!tripStartDate || !tripEndDate || loading}
+                  style={{
+                    width: '100%', justifyContent: 'center',
+                    padding: '1.1rem', fontSize: '1rem', fontWeight: 800,
+                    borderRadius: '18px', border: '2px solid #BFDBFE',
+                    cursor: (!tripStartDate || !tripEndDate || loading) ? 'not-allowed' : 'pointer',
+                    fontFamily: 'Outfit, sans-serif',
+                    background: (!tripStartDate || !tripEndDate) ? '#F8FAFC' : '#EFF6FF',
+                    color: (!tripStartDate || !tripEndDate) ? '#94A3B8' : '#1E40AF',
+                    display: 'flex', alignItems: 'center', gap: '10px',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={(e) => { if (tripStartDate && tripEndDate && !loading) { e.currentTarget.style.background = '#DBEAFE' } }}
+                  onMouseLeave={(e) => { if (tripStartDate && tripEndDate && !loading) { e.currentTarget.style.background = '#EFF6FF' } }}
+                >
+                  {loading ? <Loader size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <span style={{ fontSize: '1.2rem' }}>⚡</span>}
+                  Generate Langsung dari Kanvas
+                </button>
+              )}
+            </div>
           </div>
         </div>
         )}
