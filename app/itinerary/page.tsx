@@ -455,7 +455,10 @@ function ItineraryContent() {
     setSaving(false)
 
     // Check if there are paid destinations — auto show booking modal
-    const paidItems = editableItems.filter((i) => i.estimatedCost > 0)
+    const NON_BOOKING_SLUGS = ['kuliner', 'cafe', 'hiburan', 'oleh-oleh']
+    const paidItems = editableItems.filter(
+      (i) => i.estimatedCost > 0 && !NON_BOOKING_SLUGS.includes(i.destination.category.slug ?? '')
+    )
     if (paidItems.length > 0) {
       setSelectedBookingIds(paidItems.map((i) => i.destination.id))
       setShowBookingModal(true)
