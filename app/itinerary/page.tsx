@@ -369,6 +369,67 @@ function ItineraryContent() {
     }
   }, [editableItems, duration])
 
+  async function generateDirectFromCanvas() {
+    setLoading(true)
+
+    // Kumpulkan semua pinned destinations: dari canvas URL param + dari canvas yang dipilih user
+    const userSelectedDests = selectedCanvasIds.size > 0
+      ? userCanvases.filter((c) => selectedCanvasIds.has(c.id)).flatMap((c) => c.items.map((i) => i.destination))
+      : []
+
+    const allPinned = [...canvasDests, ...userSelectedDests].filter(
+      (d, idx, arr) => arr.findIndex((x) => x.id === d.id) === idx // dedupe
+    )
+
+    if (allPinned.length === 0) {
+      setLoading(false)
+      return
+    }
+
+    let items: ItineraryItem[] = []
+    const destPerDay = Math.ceil(allPinned.length / duration)
+    
+    allPinned.forEach((dest, idx) => {
+      const day = Math.min(Math.floor(idx / destPerDay) + 1, duration)
+      items.push({
+        destination: dest,
+        order: idx + 1,
+        day: day,
+        startTime: '09:00', // will be recalculated
+        estimatedVisitTime: dest.estimatedDuration,
+        estimatedCost: dest.ticketPrice,
+        transportNote: '',
+        transportCost: 0
+      })
+    })
+
+    const finalItems = recalcItems(items, duration)
+    
+    const totalCost = finalItems.reduce((s, i) => s + i.estimatedCost, 0)
+    const totalTransportCost = finalItems.reduce((s, i) => s + (i.transportCost ?? 0), 0)
+    
+    // Create a mock generated data so that summary works
+    setGenerated({
+       items: finalItems,
+       totalCost,
+       totalTransportCost,
+       totalTime: finalItems.reduce((s, i) => s + i.estimatedVisitTime, 0),
+       duration,
+       summary: {
+         destinations: finalItems.length,
+         days: duration,
+         estimatedBudget: totalCost,
+         estimatedTransportCost: totalTransportCost,
+         areas: [...new Set(finalItems.map(i => i.destination.area))]
+       }
+    })
+    
+    setEditableItems(finalItems)
+    setSavedId(null)
+    setLoading(false)
+    setStep(3)
+  }
+
   async function generateItinerary() {
     setLoading(true)
 
@@ -1210,7 +1271,7 @@ function ItineraryContent() {
 
               {(selectedCanvasIds.size > 0 || canvasDests.length > 0) && (
                 <button
-                  onClick={generateItinerary}
+                  onClick={generateDirectFromCanvas}
                   disabled={!tripStartDate || !tripEndDate || loading}
                   style={{
                     width: '100%', justifyContent: 'center',
