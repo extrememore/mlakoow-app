@@ -2049,7 +2049,7 @@ function ItineraryContent() {
               <h3 style={{ fontWeight: 800, color: '#1A2332', marginBottom: '1.25rem' }}>💰 Estimasi Biaya Perjalanan</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                  <span style={{ color: '#4A5568' }}>Tiket Masuk ({liveSummary.destinations} destinasi)</span>
+                  <span style={{ color: '#4A5568' }}>Pengeluaran Destinasi ({liveSummary.destinations} tempat)</span>
                   <strong style={{ color: '#1A2332' }}>Rp {liveSummary.totalCost.toLocaleString('id-ID')}</strong>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>

@@ -149,12 +149,8 @@ export default async function DetailDestinasiPage({
                 },
                 {
                   icon: Wallet,
-                  label: destination.category.slug === 'hiburan' || destination.category.slug === 'spot-foto' ? 'Estimasi Biaya' : 'Tiket Masuk',
-                  value: destination.ticketPrice === 0 ? 'Gratis' : (
-                    destination.category.slug === 'hiburan' || destination.category.slug === 'spot-foto'
-                    ? `Rp ${destination.ticketPrice.toLocaleString('id-ID')} - ${(Math.round((destination.ticketPrice * 1.5) / 5000) * 5000).toLocaleString('id-ID')}`
-                    : `Rp ${destination.ticketPrice.toLocaleString('id-ID')}`
-                  ),
+                  label: destination.ticketPrice === 0 ? 'Biaya Masuk' : 'Estimasi Biaya',
+                  value: destination.ticketPrice === 0 ? 'Gratis' : `Rp ${destination.ticketPrice.toLocaleString('id-ID')}`,
                   color: destination.ticketPrice === 0 ? '#10B981' : '#0A4A5E',
                 },
                 {

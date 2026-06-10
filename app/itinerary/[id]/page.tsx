@@ -258,7 +258,7 @@ export default function ItineraryDetailPage() {
           <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
             {[
               { label: 'Destinasi', value: itinerary.items.length },
-              { label: 'Est. Tiket', value: `Rp ${(itinerary.totalEstimatedCost / 1000).toFixed(0)}K` },
+              { label: 'Est. Biaya', value: `Rp ${(itinerary.totalEstimatedCost / 1000).toFixed(0)}K` },
               { label: 'Total Estimasi', value: `Rp ${(grandTotal / 1000).toFixed(0)}K` },
             ].map((s) => (
               <div key={s.label} style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '12px', padding: '0.75rem 1.25rem', border: '1px solid rgba(255,255,255,0.15)' }}>
@@ -404,7 +404,7 @@ export default function ItineraryDetailPage() {
             <h3 style={{ fontWeight: 800, color: '#1A2332', marginBottom: '1.25rem', fontSize: '1.1rem' }}>💰 Estimasi Biaya Perjalanan</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                <span style={{ color: '#4A5568' }}>Tiket Masuk ({itinerary.items.length} destinasi)</span>
+                <span style={{ color: '#4A5568' }}>Pengeluaran Destinasi ({itinerary.items.length} tempat)</span>
                 <strong style={{ color: '#1A2332' }}>Rp {itinerary.totalEstimatedCost.toLocaleString('id-ID')}</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
