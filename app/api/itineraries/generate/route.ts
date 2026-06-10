@@ -100,6 +100,9 @@ export async function POST(request: NextRequest) {
       currentTime = currentItem.openHour
     }
 
+    const anchorTimeVal = parseTime(currentTime)
+    const anchorRushHour = (anchorTimeVal >= 7 && anchorTimeVal <= 9.5) || (anchorTimeVal >= 16 && anchorTimeVal <= 18.5)
+
     dayItems.push({
       destination: currentItem,
       order: globalOrder++,
@@ -107,8 +110,8 @@ export async function POST(request: NextRequest) {
       startTime: currentTime,
       estimatedVisitTime: currentItem.estimatedDuration,
       estimatedCost: currentItem.ticketPrice,
-      transportNote: 'Mulai perjalanan dari penginapan Anda',
-      transportCost: 15000 // Base estimate from hotel to first destination
+      transportNote: `Mulai perjalanan dari penginapan Anda menggunakan Grab/Gojek ${anchorRushHour ? 'sepeda motor' : 'mobil'}`,
+      transportCost: anchorRushHour ? 10000 : 15000 // Base estimate from hotel to first destination
     })
 
     // Find next destinations for this day using nearest neighbor (Geo-Clustering)
@@ -156,13 +159,16 @@ export async function POST(request: NextRequest) {
         }
 
         const actualDist = getDistance(currentItem!.lat, currentItem!.lng, nextDest.lat, nextDest.lng)
-        let transportNote = `Perjalanan sekitar ${Math.round(actualDist * 10) / 10} km menggunakan mobil/motor`
-        let transportCost = 10000 + Math.round(Math.max(0, actualDist - 2) * 4000)
         
-        if (actualDist < 1) {
-          transportNote = 'Sangat dekat, bisa ditempuh dengan berjalan kaki santai'
-          transportCost = 0
-        }
+        const timeVal = parseTime(currentTime)
+        const isRushHour = (timeVal >= 7 && timeVal <= 9.5) || (timeVal >= 16 && timeVal <= 18.5)
+        
+        let transportMode = isRushHour ? 'sepeda motor (hindari macet)' : 'mobil (lebih adem)'
+        let baseFare = isRushHour ? 10000 : 15000
+        let perKmFare = isRushHour ? 2500 : 4000
+        
+        let transportNote = `Lanjut sekitar ${Math.round(actualDist * 10) / 10} km menggunakan Grab/Gojek ${transportMode}`
+        let transportCost = baseFare + Math.round(Math.max(0, actualDist - 2) * perKmFare)
         
         dayItems.push({
           destination: nextDest,
