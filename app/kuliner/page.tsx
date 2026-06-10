@@ -40,6 +40,8 @@ export default function KulinerPage() {
       description="Temukan {total} destinasi kuliner legendaris Surabaya — dari Rawon, Rujak Cingur, Pecel Semanggi, hingga hidangan otentik lainnya."
       fixedCategory="kuliner"
       pageType="kuliner"
+      showCategoryFilter={true}
+      parentCategory="kuliner"
       gradient="linear-gradient(135deg, #7B1A00 0%, #C0392B 50%, #E67E22 100%)"
       icon={<UtensilsCrossed size={18} color="white" />}
       tags={[

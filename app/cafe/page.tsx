@@ -13,6 +13,8 @@ export default function CafePage() {
       subtitle="LIFESTYLE & NONGKRONG"
       description="Temukan {total} rekomendasi cafe estetik, kedai kopi artisan, dan tempat nongkrong paling nyaman di penjuru Surabaya."
       fixedCategory="cafe"
+      showCategoryFilter={true}
+      parentCategory="cafe"
       gradient="linear-gradient(135deg, #4C1D95 0%, #7C3AED 100%)"
       icon={<Coffee size={18} color="white" />}
       tags={[

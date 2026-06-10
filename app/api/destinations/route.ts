@@ -51,11 +51,15 @@ export async function GET(request: NextRequest) {
   }
 
   if (category) {
-    if (category.includes(',')) {
-      where.category = { slug: { in: category.split(',') } }
-    } else {
-      where.category = { slug: category }
-    }
+    const slugs = category.includes(',') ? category.split(',').map(s => s.trim()) : [category]
+    // Expand any parent-category slugs to include their children
+    const childRows = await prisma.category.findMany({
+      where: { parent: { slug: { in: slugs } } },
+      select: { slug: true },
+    })
+    const childSlugs = childRows.map((c) => c.slug)
+    const allSlugs = [...new Set([...slugs, ...childSlugs])]
+    where.category = { slug: { in: allSlugs } }
   } else if (excludeCategory) {
     if (excludeCategory.includes(',')) {
       where.NOT = { category: { slug: { in: excludeCategory.split(',') } } }

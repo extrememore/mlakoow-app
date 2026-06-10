@@ -15,8 +15,8 @@ export default function WisataPage() {
       gradient="linear-gradient(135deg, #062E3A 0%, #0A4A5E 100%)"
       icon={<MapPin size={18} color="white" />}
       showCategoryFilter={true}
-      fixedCategory="sejarah,alam,keluarga,budaya,hidden-gem"
-      allowedCategories="sejarah,alam,keluarga,budaya,hidden-gem"
+      fixedCategory="wisata"
+      parentCategory="wisata"
       tags={[
         { label: 'Semua', value: '' },
         { label: '⭐ Populer', value: 'featured' },

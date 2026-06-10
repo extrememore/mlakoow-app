@@ -13,6 +13,7 @@ export interface Category {
   slug: string
   icon: string
   color: string
+  parentId?: number | null
 }
 
 export interface Destination {
@@ -43,7 +44,8 @@ interface DestinationExplorerProps {
   description?: string
   fixedCategory?: string
   excludeCategory?: string
-  allowedCategories?: string  // comma-separated slugs to show in dropdown, within fixedCategory set
+  allowedCategories?: string  // legacy: comma-separated slugs
+  parentCategory?: string     // new: parent slug to auto-fetch subcategories
   gradient?: string
   icon?: ReactNode
   showCategoryFilter?: boolean
@@ -59,6 +61,7 @@ export default function DestinationExplorer({
   fixedCategory,
   excludeCategory,
   allowedCategories,
+  parentCategory,
   gradient = 'linear-gradient(135deg, #062E3A 0%, #0A4A5E 100%)',
   icon = <MapPin size={16} color="#FF8C5E" />,
   showCategoryFilter = false,
@@ -68,6 +71,7 @@ export default function DestinationExplorer({
 }: DestinationExplorerProps) {
   const [destinations, setDestinations] = useState<Destination[]>([])
   const [categories, setCategories] = useState<Category[]>([])
+  const [subCategories, setSubCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [total, setTotal] = useState(0)
 
@@ -185,8 +189,14 @@ export default function DestinationExplorer({
   }, [fixedCategory])
 
   useEffect(() => {
-    if (showCategoryFilter) {
-      // Load categories
+    if (showCategoryFilter && parentCategory) {
+      // New: fetch subcategories from API by parent slug
+      fetch(`/api/destinations/categories?parent=${parentCategory}`)
+        .then((r) => r.json())
+        .then((data: Category[]) => setSubCategories(Array.isArray(data) ? data : []))
+        .catch(() => {})
+    } else if (showCategoryFilter && allowedCategories) {
+      // Legacy: load from destinations and filter by allowedCategories
       fetch('/api/destinations?limit=50' + (excludeCategory ? `&excludeCategory=${excludeCategory}` : ''))
         .then((r) => r.json())
         .then((d) => {
@@ -198,7 +208,7 @@ export default function DestinationExplorer({
         })
         .catch(() => {})
     }
-  }, [showCategoryFilter, excludeCategory])
+  }, [showCategoryFilter, parentCategory, allowedCategories, excludeCategory])
 
   useEffect(() => {
     fetchDestinations()
@@ -263,8 +273,45 @@ export default function DestinationExplorer({
             />
           </div>
 
-          {/* Category filter */}
-          {showCategoryFilter && (
+          {/* Sub-category chip filter — new style */}
+          {showCategoryFilter && subCategories.length > 0 && (
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <button
+                onClick={() => setSelectedCategory(fixedCategory || '')}
+                style={{
+                  padding: '0.45rem 0.9rem', borderRadius: '50px', fontSize: '0.8rem', fontWeight: 700,
+                  border: (selectedCategory === (fixedCategory || '') || !selectedCategory) ? '2px solid #0A4A5E' : '1.5px solid #E5E9F0',
+                  background: (selectedCategory === (fixedCategory || '') || !selectedCategory) ? '#0A4A5E' : 'white',
+                  color: (selectedCategory === (fixedCategory || '') || !selectedCategory) ? 'white' : '#4A5568',
+                  cursor: 'pointer', fontFamily: 'Outfit, sans-serif', transition: 'all 0.15s',
+                }}
+              >
+                Semua
+              </button>
+              {subCategories.map((cat) => {
+                const isActive = selectedCategory === cat.slug
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(isActive ? (fixedCategory || '') : cat.slug)}
+                    style={{
+                      padding: '0.45rem 0.9rem', borderRadius: '50px', fontSize: '0.8rem', fontWeight: 700,
+                      border: isActive ? `2px solid ${cat.color}` : '1.5px solid #E5E9F0',
+                      background: isActive ? cat.color : 'white',
+                      color: isActive ? 'white' : '#4A5568',
+                      cursor: 'pointer', fontFamily: 'Outfit, sans-serif', transition: 'all 0.15s',
+                      display: 'flex', alignItems: 'center', gap: '4px',
+                    }}
+                  >
+                    <span style={{ fontSize: '0.9rem' }}>{cat.icon}</span> {cat.name}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
+          {/* Legacy dropdown for wisata page (allowedCategories prop) */}
+          {showCategoryFilter && subCategories.length === 0 && categories.length > 0 && (
             <div style={{ position: 'relative' }}>
               <select
                 value={selectedCategory}
@@ -275,7 +322,7 @@ export default function DestinationExplorer({
                 <option value="">Semua Kategori</option>
                 {categories
                   .filter(cat => {
-                    if (!allowedCategories) return !fixedCategory  // default: only show when no fixedCategory
+                    if (!allowedCategories) return !fixedCategory
                     return allowedCategories.split(',').includes(cat.slug)
                   })
                   .map((cat) => (
@@ -359,7 +406,7 @@ export default function DestinationExplorer({
           {/* Reset */}
           {hasFilters && (
             <button
-              onClick={() => { setSearch(''); setSelectedCategory(''); setSelectedArea(''); setActiveTag(''); setSort(''); setPrice(''); setFacilities([]); setUserLocation(null) }}
+              onClick={() => { setSearch(''); setSelectedCategory(fixedCategory || ''); setSelectedArea(''); setActiveTag(''); setSort(''); setPrice(''); setFacilities([]); setUserLocation(null) }}
               style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#FEE2E2', border: 'none', borderRadius: '12px', padding: '0.65rem 1rem', color: '#B91C1C', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', fontFamily: 'Outfit, sans-serif', flexShrink: 0 }}
             >
               <X size={16} /> Reset

@@ -172,15 +172,66 @@ function ItineraryContent() {
   const [selectedAreas, setSelectedAreas] = useState<string[]>([])
   const [maxDestinations, setMaxDestinations] = useState(4)
 
-  const categories = [
-    { id: 1, label: 'Alam', icon: '🌿', slug: 'alam' },
-    { id: 2, label: 'Budaya', icon: '🎭', slug: 'budaya' },
-    { id: 3, label: 'Kuliner', icon: '🍜', slug: 'kuliner' },
-    { id: 4, label: 'Sejarah', icon: '🏛️', slug: 'sejarah' },
-    { id: 5, label: 'Keluarga', icon: '👨‍👩‍👧', slug: 'keluarga' },
-    { id: 6, label: 'Hidden Gem', icon: '💎', slug: 'hidden-gem' },
+  const PARENT_CATEGORIES = [
+    {
+      slug: 'wisata', label: 'Wisata', icon: '🏛️', color: '#0A4A5E', gradient: 'linear-gradient(135deg,#0A4A5E,#1E6FA8)',
+      subs: [
+        { id: 1,  slug: 'sejarah',       label: 'Sejarah',         icon: '🏛️' },
+        { id: 2,  slug: 'alam',          label: 'Alam',            icon: '🌿' },
+        { id: 3,  slug: 'keluarga',      label: 'Keluarga',        icon: '👨‍👩‍👧' },
+        { id: 5,  slug: 'budaya',        label: 'Budaya',          icon: '🎭' },
+        { id: 12, slug: 'taman-rekreasi',label: 'Taman & Rekreasi',icon: '🌳' },
+        { id: 13, slug: 'petualangan',   label: 'Petualangan',     icon: '🧗' },
+        { id: 14, slug: 'edukasi',       label: 'Edukasi',         icon: '📚' },
+      ],
+    },
+    {
+      slug: 'kuliner', label: 'Kuliner', icon: '🍜', color: '#B91C1C', gradient: 'linear-gradient(135deg,#7B1A00,#C0392B)',
+      subs: [
+        { id: 15, slug: 'makanan-tradisional', label: 'Makanan Tradisional',   icon: '🍲' },
+        { id: 16, slug: 'street-food',         label: 'Street Food',           icon: '🌮' },
+        { id: 17, slug: 'restoran',            label: 'Restoran & Rumah Makan',icon: '🍽️' },
+        { id: 18, slug: 'jajanan-snack',       label: 'Jajanan & Snack',       icon: '🧆' },
+        { id: 19, slug: 'warung-lokal',        label: 'Warung Lokal',          icon: '🏠' },
+        { id: 20, slug: 'seafood',             label: 'Seafood',               icon: '🦐' },
+      ],
+    },
+    {
+      slug: 'cafe', label: 'Cafe & Nongkrong', icon: '☕', color: '#7C3AED', gradient: 'linear-gradient(135deg,#4C1D95,#7C3AED)',
+      subs: [
+        { id: 21, slug: 'coffee-shop',   label: 'Coffee Shop',              icon: '☕' },
+        { id: 22, slug: 'kedai',         label: 'Kedai',                    icon: '🫖' },
+        { id: 23, slug: 'cafe-umum',     label: 'Cafe',                     icon: '🍰' },
+        { id: 24, slug: 'creative-space',label: 'Creative & Community Space',icon: '🎨' },
+      ],
+    },
+    {
+      slug: 'hiburan', label: 'Hiburan', icon: '🎉', color: '#B45309', gradient: 'linear-gradient(135deg,#B45309,#F59E0B)',
+      subs: [
+        { id: 25, slug: 'studio-foto',         label: 'Studio Foto',            icon: '📷' },
+        { id: 26, slug: 'spot-foto-outdoor',   label: 'Spot Foto Outdoor',      icon: '🌄' },
+        { id: 27, slug: 'spot-foto-indoor',    label: 'Spot Foto Indoor',       icon: '🏠' },
+        { id: 28, slug: 'permainan-arcade',    label: 'Permainan & Arcade',     icon: '🎮' },
+        { id: 29, slug: 'bioskop-hiburan',     label: 'Bioskop & Hiburan',      icon: '🎬' },
+        { id: 30, slug: 'olahraga-petualangan',label: 'Olahraga & Petualangan', icon: '⚽' },
+      ],
+    },
+    {
+      slug: 'oleh-oleh', label: 'Oleh-Oleh', icon: '🛍️', color: '#047857', gradient: 'linear-gradient(135deg,#047857,#10B981)',
+      subs: [
+        { id: 31, slug: 'makanan-khas',     label: 'Makanan Khas Surabaya', icon: '🦞' },
+        { id: 32, slug: 'kerajinan-tangan', label: 'Kerajinan Tangan',      icon: '🧵' },
+        { id: 33, slug: 'batik-fashion',    label: 'Batik & Fashion',       icon: '👗' },
+        { id: 34, slug: 'minuman-bumbu',    label: 'Minuman & Bumbu',       icon: '🌶️' },
+        { id: 35, slug: 'kue-roti',         label: 'Kue & Roti',            icon: '🍞' },
+        { id: 36, slug: 'souvenir-aksesoris',label: 'Souvenir & Aksesoris', icon: '🎁' },
+      ],
+    },
   ]
+  // For backward compat with generate API (uses categoryIds)
+  const categories = PARENT_CATEGORIES.flatMap((p) => p.subs)
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([])
+  const [expandedParentSlug, setExpandedParentSlug] = useState<string | null>(null)
 
   // Fetch canvas destinations from ?canvas=ID,ID2,ID3 query param
   useEffect(() => {
@@ -1254,41 +1305,70 @@ function ItineraryContent() {
               </div>
             </div>
 
-            {/* Category grid */}
+            {/* Parent category cards + sub-category chips */}
             <div style={{ padding: '0 2rem 0', marginTop: '-2rem', position: 'relative' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '0.875rem', marginBottom: '1.5rem' }}>
-                {categories.map((cat) => {
-                  const isSelected = selectedCategoryIds.includes(cat.id)
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                {PARENT_CATEGORIES.map((parent) => {
+                  const isExpanded = expandedParentSlug === parent.slug
+                  const selectedSubsInParent = parent.subs.filter((s) => selectedCategoryIds.includes(s.id))
+                  const allSubsSelected = selectedSubsInParent.length === parent.subs.length
+                  const someSubsSelected = selectedSubsInParent.length > 0
+
                   return (
-                    <button
-                      key={cat.id}
-                      onClick={() => toggleCategory(cat.id)}
-                      style={{
-                        padding: '1.25rem 0.75rem',
-                        borderRadius: '18px',
-                        border: isSelected ? '2px solid transparent' : '2px solid #E5E9F0',
-                        background: isSelected
-                          ? 'linear-gradient(135deg, #7C3AED, #9F1239)'
-                          : 'white',
-                        cursor: 'pointer',
-                        fontFamily: 'Outfit, sans-serif',
-                        textAlign: 'center',
-                        transition: 'all 0.22s cubic-bezier(0.34,1.56,0.64,1)',
-                        position: 'relative',
-                        boxShadow: isSelected ? '0 6px 20px rgba(124,58,237,0.3)' : '0 1px 4px rgba(0,0,0,0.04)',
-                        transform: isSelected ? 'translateY(-3px) scale(1.02)' : 'translateY(0) scale(1)',
-                      }}
-                      onMouseEnter={(e) => { if (!isSelected) { e.currentTarget.style.borderColor = '#7C3AED'; e.currentTarget.style.background = '#FAF5FF' } }}
-                      onMouseLeave={(e) => { if (!isSelected) { e.currentTarget.style.borderColor = '#E5E9F0'; e.currentTarget.style.background = 'white' } }}
-                    >
-                      {isSelected && (
-                        <div style={{ position: 'absolute', top: '8px', right: '8px', width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <Check size={11} color="white" strokeWidth={3} />
+                    <div key={parent.slug} style={{ borderRadius: '18px', overflow: 'hidden', border: someSubsSelected ? `2px solid ${parent.color}` : '2px solid #E5E9F0', background: 'white', transition: 'all 0.2s', boxShadow: someSubsSelected ? `0 4px 16px ${parent.color}22` : '0 1px 4px rgba(0,0,0,0.04)' }}>
+                      {/* Parent header */}
+                      <button
+                        onClick={() => setExpandedParentSlug(isExpanded ? null : parent.slug)}
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '0.9rem 1rem', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: 'Outfit, sans-serif' }}
+                      >
+                        <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: parent.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '1.25rem' }}>
+                          {parent.icon}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#1A2332' }}>{parent.label}</div>
+                          <div style={{ fontSize: '0.72rem', color: someSubsSelected ? parent.color : '#8B98A9', fontWeight: 600, marginTop: '1px' }}>
+                            {someSubsSelected
+                              ? allSubsSelected ? 'Semua sub-kategori dipilih' : `${selectedSubsInParent.length} sub-kategori dipilih`
+                              : `${parent.subs.length} sub-kategori tersedia`}
+                          </div>
+                        </div>
+                        {/* Toggle all subs button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            const subIds = parent.subs.map((s) => s.id)
+                            if (allSubsSelected) {
+                              setSelectedCategoryIds((prev) => prev.filter((id) => !subIds.includes(id)))
+                            } else {
+                              setSelectedCategoryIds((prev) => [...new Set([...prev, ...subIds])])
+                            }
+                          }}
+                          style={{ padding: '4px 12px', borderRadius: '50px', border: `1.5px solid ${someSubsSelected ? parent.color : '#E5E9F0'}`, background: allSubsSelected ? parent.color : 'white', color: allSubsSelected ? 'white' : someSubsSelected ? parent.color : '#8B98A9', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'Outfit, sans-serif', flexShrink: 0, transition: 'all 0.15s' }}
+                        >
+                          {allSubsSelected ? '✓ Semua' : 'Pilih Semua'}
+                        </button>
+                        <span style={{ fontSize: '0.75rem', color: '#8B98A9', transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', display: 'inline-block', lineHeight: 1 }}>▼</span>
+                      </button>
+
+                      {/* Sub-categories (expandable) */}
+                      {isExpanded && (
+                        <div style={{ padding: '0 1rem 1rem', borderTop: '1px solid #F0F4F8', display: 'flex', flexWrap: 'wrap', gap: '0.5rem', paddingTop: '0.75rem' }}>
+                          {parent.subs.map((sub) => {
+                            const isSelected = selectedCategoryIds.includes(sub.id)
+                            return (
+                              <button
+                                key={sub.id}
+                                onClick={() => setSelectedCategoryIds((prev) => isSelected ? prev.filter((id) => id !== sub.id) : [...prev, sub.id])}
+                                style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 13px', borderRadius: '50px', border: isSelected ? `2px solid ${parent.color}` : '1.5px solid #E5E9F0', background: isSelected ? parent.color : 'white', color: isSelected ? 'white' : '#4A5568', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'Outfit, sans-serif', transition: 'all 0.15s' }}
+                              >
+                                <span style={{ fontSize: '0.85rem' }}>{sub.icon}</span> {sub.label}
+                                {isSelected && <Check size={11} strokeWidth={3} />}
+                              </button>
+                            )
+                          })}
                         </div>
                       )}
-                      <div style={{ fontSize: '2.2rem', marginBottom: '8px', filter: isSelected ? 'brightness(1.1)' : 'none' }}>{cat.icon}</div>
-                      <div style={{ fontWeight: 700, fontSize: '0.82rem', color: isSelected ? 'white' : '#1A2332', lineHeight: 1.3 }}>{cat.label}</div>
-                    </button>
+                    </div>
                   )
                 })}
               </div>
@@ -1296,8 +1376,8 @@ function ItineraryContent() {
               {/* Selected summary */}
               <div style={{ marginBottom: '1.5rem', padding: '0.875rem 1rem', borderRadius: '14px', background: selectedCategoryIds.length === 0 ? '#F0FDF4' : '#FAF5FF', border: `1px solid ${selectedCategoryIds.length === 0 ? '#BBF7D0' : '#DDD6FE'}`, fontSize: '0.82rem', fontWeight: 600, color: selectedCategoryIds.length === 0 ? '#065F46' : '#4C1D95', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 {selectedCategoryIds.length === 0
-                  ? <><span>🌍</span> Semua kategori wisata akan diikutsertakan — semakin beragam semakin seru!</>
-                  : <><span>✨</span> {selectedCategoryIds.length} kategori dipilih — itinerary akan disesuaikan dengan minatmu</>}
+                  ? <><span>🌍</span> Semua kategori akan diikutsertakan — semakin beragam semakin seru!</>
+                  : <><span>✨</span> {selectedCategoryIds.length} sub-kategori dipilih — itinerary akan disesuaikan dengan minatmu</>}
               </div>
 
               {/* Navigation buttons */}

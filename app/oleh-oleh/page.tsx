@@ -62,6 +62,8 @@ export default function OlehOlehPage() {
       subtitle="BELANJA & BUAH TANGAN"
       description="Temukan {total} pusat perbelanjaan dan toko oleh-oleh khas Surabaya terbaik untuk dibawa pulang."
       fixedCategory="oleh-oleh"
+      showCategoryFilter={true}
+      parentCategory="oleh-oleh"
       gradient="linear-gradient(135deg, #047857 0%, #10B981 100%)"
       icon={<ShoppingBag size={18} color="white" />}
       customBanner={customBanner}
