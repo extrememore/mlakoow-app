@@ -897,7 +897,7 @@ function ItineraryContent() {
       )}
 
       {/* Content */}
-      <div style={{ maxWidth: '800px', margin: '1.5rem auto', padding: '0 1.5rem', width: '100%', flex: 1 }}>
+      <div style={{ maxWidth: step === 3 ? '1200px' : '800px', margin: '1.5rem auto', padding: '0 1.5rem', width: '100%', flex: 1, transition: 'max-width 0.4s ease' }}>
         {/* STEP 1 */}
 
         {step === 1 && (
