@@ -187,12 +187,26 @@ export default function DestinationCard({
             )}
           </div>
           {/* Category */}
-          <div style={{ position: 'absolute', top: '12px', right: '12px' }}>
+          <div style={{ position: 'absolute', top: '12px', right: '12px', maxWidth: '60%' }}>
             <span
               className="badge"
-              style={{ background: category.color + '22', color: category.color, border: `1px solid ${category.color}44` }}
+              style={{ 
+                background: 'rgba(255, 255, 255, 0.95)', 
+                backdropFilter: 'blur(4px)',
+                color: category.color, 
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: '100%',
+                fontWeight: 700
+              }}
             >
-              {category.icon} {category.name}
+              <span style={{ flexShrink: 0 }}>{category.icon}</span>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{category.name}</span>
             </span>
           </div>
         </div>
