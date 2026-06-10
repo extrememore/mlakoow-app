@@ -1011,16 +1011,16 @@ function ItineraryContent() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                     <span style={{
                       fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.08em',
-                      color: budget === 0 ? '#10B981' : budget <= 200000 ? '#3B82F6' : budget <= 500000 ? '#F97316' : '#E11D48',
+                      color: budget === 0 ? '#10B981' : budget <= 500000 ? '#3B82F6' : budget <= 1500000 ? '#F97316' : '#E11D48',
                       textTransform: 'uppercase',
-                      background: budget === 0 ? '#ECFDF5' : budget <= 200000 ? '#EFF6FF' : budget <= 500000 ? '#FFF7ED' : '#FFF1F2',
+                      background: budget === 0 ? '#ECFDF5' : budget <= 500000 ? '#EFF6FF' : budget <= 1500000 ? '#FFF7ED' : '#FFF1F2',
                       padding: '4px 10px', borderRadius: '6px',
-                      border: `1px solid ${budget === 0 ? '#A7F3D0' : budget <= 200000 ? '#BFDBFE' : budget <= 500000 ? '#FDBA74' : '#FECDD3'}`,
+                      border: `1px solid ${budget === 0 ? '#A7F3D0' : budget <= 500000 ? '#BFDBFE' : budget <= 1500000 ? '#FDBA74' : '#FECDD3'}`,
                     }}>
                       {budget === 0 ? '🎁 Hanya destinasi gratis'
-                        : budget <= 150000 ? '💚 Budget hemat'
-                        : budget <= 350000 ? '💙 Budget moderat'
-                        : budget <= 700000 ? '🧡 Budget premium'
+                        : budget <= 500000 ? '💚 Budget hemat'
+                        : budget <= 1500000 ? '💙 Budget moderat'
+                        : budget <= 3000000 ? '🧡 Budget premium'
                         : '💎 All-inclusive / Luxury'}
                     </span>
                     {budget > 0 && (
