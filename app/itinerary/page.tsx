@@ -66,17 +66,20 @@ interface ItineraryItem {
   estimatedVisitTime: number
   estimatedCost: number
   transportNote: string
+  transportCost?: number
 }
 
 interface GeneratedItinerary {
   items: ItineraryItem[]
   totalCost: number
+  totalTransportCost?: number
   totalTime: number
   duration: number
   summary: {
     destinations: number
     days: number
     estimatedBudget: number
+    estimatedTransportCost?: number
     areas: string[]
   }
 }
@@ -303,14 +306,16 @@ function ItineraryContent() {
   // Live summary computed from editableItems
   const liveSummary = useMemo(() => {
     const totalCost = editableItems.reduce((sum, item) => sum + item.estimatedCost, 0)
+    const totalTransportCost = editableItems.reduce((sum, item) => sum + (item.transportCost ?? 25000), 0)
     const totalTime = editableItems.reduce((sum, item) => sum + item.estimatedVisitTime, 0)
     const areas = [...new Set(editableItems.map((i) => i.destination.area))]
     return {
       destinations: editableItems.length,
       totalCost,
+      totalTransportCost,
       totalTime,
       areas,
-      grandTotal: totalCost + editableItems.length * 25000 + duration * 50000,
+      grandTotal: totalCost + totalTransportCost + duration * 50000,
     }
   }, [editableItems, duration])
 
@@ -1956,7 +1961,7 @@ function ItineraryContent() {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
                   <span style={{ color: '#4A5568' }}>Transportasi (estimasi)</span>
-                  <strong style={{ color: '#1A2332' }}>Rp {(liveSummary.destinations * 25000).toLocaleString('id-ID')}</strong>
+                  <strong style={{ color: '#1A2332' }}>Rp {liveSummary.totalTransportCost.toLocaleString('id-ID')}</strong>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
                   <span style={{ color: '#4A5568' }}>Makan & minuman (estimasi)</span>

@@ -107,7 +107,8 @@ export async function POST(request: NextRequest) {
       startTime: currentTime,
       estimatedVisitTime: currentItem.estimatedDuration,
       estimatedCost: currentItem.ticketPrice,
-      transportNote: 'Mulai perjalanan dari penginapan Anda'
+      transportNote: 'Mulai perjalanan dari penginapan Anda',
+      transportCost: 15000 // Base estimate from hotel to first destination
     })
 
     // Find next destinations for this day using nearest neighbor (Geo-Clustering)
@@ -155,8 +156,13 @@ export async function POST(request: NextRequest) {
         }
 
         const actualDist = getDistance(currentItem!.lat, currentItem!.lng, nextDest.lat, nextDest.lng)
-        let transportNote = `Perjalanan sekitar ${Math.round(actualDist)} km menggunakan mobil/motor`
-        if (actualDist < 1) transportNote = 'Sangat dekat, bisa ditempuh dengan berjalan kaki santai'
+        let transportNote = `Perjalanan sekitar ${Math.round(actualDist * 10) / 10} km menggunakan mobil/motor`
+        let transportCost = 10000 + Math.round(Math.max(0, actualDist - 2) * 4000)
+        
+        if (actualDist < 1) {
+          transportNote = 'Sangat dekat, bisa ditempuh dengan berjalan kaki santai'
+          transportCost = 0
+        }
         
         dayItems.push({
           destination: nextDest,
@@ -165,7 +171,8 @@ export async function POST(request: NextRequest) {
           startTime: currentTime,
           estimatedVisitTime: nextDest.estimatedDuration,
           estimatedCost: nextDest.ticketPrice,
-          transportNote: transportNote
+          transportNote: transportNote,
+          transportCost: transportCost
         })
         
         currentItem = nextDest
@@ -180,18 +187,21 @@ export async function POST(request: NextRequest) {
 
   // Calculate totals
   const totalCost = items.reduce((sum, item) => sum + item.estimatedCost, 0)
+  const totalTransportCost = items.reduce((sum, item) => sum + item.transportCost, 0)
   const totalTime = items.reduce((sum, item) => sum + item.estimatedVisitTime, 0)
   const uniqueAreas = [...new Set(items.map((i) => i.destination.area))]
 
   return Response.json({
     items,
     totalCost,
+    totalTransportCost,
     totalTime,
     duration,
     summary: {
       destinations: items.length,
       days: duration,
       estimatedBudget: totalCost,
+      estimatedTransportCost: totalTransportCost,
       areas: uniqueAreas,
     },
   })
