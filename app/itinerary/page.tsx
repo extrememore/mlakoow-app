@@ -975,172 +975,61 @@ function ItineraryContent() {
 
               {/* Budget */}
               <div style={{ background: '#F8FAFC', borderRadius: '20px', padding: '1.5rem', border: '1px solid #EEF1F5' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'linear-gradient(135deg, #F59E0B, #D97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <span style={{ fontSize: '0.9rem' }}>💰</span>
-                    </div>
-                    <label style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', margin: 0 }}>
-                      Budget tiket per orang
-                    </label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
+                  <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'linear-gradient(135deg, #F59E0B, #D97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span style={{ fontSize: '0.9rem' }}>💰</span>
                   </div>
-                  {/* Live value badge */}
-                  <div style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '8px',
-                    padding: '6px 16px', borderRadius: '50px', fontWeight: 800,
-                    fontSize: '0.95rem', fontFamily: 'Outfit, sans-serif',
-                    background: budget === 0
-                      ? 'linear-gradient(135deg, #ECFDF5, #D1FAE5)'
-                      : budget <= 200000
-                      ? 'linear-gradient(135deg, #EFF6FF, #DBEAFE)'
-                      : budget <= 500000
-                      ? 'linear-gradient(135deg, #FFF7ED, #FED7AA)'
-                      : 'linear-gradient(135deg, #FFF1F2, #FFE4E6)',
-                    color: budget === 0 ? '#065F46'
-                      : budget <= 200000 ? '#1E40AF'
-                      : budget <= 500000 ? '#C2410C'
-                      : '#9F1239',
-                    border: `1.5px solid ${budget === 0 ? '#A7F3D0' : budget <= 200000 ? '#BFDBFE' : budget <= 500000 ? '#FDBA74' : '#FECDD3'}`,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-                    transition: 'all 0.3s',
-                  }}>
-                    <span style={{ fontSize: '1.15rem' }}>
-                      {budget === 0 ? '🎁' : budget <= 100000 ? '💚' : budget <= 300000 ? '💙' : budget <= 600000 ? '🧡' : '💎'}
-                    </span>
-                    {budget === 0 ? 'Gratis saja' : `Rp ${budget.toLocaleString('id-ID')}`}
-                  </div>
+                  <label style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', margin: 0 }}>
+                    Budget pengeluaran per orang
+                  </label>
                 </div>
 
                 <div style={{ marginLeft: '42px' }}>
-                  {/* Budget category label */}
-                  <div style={{ marginBottom: '1rem' }}>
+                  {/* Input nominal */}
+                  <div style={{ position: 'relative', marginBottom: '0.75rem' }}>
+                    <span style={{
+                      position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)',
+                      fontWeight: 800, fontSize: '0.95rem', color: '#4A5568', pointerEvents: 'none',
+                    }}>Rp</span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={100000000}
+                      step={10000}
+                      value={budget === 0 ? '' : budget}
+                      placeholder="0 (kosongkan untuk gratis saja)"
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value)
+                        setBudget(isNaN(val) ? 0 : Math.max(0, val))
+                      }}
+                      className="input-field"
+                      style={{ paddingLeft: '2.75rem', width: '100%', fontWeight: 700, fontSize: '1rem', fontFamily: 'Outfit, sans-serif' }}
+                    />
+                  </div>
+
+                  {/* Budget tier badge */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                     <span style={{
                       fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.08em',
                       color: budget === 0 ? '#10B981' : budget <= 200000 ? '#3B82F6' : budget <= 500000 ? '#F97316' : '#E11D48',
                       textTransform: 'uppercase',
                       background: budget === 0 ? '#ECFDF5' : budget <= 200000 ? '#EFF6FF' : budget <= 500000 ? '#FFF7ED' : '#FFF1F2',
                       padding: '4px 10px', borderRadius: '6px',
+                      border: `1px solid ${budget === 0 ? '#A7F3D0' : budget <= 200000 ? '#BFDBFE' : budget <= 500000 ? '#FDBA74' : '#FECDD3'}`,
                     }}>
-                      {budget === 0 ? '✦ Hanya destinasi gratis'
-                        : budget <= 150000 ? '✦ Budget hemat'
-                        : budget <= 350000 ? '✦ Budget moderat'
-                        : budget <= 700000 ? '✦ Budget premium'
-                        : '✦ All-inclusive / Luxury'}
+                      {budget === 0 ? '🎁 Hanya destinasi gratis'
+                        : budget <= 150000 ? '💚 Budget hemat'
+                        : budget <= 350000 ? '💙 Budget moderat'
+                        : budget <= 700000 ? '🧡 Budget premium'
+                        : '💎 All-inclusive / Luxury'}
                     </span>
-                  </div>
-
-                  {/* Gradient slider track wrapper */}
-                  <div style={{ position: 'relative', paddingBottom: '0.5rem', marginTop: '1rem' }}>
-                    <div style={{
-                      position: 'absolute', top: '10px', left: 0, right: 0, height: '8px',
-                      borderRadius: '50px', pointerEvents: 'none',
-                      background: 'linear-gradient(to right, #10B981 0%, #3B82F6 25%, #F97316 60%, #E11D48 100%)',
-                      opacity: 0.2,
-                    }} />
-                    <div style={{
-                      position: 'absolute', top: '10px', left: 0, height: '8px',
-                      borderRadius: '50px', pointerEvents: 'none',
-                      width: `${(budget / 1000000) * 100}%`,
-                      background: budget === 0 ? '#10B981'
-                        : budget <= 200000 ? 'linear-gradient(to right, #10B981, #3B82F6)'
-                        : budget <= 500000 ? 'linear-gradient(to right, #10B981, #3B82F6, #F97316)'
-                        : 'linear-gradient(to right, #10B981, #3B82F6, #F97316, #E11D48)',
-                      transition: 'width 0.15s, background 0.3s',
-                      boxShadow: '0 0 8px rgba(59,130,246,0.4)',
-                    }} />
-                    <input
-                      type="range"
-                      min={0}
-                      max={1000000}
-                      step={25000}
-                      value={budget}
-                      onChange={(e) => setBudget(parseInt(e.target.value))}
-                      style={{
-                        width: '100%', height: '28px', cursor: 'pointer',
-                        appearance: 'none', background: 'transparent',
-                        position: 'relative', zIndex: 1,
-                      }}
-                      className="budget-slider"
-                    />
-                  </div>
-
-                  {/* Tick marks */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#8B98A9', marginTop: '4px', paddingBottom: '0.5rem' }}>
-                    {['Gratis', 'Rp 250rb', 'Rp 500rb', 'Rp 750rb', 'Rp 1jt'].map((label, i) => (
-                      <span
-                        key={label}
-                        onClick={() => setBudget(i === 0 ? 0 : i === 1 ? 250000 : i === 2 ? 500000 : i === 3 ? 750000 : 1000000)}
-                        style={{
-                          cursor: 'pointer', fontWeight: 700, transition: 'all 0.2s',
-                          color: (i === 0 && budget === 0) || (i === 1 && budget === 250000) || (i === 2 && budget === 500000) || (i === 3 && budget === 750000) || (i === 4 && budget === 1000000)
-                            ? '#0A4A5E' : '#CBD5E1',
-                        }}
-                      >
-                        {label}
+                    {budget > 0 && (
+                      <span style={{ fontSize: '0.8rem', color: '#8B98A9', fontWeight: 600 }}>
+                        = {budget.toLocaleString('id-ID')} per orang
                       </span>
-                    ))}
-                  </div>
-
-                  {/* Quick preset chips */}
-                  <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', marginTop: '1rem' }}>
-                    {[
-                      { label: '🎁 Gratis', value: 0, color: '#10B981', bg: '#ECFDF5', border: '#A7F3D0' },
-                      { label: '💚 Rp 100rb', value: 100000, color: '#2563EB', bg: '#EFF6FF', border: '#BFDBFE' },
-                      { label: '💙 Rp 250rb', value: 250000, color: '#4F46E5', bg: '#EEF2FF', border: '#C7D2FE' },
-                      { label: '🧡 Rp 500rb', value: 500000, color: '#EA580C', bg: '#FFF7ED', border: '#FDBA74' },
-                      { label: '💎 Rp 1jt', value: 1000000, color: '#E11D48', bg: '#FFF1F2', border: '#FECDD3' },
-                    ].map(({ label, value, color, bg, border }) => (
-                      <button
-                        key={value}
-                        onClick={() => setBudget(value)}
-                        style={{
-                          padding: '6px 14px', borderRadius: '50px', fontSize: '0.8rem',
-                          fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
-                          fontFamily: 'Outfit, sans-serif',
-                          border: budget === value ? `2px solid ${color}` : '2px solid #E5E9F0',
-                          background: budget === value ? bg : 'white',
-                          color: budget === value ? color : '#64748B',
-                          transform: budget === value ? 'scale(1.05)' : 'scale(1)',
-                          boxShadow: budget === value ? '0 4px 12px rgba(0,0,0,0.06)' : 'none',
-                        }}
-                      >
-                        {label}
-                      </button>
-                    ))}
+                    )}
                   </div>
                 </div>
-
-                <style>{`
-                  .budget-slider::-webkit-slider-thumb {
-                    -webkit-appearance: none;
-                    width: 24px; height: 24px;
-                    border-radius: 50%;
-                    background: white;
-                    border: 4px solid #0A4A5E;
-                    box-shadow: 0 4px 12px rgba(10,74,94,0.35);
-                    cursor: pointer;
-                    transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
-                  }
-                  .budget-slider::-webkit-slider-thumb:hover {
-                    transform: scale(1.2);
-                    box-shadow: 0 6px 16px rgba(10,74,94,0.45);
-                  }
-                  .budget-slider::-webkit-slider-runnable-track {
-                    height: 8px; border-radius: 50px;
-                    background: transparent;
-                  }
-                  .budget-slider::-moz-range-thumb {
-                    width: 22px; height: 22px;
-                    border-radius: 50%;
-                    background: white;
-                    border: 4px solid #0A4A5E;
-                    box-shadow: 0 4px 12px rgba(10,74,94,0.35);
-                    cursor: pointer;
-                  }
-                  .budget-slider::-moz-range-track {
-                    height: 8px; border-radius: 50px; background: transparent;
-                  }
-                `}</style>
               </div>
 
               {/* Area — multi-select */}
