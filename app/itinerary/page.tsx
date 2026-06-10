@@ -33,6 +33,9 @@ import {
   CreditCard,
   Shield,
 } from 'lucide-react'
+import dynamic from 'next/dynamic'
+
+const ItineraryMap = dynamic(() => import('@/components/ui/ItineraryMap'), { ssr: false })
 
 const AREAS = ['Surabaya Pusat', 'Surabaya Utara', 'Surabaya Selatan', 'Surabaya Timur', 'Surabaya Barat']
 
@@ -207,6 +210,9 @@ function ItineraryContent() {
 
   // Editable items — the user's customized version of the generated itinerary
   const [editableItems, setEditableItems] = useState<ItineraryItem[]>([])
+
+  // Hover state for interactive map
+  const [hoveredItemId, setHoveredItemId] = useState<number | null>(null)
 
   // Suggestion state
   const [suggestions, setSuggestions] = useState<DestinationData[]>([])
@@ -1448,9 +1454,12 @@ function ItineraryContent() {
         {/* STEP 3 — Smart Customization */}
         {step === 3 && editableItems.length >= 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-
-            {/* Customization hint banner */}
-            <div
+            <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+              
+              {/* LEFT COLUMN: Cards & Summary */}
+              <div style={{ flex: '1 1 50%', display: 'flex', flexDirection: 'column', gap: '1.5rem', minWidth: 0 }}>
+                {/* Customization hint banner */}
+                <div
               style={{
                 background: 'linear-gradient(135deg, #FFF7ED, #FEF3C7)',
                 borderRadius: '16px',
@@ -1628,15 +1637,30 @@ function ItineraryContent() {
                         {/* Destination card */}
                         <div
                           style={{
-                            background: '#F8F6F2',
-                            borderRadius: '16px',
+                            background: '#FFF',
+                            borderRadius: '20px',
                             border: '1px solid #E5E9F0',
-                            overflow: 'hidden',
-                            transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
+                            padding: '1.5rem',
+                            boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+                            position: 'relative',
+                            transition: 'all 0.3s ease',
+                            cursor: 'grab',
+                          }}
+                          onMouseEnter={(e) => {
+                            setHoveredItemId(item.destination.id)
+                            e.currentTarget.style.transform = 'translateY(-2px)'
+                            e.currentTarget.style.boxShadow = '0 8px 30px rgba(10,74,94,0.08)'
+                            e.currentTarget.style.borderColor = '#BFDBFE'
+                          }}
+                          onMouseLeave={(e) => {
+                            setHoveredItemId(null)
+                            e.currentTarget.style.transform = 'translateY(0)'
+                            e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.03)'
+                            e.currentTarget.style.borderColor = '#E5E9F0'
                           }}
                         >
                           {/* Card content row */}
-                          <div style={{ display: 'flex', gap: '0.85rem', padding: '0.85rem 1rem' }}>
+                          <div style={{ display: 'flex', gap: '0.85rem' }}>
                             {/* Order badge + image */}
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                               <div style={{
@@ -1691,11 +1715,10 @@ function ItineraryContent() {
                             </div>
                           </div>
 
-                          {/* Action toolbar — always visible, clean design */}
+                          {/* Action toolbar */}
                           <div style={{
-                            display: 'flex', alignItems: 'center',
-                            borderTop: '1px solid #E5E9F0',
-                            background: '#FAFCFD',
+                            display: 'flex', alignItems: 'center', marginTop: '1rem',
+                            borderTop: '1px solid #E5E9F0', paddingTop: '1rem',
                           }}>
                             {/* Reorder buttons */}
                             <button
@@ -1709,13 +1732,9 @@ function ItineraryContent() {
                                 transition: 'background 0.15s',
                                 borderRadius: '0',
                               }}
-                              onMouseEnter={(e) => { if (idx > 0) e.currentTarget.style.background = '#F0F7FA' }}
-                              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
                             >
                               <ChevronUp size={14} /> Naik
                             </button>
-
-                            <div style={{ width: '1px', height: '20px', background: '#E5E9F0' }} />
 
                             <button
                               onClick={() => idx < dayItems.length - 1 && moveItem(day, idx, 'down')}
@@ -1728,13 +1747,9 @@ function ItineraryContent() {
                                 transition: 'background 0.15s',
                                 borderRadius: '0',
                               }}
-                              onMouseEnter={(e) => { if (idx < dayItems.length - 1) e.currentTarget.style.background = '#F0F7FA' }}
-                              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
                             >
                               <ChevronDown size={14} /> Turun
                             </button>
-
-                            <div style={{ width: '1px', height: '20px', background: '#E5E9F0' }} />
 
                             <button
                               onClick={() => {
@@ -1751,8 +1766,6 @@ function ItineraryContent() {
                                 transition: 'background 0.15s',
                                 borderRadius: '0',
                               }}
-                              onMouseEnter={(e) => { e.currentTarget.style.background = '#FEF2F2' }}
-                              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
                             >
                               <Trash2 size={13} /> Hapus
                             </button>
@@ -2163,6 +2176,14 @@ function ItineraryContent() {
                   {saving ? 'Menyimpan...' : 'Simpan Itinerary'}
                 </button>
               )}
+            </div>
+              </div>
+
+              {/* RIGHT COLUMN: Map (Sticky) */}
+              <div className="hidden lg:block" style={{ flex: '1 1 50%', height: 'calc(100vh - 4rem)', position: 'sticky', top: '2rem', minWidth: 0, zIndex: 10 }}>
+                 <ItineraryMap items={editableItems} hoveredItemId={hoveredItemId} />
+              </div>
+
             </div>
           </div>
         )}
