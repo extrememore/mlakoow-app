@@ -54,6 +54,10 @@ interface DestinationData {
   rating: number
   ticketPrice: number
   estimatedDuration: number
+  openHour: string
+  closeHour: string
+  lat: number
+  lng: number
   category: { id?: number; name: string; slug?: string; icon: string; color: string }
   categoryId?: number
 }
@@ -84,11 +88,35 @@ interface GeneratedItinerary {
   }
 }
 
+// --- Utility: Haversine Distance (in km) ---
+function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371 // Radius of the earth in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180)
+  const dLon = (lon2 - lon1) * (Math.PI / 180)
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return R * c
+}
+
+// --- Utility: Time math ---
+function addMinutes(timeStr: string, mins: number) {
+  const [h, m] = timeStr.split(':').map(Number)
+  const date = new Date()
+  date.setHours(h, m, 0)
+  date.setMinutes(date.getMinutes() + mins)
+  return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+}
+
+function parseTime(timeStr: string) {
+  const [h, m] = timeStr.split(':').map(Number)
+  return h + m / 60
+}
+
 // Recalculate timeline after modifications
 function recalcItems(items: ItineraryItem[], duration: number): ItineraryItem[] {
-  const startHours = [9, 11, 14, 16]
-  const destPerDay = Math.max(...items.map((i) => items.filter((x) => x.day === i.day).length), 1)
-
   // Re-group by day and fix ordering
   const byDay: Record<number, ItineraryItem[]> = {}
   items.forEach((item) => {
@@ -101,21 +129,43 @@ function recalcItems(items: ItineraryItem[], duration: number): ItineraryItem[] 
 
   for (let day = 1; day <= duration; day++) {
     const dayItems = byDay[day] || []
+    let currentTime = '09:00'
+
     dayItems.forEach((item, idx) => {
-      const startHour = startHours[idx] || (9 + idx * 2)
-      const prevName = idx === 0
-        ? null
-        : dayItems[idx - 1]?.destination.name
+      // Adjust time if we arrive before it opens
+      if (parseTime(currentTime) < parseTime(item.destination.openHour)) {
+        currentTime = item.destination.openHour
+      }
+
+      const timeVal = parseTime(currentTime)
+      const isRushHour = (timeVal >= 7 && timeVal <= 9.5) || (timeVal >= 16 && timeVal <= 18.5)
+      let transportMode = isRushHour ? 'sepeda motor (hindari macet)' : 'mobil (lebih adem)'
+      let baseFare = isRushHour ? 10000 : 15000
+      let perKmFare = isRushHour ? 2500 : 4000
+
+      let transportNote = ''
+      let transportCost = 0
+
+      if (idx === 0) {
+        transportNote = `Mulai perjalanan dari penginapan Anda menggunakan Grab/Gojek ${isRushHour ? 'sepeda motor' : 'mobil'}`
+        transportCost = baseFare
+      } else {
+        const prevItem = dayItems[idx - 1]
+        const actualDist = getDistance(prevItem.destination.lat, prevItem.destination.lng, item.destination.lat, item.destination.lng)
+        
+        transportNote = `Lanjut sekitar ${Math.round(actualDist * 10) / 10} km menggunakan Grab/Gojek ${transportMode}`
+        transportCost = baseFare + Math.round(Math.max(0, actualDist - 2) * perKmFare)
+      }
 
       result.push({
         ...item,
         order: globalOrder++,
-        startTime: `${startHour.toString().padStart(2, '0')}:00`,
-        transportNote:
-          idx === 0
-            ? 'Mulai perjalanan dari lokasi Anda'
-            : `Lanjut dari ${prevName} menggunakan Grab/Gojek`,
+        startTime: currentTime,
+        transportNote,
+        transportCost
       })
+      
+      currentTime = addMinutes(currentTime, item.estimatedVisitTime + 30) // 30 mins travel buffer
     })
   }
 
