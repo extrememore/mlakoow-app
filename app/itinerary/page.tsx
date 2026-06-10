@@ -170,8 +170,9 @@ function ItineraryContent() {
   const [duration, setDuration] = useState(1)
   const [budget, setBudget] = useState(200000)
   const [selectedAreas, setSelectedAreas] = useState<string[]>([])
-  const [maxDestinations, setMaxDestinations] = useState(4)
   const [pacing, setPacing] = useState<'santai' | 'normal' | 'padat'>('normal')
+
+  const maxDestinations = pacing === 'santai' ? 3 : pacing === 'padat' ? 6 : 4
 
   const PARENT_CATEGORIES = [
     {
@@ -1123,58 +1124,7 @@ function ItineraryContent() {
                 </div>
               </div>
 
-              {/* Max destinations per day */}
-              <div style={{ background: '#F8FAFC', borderRadius: '20px', padding: '1.5rem', border: '1px solid #EEF1F5' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
-                  <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'linear-gradient(135deg, #FF6B35, #E84D1C)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <span style={{ fontSize: '0.9rem' }}>🎯</span>
-                  </div>
-                  <label style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', margin: 0 }}>
-                    Destinasi per hari: <span style={{ color: '#FF6B35' }}>{maxDestinations} tempat</span>
-                  </label>
-                </div>
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
-                  {[
-                    { n: 2, label: 'Santai', desc: 'Lebih banyak waktu tiap tempat' },
-                    { n: 3, label: 'Sedang', desc: 'Keseimbangan sempurna' },
-                    { n: 4, label: 'Aktif', desc: 'Banyak eksplorasi' },
-                    { n: 5, label: 'Petualang', desc: 'Maksimalkan trip!' },
-                  ].map(({ n, label, desc }) => (
-                    <button
-                      key={n}
-                      onClick={() => setMaxDestinations(n)}
-                      style={{
-                        flex: 1,
-                        padding: '0.875rem 0.5rem',
-                        borderRadius: '16px',
-                        border: maxDestinations === n ? '2px solid #FF6B35' : '2px solid #E5E9F0',
-                        background: maxDestinations === n ? 'linear-gradient(135deg, #FF6B35, #E84D1C)' : 'white',
-                        color: maxDestinations === n ? 'white' : '#1A2332',
-                        fontWeight: 700,
-                        fontSize: '1.1rem',
-                        cursor: 'pointer',
-                        fontFamily: 'Outfit, sans-serif',
-                        transition: 'all 0.2s',
-                        textAlign: 'center',
-                        boxShadow: maxDestinations === n ? '0 4px 14px rgba(255,107,53,0.35)' : 'none',
-                        transform: maxDestinations === n ? 'translateY(-2px)' : 'translateY(0)',
-                      }}
-                    >
-                      <div style={{ fontSize: '1.4rem', marginBottom: '4px' }}>
-                        {n === 2 ? '🌿' : n === 3 ? '⚡' : n === 4 ? '🚀' : '🔥'}
-                      </div>
-                      <div>{n}</div>
-                      <div style={{ fontSize: '0.65rem', fontWeight: 600, opacity: 0.8, marginTop: '2px' }}>{label}</div>
-                    </button>
-                  ))}
-                </div>
-                <div style={{ marginTop: '0.875rem', fontSize: '0.78rem', color: '#8B98A9', textAlign: 'center' }}>
-                  {maxDestinations === 2 ? '☕ Cocok buat yang suka santai dan menikmati tiap destinasi' :
-                   maxDestinations === 3 ? '⚡ Pilihan paling populer — tidak terlalu padat, tidak terlalu longgar' :
-                   maxDestinations === 4 ? '🚀 Buat kamu yang energik dan ingin explore banyak tempat' :
-                   '🔥 Mode petualang — penuh aktivitas dari pagi sampai malam!'}
-                </div>
-              </div>
+
             </div>
 
             <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '12px' }}>
