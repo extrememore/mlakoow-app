@@ -1,88 +1,187 @@
 import { prisma } from '@/lib/prisma'
 import { NextRequest } from 'next/server'
 
-// Smart itinerary generation — rule-based logic
+// --- Utility: Haversine Distance (in km) ---
+function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371 // Radius of the earth in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180)
+  const dLon = (lon2 - lon1) * (Math.PI / 180)
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return R * c
+}
+
+// --- Utility: Time math ---
+function addMinutes(timeStr: string, mins: number) {
+  const [h, m] = timeStr.split(':').map(Number)
+  const date = new Date()
+  date.setHours(h, m, 0)
+  date.setMinutes(date.getMinutes() + mins)
+  return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+}
+
+function parseTime(timeStr: string) {
+  const [h, m] = timeStr.split(':').map(Number)
+  return h + m / 60
+}
+
 export async function POST(request: NextRequest) {
   const body = await request.json()
-  const { duration, budget, area, areas: inputAreas, categoryIds, maxDestinations } = body
+  const { duration, budget, areas: inputAreas, categoryIds, maxDestinations, pacing, pinnedDestinationIds = [] } = body
 
-  // Fetch destinations matching criteria
-  const where: Record<string, unknown> = {}
+  // 1. Determine destPerDay based on pacing
+  const destPerDay = pacing === 'santai' ? 3 : pacing === 'padat' ? 5 : 4
 
-  // Multi-area support: prefer `inputAreas` array, fallback to legacy `area` string
-  const areaList: string[] = Array.isArray(inputAreas) && inputAreas.length > 0
-    ? inputAreas
-    : (area && area !== 'Semua Area' ? [area] : [])
-
-  if (areaList.length > 0) where.area = { in: areaList }
-  if (categoryIds && categoryIds.length > 0) {
-    where.categoryId = { in: categoryIds }
+  // 2. Fetch Destinations
+  const where: any = {}
+  const areaList: string[] = Array.isArray(inputAreas) && inputAreas.length > 0 ? inputAreas : []
+  
+  // We use OR so that pinned destinations are always fetched even if they don't match area filters
+  let fetchWhere = {}
+  if (pinnedDestinationIds.length > 0) {
+    const filterConditions: any = {}
+    if (areaList.length > 0) filterConditions.area = { in: areaList }
+    if (categoryIds && categoryIds.length > 0) filterConditions.categoryId = { in: categoryIds }
+    
+    fetchWhere = Object.keys(filterConditions).length > 0 
+      ? { OR: [ filterConditions, { id: { in: pinnedDestinationIds } } ] }
+      : {}
+  } else {
+    if (areaList.length > 0) where.area = { in: areaList }
+    if (categoryIds && categoryIds.length > 0) where.categoryId = { in: categoryIds }
+    fetchWhere = where
   }
 
-  const allDestinations = await prisma.destination.findMany({
-    where,
+  let allDestinations = await prisma.destination.findMany({
+    where: fetchWhere,
     include: { category: true },
     orderBy: [{ featured: 'desc' }, { rating: 'desc' }],
   })
 
-  // Budget filter
-  let filtered = allDestinations.filter((d) => {
-    if (budget === 0) return true
-    return d.ticketPrice <= budget / (maxDestinations || 3)
+  // 3. Filter by budget (average ticket price)
+  // We exclude pinned destinations from budget filtering so they don't get accidentally dropped
+  allDestinations = allDestinations.filter((d) => {
+    if (pinnedDestinationIds.includes(d.id)) return true
+    if (budget === 0) return d.ticketPrice === 0
+    return d.ticketPrice <= (budget / destPerDay)
   })
 
-  // Limit destinations per day
-  const destPerDay = Math.min(maxDestinations || 4, 4)
-  const totalDest = Math.min(destPerDay * duration, filtered.length, 12)
+  // 4. Day-by-Day Generation
+  let pool = [...allDestinations]
+  const items: any[] = []
+  let globalOrder = 0
 
-  // Group by area for efficiency (minimize travel)
-  const grouped: Record<string, typeof filtered> = {}
-  filtered.forEach((d) => {
-    if (!grouped[d.area]) grouped[d.area] = []
-    grouped[d.area].push(d)
-  })
-
-  // Build ordered itinerary: pick from same area first
-  const selected: typeof filtered = []
-  const areas = Object.keys(grouped)
-  let areaIdx = 0
-  while (selected.length < totalDest && filtered.length > 0) {
-    const currentArea = areas[areaIdx % areas.length]
-    const pool = grouped[currentArea]
-    if (pool && pool.length > 0) {
-      const pick = pool.shift()!
-      selected.push(pick)
-      // Remove from filtered
-      filtered = filtered.filter((d) => d.id !== pick.id)
+  for (let day = 1; day <= duration; day++) {
+    const dayItems: any[] = []
+    
+    // Pick an anchor for the day
+    let currentItem = null
+    
+    // First try to use an unassigned pinned destination as an anchor
+    const unassignedPinnedIdx = pool.findIndex(d => pinnedDestinationIds.includes(d.id))
+    
+    if (unassignedPinnedIdx !== -1) {
+      currentItem = pool.splice(unassignedPinnedIdx, 1)[0]
+    } else if (pool.length > 0) {
+      // Pick highest rated/featured as anchor
+      currentItem = pool.shift()
     }
-    areaIdx++
-    if (areaIdx > areas.length * totalDest) break
+
+    if (!currentItem) break // No more destinations available
+
+    // Add anchor to day
+    let currentTime = '09:00' // Start at 9 AM
+    
+    // If the anchor opens later than 9 AM, adjust
+    if (parseTime(currentItem.openHour) > parseTime(currentTime)) {
+      currentTime = currentItem.openHour
+    }
+
+    dayItems.push({
+      destination: currentItem,
+      order: globalOrder++,
+      day: day,
+      startTime: currentTime,
+      estimatedVisitTime: currentItem.estimatedDuration,
+      estimatedCost: currentItem.ticketPrice,
+      transportNote: 'Mulai perjalanan dari penginapan Anda'
+    })
+
+    // Find next destinations for this day using nearest neighbor (Geo-Clustering)
+    while (dayItems.length < destPerDay && pool.length > 0) {
+      // advance time
+      currentTime = addMinutes(currentTime, currentItem!.estimatedDuration + 30) // 30 min travel buffer
+
+      // Find best next destination: shortest distance
+      let bestDist = Infinity
+      let bestIdx = -1
+
+      for (let i = 0; i < pool.length; i++) {
+        const candidate = pool[i]
+        const isPinned = pinnedDestinationIds.includes(candidate.id)
+        
+        // Category Balancing Rule
+        const isCafe = candidate.category.slug === 'cafe'
+        if (isCafe && parseTime(currentTime) < 12) continue // Cafe normally afternoon/night
+
+        // Check time constraints
+        if (parseTime(currentTime) > parseTime(candidate.closeHour)) continue
+        
+        // Time left before it closes should be at least its estimated duration
+        const closeTimeNum = parseTime(candidate.closeHour) === 0 ? 24 : parseTime(candidate.closeHour)
+        if (parseTime(currentTime) + (candidate.estimatedDuration / 60) > closeTimeNum) continue
+
+        const dist = getDistance(currentItem!.lat, currentItem!.lng, candidate.lat, candidate.lng)
+        
+        // Prioritize pinned destinations by giving them a massive distance discount
+        const effectiveDist = isPinned ? dist - 10000 : dist
+
+        if (effectiveDist < bestDist) {
+          bestDist = effectiveDist
+          bestIdx = i
+        }
+      }
+
+      if (bestIdx !== -1) {
+        const nextDest = pool[bestIdx]
+        pool.splice(bestIdx, 1) // Remove from pool
+
+        // Adjust time if we arrive before it opens
+        if (parseTime(currentTime) < parseTime(nextDest.openHour)) {
+          currentTime = nextDest.openHour
+        }
+
+        const actualDist = getDistance(currentItem!.lat, currentItem!.lng, nextDest.lat, nextDest.lng)
+        let transportNote = `Perjalanan sekitar ${Math.round(actualDist)} km menggunakan mobil/motor`
+        if (actualDist < 1) transportNote = 'Sangat dekat, bisa ditempuh dengan berjalan kaki santai'
+        
+        dayItems.push({
+          destination: nextDest,
+          order: globalOrder++,
+          day: day,
+          startTime: currentTime,
+          estimatedVisitTime: nextDest.estimatedDuration,
+          estimatedCost: nextDest.ticketPrice,
+          transportNote: transportNote
+        })
+        
+        currentItem = nextDest
+      } else {
+        // No valid destination found for remaining time/constraints today
+        break
+      }
+    }
+    
+    items.push(...dayItems)
   }
 
-  // Build itinerary items with time slots
-  const items = selected.map((dest, idx) => {
-    const dayNumber = Math.floor(idx / destPerDay) + 1
-    const slotInDay = idx % destPerDay
-
-    const startHours = [9, 11, 14, 16]
-    const startHour = startHours[slotInDay] || 9
-
-    return {
-      destination: dest,
-      order: idx + 1,
-      day: dayNumber,
-      startTime: `${startHour.toString().padStart(2, '0')}:00`,
-      estimatedVisitTime: dest.estimatedDuration,
-      estimatedCost: dest.ticketPrice,
-      transportNote:
-        idx === 0
-          ? 'Mulai perjalanan dari lokasi Anda'
-          : `Lanjut dari ${selected[idx - 1].name} menggunakan Grab/Gojek`,
-    }
-  })
-
+  // Calculate totals
   const totalCost = items.reduce((sum, item) => sum + item.estimatedCost, 0)
   const totalTime = items.reduce((sum, item) => sum + item.estimatedVisitTime, 0)
+  const uniqueAreas = [...new Set(items.map((i) => i.destination.area))]
 
   return Response.json({
     items,
@@ -90,10 +189,10 @@ export async function POST(request: NextRequest) {
     totalTime,
     duration,
     summary: {
-      destinations: selected.length,
+      destinations: items.length,
       days: duration,
       estimatedBudget: totalCost,
-      areas: [...new Set(selected.map((d) => d.area))],
+      areas: uniqueAreas,
     },
   })
 }

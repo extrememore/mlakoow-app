@@ -171,6 +171,7 @@ function ItineraryContent() {
   const [budget, setBudget] = useState(200000)
   const [selectedAreas, setSelectedAreas] = useState<string[]>([])
   const [maxDestinations, setMaxDestinations] = useState(4)
+  const [pacing, setPacing] = useState<'santai' | 'normal' | 'padat'>('normal')
 
   const PARENT_CATEGORIES = [
     {
@@ -332,7 +333,8 @@ function ItineraryContent() {
         area: selectedAreas.length > 0 ? selectedAreas.join(',') : 'Semua Area',
         areas: selectedAreas,
         categoryIds: selectedCategoryIds,
-        maxDestinations: Math.max(maxDestinations, allPinned.length),
+        maxDestinations: pacing === 'santai' ? 3 : pacing === 'padat' ? 6 : 4,
+        pacing,
         pinnedDestinationIds: allPinned.map((d) => d.id),
       }),
     })
@@ -1029,6 +1031,43 @@ function ItineraryContent() {
                       </span>
                     )}
                   </div>
+                </div>
+              </div>
+
+              {/* Pacing / Gaya Perjalanan */}
+              <div style={{ background: '#F8FAFC', borderRadius: '20px', padding: '1.5rem', border: '1px solid #EEF1F5' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '0.35rem' }}>
+                  <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'linear-gradient(135deg, #10B981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span style={{ fontSize: '0.9rem' }}>🏃‍♂️</span>
+                  </div>
+                  <label style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', margin: 0 }}>
+                    Gaya Perjalanan (Pacing)
+                  </label>
+                </div>
+                <div style={{ marginLeft: '42px', fontSize: '0.85rem', color: '#8B98A9', marginBottom: '1rem' }}>
+                  Kecepatan mobilitasmu tiap hari
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px', marginLeft: '42px' }}>
+                  {(['santai', 'normal', 'padat'] as const).map(p => (
+                    <button
+                      key={p}
+                      onClick={() => setPacing(p)}
+                      style={{
+                        padding: '1rem', borderRadius: '14px', textAlign: 'left',
+                        background: pacing === p ? '#EFF6FF' : 'white',
+                        border: `2px solid ${pacing === p ? '#3B82F6' : '#E5E9F0'}`,
+                        cursor: 'pointer', transition: 'all 0.2s',
+                        display: 'flex', flexDirection: 'column', gap: '6px'
+                      }}
+                    >
+                      <span style={{ fontWeight: 800, color: pacing === p ? '#1E40AF' : '#4A5568', textTransform: 'capitalize' }}>
+                        {p}
+                      </span>
+                      <span style={{ fontSize: '0.75rem', color: pacing === p ? '#3B82F6' : '#8B98A9', fontWeight: 600 }}>
+                        {p === 'santai' ? '2-3 tempat/hari' : p === 'normal' ? '3-4 tempat/hari' : '5-6 tempat/hari'}
+                      </span>
+                    </button>
+                  ))}
                 </div>
               </div>
 
