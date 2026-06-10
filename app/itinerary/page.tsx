@@ -61,7 +61,7 @@ interface DestinationData {
   closeHour: string
   lat: number
   lng: number
-  category: { id?: number; name: string; slug?: string; icon: string; color: string }
+  category: { id?: number; name: string; slug?: string; icon: string; color: string; parentId?: number | null }
   categoryId?: number
 }
 
@@ -650,12 +650,14 @@ function ItineraryContent() {
   }
 
   // Categories that are NOT tourism venues and should NOT be booked as ticket destinations
-  const NON_BOOKING_CATEGORY_SLUGS = ['kuliner', 'cafe', 'hiburan', 'oleh-oleh']
+  const NON_BOOKING_ROOT_IDS = [4, 7, 8, 10] // Kuliner, Cafe, Hiburan, Oleh-oleh
 
-  const paidEditableItems = editableItems.filter((i) =>
-    i.estimatedCost > 0 &&
-    !NON_BOOKING_CATEGORY_SLUGS.includes(i.destination.category.slug ?? '')
-  )
+  const paidEditableItems = editableItems.filter((i) => {
+    const cat = i.destination.category
+    if (!cat) return false
+    const isNonBooking = (cat.id !== undefined && NON_BOOKING_ROOT_IDS.includes(cat.id)) || (cat.parentId != null && NON_BOOKING_ROOT_IDS.includes(cat.parentId))
+    return i.estimatedCost > 0 && !isNonBooking
+  })
 
   const selectedBookingTotal = paidEditableItems
     .filter((i) => selectedBookingIds.includes(i.destination.id))
