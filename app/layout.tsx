@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Outfit } from 'next/font/google'
 import Providers from '@/components/Providers'
 import RegisterPWA from '@/components/RegisterPWA'
+import ChatbotWidget from '@/components/shared/ChatbotWidget'
 import './globals.css'
 
 const outfit = Outfit({
@@ -61,6 +62,7 @@ export default function RootLayout({
         <Providers>
           <RegisterPWA />
           {children}
+          <ChatbotWidget />
         </Providers>
       </body>
     </html>
