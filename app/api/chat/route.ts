@@ -77,7 +77,7 @@ Format output gunakan Markdown biasa (bold, italic, list).`
   } catch (error: any) {
     console.error('Chat API Error:', error)
     return NextResponse.json(
-      { error: 'Terjadi kesalahan pada asisten AI.' },
+      { error: `Terjadi kesalahan pada asisten AI: ${error.message || String(error)}` },
       { status: 500 }
     )
   }
