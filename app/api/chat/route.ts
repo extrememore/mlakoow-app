@@ -48,7 +48,7 @@ Kamu bisa merekomendasikan 1-3 tempat sekaligus. Jangan rekomendasikan tempat ya
 Format output gunakan Markdown biasa (bold, italic, list).`
 
     const model = genAI.getGenerativeModel({ 
-      model: 'gemini-1.5-flash',
+      model: 'gemini-1.5-flash-latest',
       systemInstruction: systemPrompt 
     })
 
