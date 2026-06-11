@@ -88,12 +88,22 @@ export default function DestinationExplorer({
   const [price, setPrice] = useState('')
   const [facilities, setFacilities] = useState<string[]>([])
   
-  // Modal state
+  // Filter Modal & Expansion state
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
+  const [isFilterExpanded, setIsFilterExpanded] = useState(false)
 
-  // Geolocation
+  // Geolocation & Scroll state
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null)
   const [isLocating, setIsLocating] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 250)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const fetchDestinations = useCallback(async () => {
     setLoading(true)
@@ -257,24 +267,44 @@ export default function DestinationExplorer({
       </div>
 
       {/* Search & Filter Bar */}
-      <div style={{ background: 'white', borderBottom: '1px solid #E5E9F0', padding: '1.25rem 1.5rem', position: 'sticky', top: '68px', zIndex: 40, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+      <div style={{ background: 'white', borderBottom: '1px solid #E5E9F0', padding: '1.25rem 1.5rem', position: 'sticky', top: '68px', zIndex: 40, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', transition: 'all 0.3s ease' }}>
+        {/* Scroll Accent Line matching Hero gradient */}
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: gradient, opacity: isScrolled ? 1 : 0, transition: 'opacity 0.3s ease' }} />
+        
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           
-          {/* Search */}
-          <div style={{ flex: 1, minWidth: '200px', position: 'relative' }}>
-            <Search size={18} color="#8B98A9" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Cari destinasi..."
+          {/* TOP ROW: Search & Expand Toggle */}
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <div style={{ flex: 1, position: 'relative' }}>
+              <Search size={18} color="#8B98A9" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Cari destinasi..."
               className="input-field"
-              style={{ paddingLeft: '2.75rem', paddingTop: '0.65rem', paddingBottom: '0.65rem' }}
+              style={{ paddingLeft: '2.75rem', paddingTop: '0.65rem', paddingBottom: '0.65rem', width: '100%' }}
             />
           </div>
+          
+          <button
+            onClick={() => setIsFilterExpanded(!isFilterExpanded)}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', background: isFilterExpanded ? '#0A4A5E' : 'white', border: isFilterExpanded ? '1px solid #0A4A5E' : '1px solid #E5E9F0', borderRadius: '12px', padding: '0.65rem 1rem', color: isFilterExpanded ? 'white' : '#4A5568', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', fontFamily: 'Outfit, sans-serif', flexShrink: 0, transition: 'all 0.2s' }}
+          >
+            <SlidersHorizontal size={16} /> 
+            <span className="hidden sm:inline">{isFilterExpanded ? 'Tutup Filter' : 'Filter'}</span>
+            {hasFilters && !isFilterExpanded && (
+              <span style={{ background: '#FF6B35', borderRadius: '50%', width: '8px', height: '8px', display: 'inline-block' }} />
+            )}
+            {isFilterExpanded ? <ChevronDown size={16} style={{ transform: 'rotate(180deg)' }} /> : <ChevronDown size={16} />}
+          </button>
+        </div>
 
-          {/* Sub-category chip filter — new style */}
-          {showCategoryFilter && subCategories.length > 0 && (
+        {/* BOTTOM ROW: Filters (Collapsible) */}
+        {isFilterExpanded && (
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap', paddingTop: '1rem', marginTop: '0.5rem', borderTop: '1px dashed #E5E9F0', animation: 'fadeInDown 0.3s ease' }}>
+            {/* Sub-category chip filter — new style */}
+            {showCategoryFilter && subCategories.length > 0 && (
             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
               <button
                 onClick={() => setSelectedCategory(fixedCategory || '')}
@@ -403,15 +433,17 @@ export default function DestinationExplorer({
             </div>
           )}
 
-          {/* Reset */}
-          {hasFilters && (
-            <button
-              onClick={() => { setSearch(''); setSelectedCategory(fixedCategory || ''); setSelectedArea(''); setActiveTag(''); setSort(''); setPrice(''); setFacilities([]); setUserLocation(null) }}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#FEE2E2', border: 'none', borderRadius: '12px', padding: '0.65rem 1rem', color: '#B91C1C', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', fontFamily: 'Outfit, sans-serif', flexShrink: 0 }}
-            >
-              <X size={16} /> Reset
-            </button>
-          )}
+            {/* Reset */}
+            {hasFilters && (
+              <button
+                onClick={() => { setSearch(''); setSelectedCategory(fixedCategory || ''); setSelectedArea(''); setActiveTag(''); setSort(''); setPrice(''); setFacilities([]); setUserLocation(null) }}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#FEE2E2', border: 'none', borderRadius: '12px', padding: '0.65rem 1rem', color: '#B91C1C', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', fontFamily: 'Outfit, sans-serif', flexShrink: 0 }}
+              >
+                <X size={16} /> Reset
+              </button>
+            )}
+          </div>
+        )}
         </div>
       </div>
 
