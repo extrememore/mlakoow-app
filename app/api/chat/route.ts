@@ -82,8 +82,22 @@ Format output gunakan Markdown biasa (bold, italic, list).`
     return NextResponse.json({ reply: response.text() })
   } catch (error: any) {
     console.error('Chat API Error:', error)
+    
+    let extraInfo = ''
+    try {
+      if (error.message && error.message.includes('404')) {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${process.env.GEMINI_API_KEY}`)
+        const data = await response.json()
+        if (data.models) {
+          extraInfo = `\n\nModel yang tersedia untuk API Key Anda: ${data.models.map((m: any) => m.name.replace('models/', '')).join(', ')}`
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+
     return NextResponse.json(
-      { error: `Terjadi kesalahan pada asisten AI: ${error.message || String(error)}` },
+      { error: `Terjadi kesalahan: ${error.message || String(error)}${extraInfo}` },
       { status: 500 }
     )
   }
