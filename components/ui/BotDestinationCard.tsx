@@ -10,7 +10,7 @@ export default function BotDestinationCard({ id }: { id: number }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch(`/api/destinations/${id}`)
+    fetch(`/api/destinations/by-id/${id}`)
       .then(res => res.json())
       .then(data => {
         if (!data.error) setDest(data)
