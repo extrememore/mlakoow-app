@@ -78,6 +78,20 @@ Format output gunakan Markdown biasa (bold, italic, list).`
   } catch (error: any) {
     console.error('Chat API Error:', error)
     
+    const errString = error.message || String(error)
+    
+    if (errString.includes('429') || errString.includes('Too Many Requests')) {
+      return NextResponse.json({ 
+        reply: "Waduh Rek, maaf banget! Mlaky lagi kehabisan napas karena terlalu banyak yang nanya bersamaan (kuota limit). Coba istirahat dulu sekitar **1-2 menit**, nanti chat Mlaky lagi ya! ⏳" 
+      })
+    }
+    
+    if (errString.includes('503') || errString.includes('Service Unavailable')) {
+      return NextResponse.json({ 
+        reply: "Waduh! Server pusat Mlaky lagi kepenuhan nih (Overload). Tunggu sebentar lagi ya Rek, Mlaky lagi berusaha nyambung lagi! 🔌" 
+      })
+    }
+
     let extraInfo = ''
     try {
       if (error.message && error.message.includes('404')) {
