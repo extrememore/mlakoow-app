@@ -52,11 +52,17 @@ Format output gunakan Markdown biasa (bold, italic, list).`
       systemInstruction: systemPrompt 
     })
 
+    let chatHistory = messages.slice(0, -1).map((m: any) => ({
+      role: m.role === 'user' ? 'user' : 'model',
+      parts: [{ text: m.content }]
+    }))
+
+    if (chatHistory.length > 0 && chatHistory[0].role === 'model') {
+      chatHistory.shift()
+    }
+
     const chat = model.startChat({
-      history: messages.slice(0, -1).map((m: any) => ({
-        role: m.role === 'user' ? 'user' : 'model',
-        parts: [{ text: m.content }]
-      })),
+      history: chatHistory,
       generationConfig: {
         maxOutputTokens: 800,
         temperature: 0.7,
