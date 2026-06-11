@@ -48,8 +48,7 @@ Kamu bisa merekomendasikan 1-3 tempat sekaligus. Jangan rekomendasikan tempat ya
 Format output gunakan Markdown biasa (bold, italic, list).`
 
     const model = genAI.getGenerativeModel({ 
-      model: 'gemini-1.5-flash-latest',
-      systemInstruction: systemPrompt 
+      model: 'gemini-pro',
     })
 
     let chatHistory = messages.slice(0, -1).map((m: any) => ({
@@ -61,6 +60,14 @@ Format output gunakan Markdown biasa (bold, italic, list).`
       chatHistory.shift()
     }
 
+    let latestMessageText = messages[messages.length - 1].content
+
+    if (chatHistory.length === 0) {
+      latestMessageText = `[SYSTEM INSTRUCTIONS: ${systemPrompt}]\n\nUser Message: ${latestMessageText}`
+    } else {
+      chatHistory[0].parts[0].text = `[SYSTEM INSTRUCTIONS: ${systemPrompt}]\n\nUser Message: ${chatHistory[0].parts[0].text}`
+    }
+
     const chat = model.startChat({
       history: chatHistory,
       generationConfig: {
@@ -69,8 +76,7 @@ Format output gunakan Markdown biasa (bold, italic, list).`
       }
     })
 
-    const latestMessage = messages[messages.length - 1].content
-    const result = await chat.sendMessage(latestMessage)
+    const result = await chat.sendMessage(latestMessageText)
     const response = await result.response
 
     return NextResponse.json({ reply: response.text() })
