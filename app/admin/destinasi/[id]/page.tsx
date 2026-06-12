@@ -29,6 +29,12 @@ export default function EditDestinasiPage() {
   const [newGalleryUrl, setNewGalleryUrl] = useState('')
   const [newGalleryPreviewOk, setNewGalleryPreviewOk] = useState(false)
 
+  // Menu state (for kuliner/cafe/oleh-oleh)
+  interface MenuItem { name: string; price: number; description: string; image: string }
+  const [menus, setMenus] = useState<MenuItem[]>([])
+  const [newMenu, setNewMenu] = useState<MenuItem>({ name: '', price: 0, description: '', image: '' })
+  const [showMenuForm, setShowMenuForm] = useState(false)
+
   useEffect(() => {
     Promise.all([
       fetch(`/api/admin/destinations/${id}`).then(r => r.json()),
@@ -47,6 +53,8 @@ export default function EditDestinasiPage() {
         featured: dest.featured, hiddenGem: dest.hiddenGem,
       })
       setGalleryUrls(gals)
+      // Load menus
+      try { setMenus(JSON.parse(dest.menus || '[]')) } catch { setMenus([]) }
       setLoading(false)
     })
   }, [id])
@@ -74,6 +82,7 @@ export default function EditDestinasiPage() {
         estimatedDuration: parseInt(form.estimatedDuration) || 60,
         facilities: form.facilities ? JSON.stringify(form.facilities.split(',').map((f: string) => f.trim())) : '[]',
         gallery: JSON.stringify(galleryUrls),
+        menus: JSON.stringify(menus),
         featured: form.featured, hiddenGem: form.hiddenGem,
       }),
     })
@@ -300,6 +309,93 @@ export default function EditDestinasiPage() {
               <input name="facilities" value={form.facilities} onChange={handleChange} placeholder="Parkir, Toilet, Musholla" style={inputStyle} />
             </div>
           </div>
+        </div>
+
+        {/* Menu & Harga Section */}
+        <div style={{ background: 'white', borderRadius: '20px', padding: '1.75rem', border: '1px solid #E5E9F0', marginBottom: '1.25rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+            <div>
+              <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', margin: 0 }}>🍽️ Menu &amp; Harga</h2>
+              <p style={{ fontSize: '0.78rem', color: '#8B98A9', margin: '2px 0 0' }}>Untuk destinasi kuliner, cafe, dan oleh-oleh</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowMenuForm(v => !v)}
+              style={{ padding: '7px 14px', borderRadius: '10px', background: '#E0F2FE', color: '#0A4A5E', border: 'none', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'Outfit, sans-serif', display: 'flex', alignItems: 'center', gap: '5px' }}
+            >
+              <Plus size={14} /> Tambah Item
+            </button>
+          </div>
+
+          {/* Add menu form */}
+          {showMenuForm && (
+            <div style={{ background: '#F0F7FA', borderRadius: '14px', padding: '1.25rem', marginBottom: '1rem', border: '1px dashed #BAE6FD' }}>
+              <h3 style={{ fontWeight: 700, fontSize: '0.875rem', color: '#0A4A5E', marginBottom: '0.75rem' }}>Item Menu Baru</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <div>
+                  <label style={labelStyle}>Nama Menu *</label>
+                  <input value={newMenu.name} onChange={e => setNewMenu(p => ({ ...p, name: e.target.value }))} placeholder="Rujak Cingur Spesial" style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Harga (Rp) *</label>
+                  <input type="number" value={newMenu.price} onChange={e => setNewMenu(p => ({ ...p, price: parseInt(e.target.value) || 0 }))} min="0" style={inputStyle} />
+                </div>
+              </div>
+              <div style={{ marginBottom: '0.75rem' }}>
+                <label style={labelStyle}>Deskripsi (opsional)</label>
+                <input value={newMenu.description} onChange={e => setNewMenu(p => ({ ...p, description: e.target.value }))} placeholder="Deskripsi singkat menu..." style={inputStyle} />
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={labelStyle}>URL Foto Menu (opsional)</label>
+                <input value={newMenu.image} onChange={e => setNewMenu(p => ({ ...p, image: e.target.value }))} placeholder="https://..." style={inputStyle} />
+                {newMenu.image && <img src={newMenu.image} alt="preview" style={{ marginTop: '6px', height: '60px', borderRadius: '8px', objectFit: 'cover' }} onError={e => e.currentTarget.style.display = 'none'} />}
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!newMenu.name.trim()) return
+                    setMenus(prev => [...prev, { ...newMenu }])
+                    setNewMenu({ name: '', price: 0, description: '', image: '' })
+                    setShowMenuForm(false)
+                  }}
+                  style={{ padding: '8px 18px', borderRadius: '10px', background: '#0A4A5E', color: 'white', border: 'none', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'Outfit, sans-serif' }}
+                >
+                  ✓ Simpan Item
+                </button>
+                <button type="button" onClick={() => setShowMenuForm(false)} style={{ padding: '8px 16px', borderRadius: '10px', background: '#E5E9F0', color: '#4A5568', border: 'none', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'Outfit, sans-serif' }}>Batal</button>
+              </div>
+            </div>
+          )}
+
+          {/* Menu list */}
+          {menus.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '2rem', background: '#F8FAFC', borderRadius: '12px', border: '2px dashed #E5E9F0' }}>
+              <p style={{ color: '#8B98A9', fontSize: '0.85rem', margin: 0 }}>Belum ada item menu. Klik "Tambah Item" untuk menambahkan.</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {menus.map((m, i) => (
+                <div key={i} style={{ display: 'flex', gap: '12px', alignItems: 'center', background: '#F8FAFC', padding: '0.875rem', borderRadius: '12px', border: '1px solid #E5E9F0' }}>
+                  {m.image && <img src={m.image} alt={m.name} style={{ width: '52px', height: '52px', borderRadius: '10px', objectFit: 'cover', flexShrink: 0 }} onError={e => e.currentTarget.style.display = 'none'} />}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.875rem', color: '#1A2332' }}>{m.name}</div>
+                    {m.description && <div style={{ fontSize: '0.78rem', color: '#8B98A9' }}>{m.description}</div>}
+                    <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0A4A5E', marginTop: '2px' }}>
+                      {m.price === 0 ? 'Gratis' : `Rp ${m.price.toLocaleString('id-ID')}`}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setMenus(prev => prev.filter((_, j) => j !== i))}
+                    style={{ padding: '6px', borderRadius: '8px', background: '#FEE2E2', border: 'none', color: '#DC2626', cursor: 'pointer', display: 'flex', alignItems: 'center', flexShrink: 0 }}
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div style={{ background: 'white', borderRadius: '20px', padding: '1.75rem', border: '1px solid #E5E9F0', marginBottom: '1.5rem' }}>

@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { MapPin, Users, Ticket, Star, TrendingUp, BookOpen, CheckCircle, Clock } from 'lucide-react'
+import { MapPin, Users, Ticket, Star, TrendingUp, BookOpen, CheckCircle, Clock, MessageCircle, Heart } from 'lucide-react'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -16,6 +16,9 @@ async function getStats() {
     recentBookings,
     topDestinations,
     recentReviews,
+    totalQuestions,
+    totalAnswers,
+    topWishlisted,
   ] = await Promise.all([
     prisma.destination.count(),
     prisma.user.count({ where: { role: 'user' } }),
@@ -39,6 +42,13 @@ async function getStats() {
       orderBy: { createdAt: 'desc' },
       include: { user: true, destination: true },
     }),
+    prisma.question.count(),
+    prisma.answer.count(),
+    prisma.destination.findMany({
+      take: 5,
+      orderBy: { wishlistItems: { _count: 'desc' } },
+      include: { category: true, _count: { select: { wishlistItems: true } } },
+    }),
   ])
 
   const totalRevenue = await prisma.booking.aggregate({
@@ -51,6 +61,7 @@ async function getStats() {
     pendingBookings, confirmedBookings, featuredDestinations,
     recentBookings, topDestinations, recentReviews,
     totalRevenue: totalRevenue._sum.totalPrice || 0,
+    totalQuestions, totalAnswers, topWishlisted,
   }
 }
 
@@ -64,6 +75,8 @@ export default async function AdminDashboard() {
     { label: 'Total Ulasan', value: stats.totalReviews, icon: Star, color: '#059669', bg: '#D1FAE5', link: '/admin/ulasan' },
     { label: 'Pending Booking', value: stats.pendingBookings, icon: Clock, color: '#DC2626', bg: '#FEE2E2', link: '/admin/bookings' },
     { label: 'Booking Confirmed', value: stats.confirmedBookings, icon: CheckCircle, color: '#059669', bg: '#D1FAE5', link: '/admin/bookings' },
+    { label: 'Tanya Komunitas', value: stats.totalQuestions, icon: MessageCircle, color: '#7C3AED', bg: '#EDE9FE', link: '/admin/pertanyaan' },
+    { label: 'Total Jawaban', value: stats.totalAnswers, icon: MessageCircle, color: '#0A4A5E', bg: '#E0F2FE', link: '/admin/pertanyaan' },
     { label: 'Featured Destinasi', value: stats.featuredDestinations, icon: TrendingUp, color: '#FF6B35', bg: '#FFF5F1', link: '/admin/destinasi' },
     { label: 'Total Pendapatan', value: `Rp ${(stats.totalRevenue / 1000000).toFixed(1)}jt`, icon: BookOpen, color: '#0A4A5E', bg: '#E0F2FE', link: '/admin/bookings' },
   ]
@@ -146,7 +159,7 @@ export default async function AdminDashboard() {
       </div>
 
       {/* Recent Reviews */}
-      <div style={{ background: 'white', borderRadius: '20px', padding: '1.5rem', border: '1px solid #E5E9F0' }}>
+      <div style={{ background: 'white', borderRadius: '20px', padding: '1.5rem', border: '1px solid #E5E9F0', marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
           <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332' }}>Ulasan Terbaru</h2>
           <Link href="/admin/ulasan" style={{ fontSize: '0.8rem', color: '#0A4A5E', fontWeight: 600, textDecoration: 'none' }}>Lihat semua →</Link>
@@ -164,6 +177,57 @@ export default async function AdminDashboard() {
               <div style={{ fontSize: '0.8rem', color: '#4A5568', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.comment}</div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Q&A + Wishlist row */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+        {/* Q&A Stats */}
+        <div style={{ background: 'white', borderRadius: '20px', padding: '1.5rem', border: '1px solid #E5E9F0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <MessageCircle size={18} color="#7C3AED" />
+              <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', margin: 0 }}>Tanya Komunitas</h2>
+            </div>
+            <Link href="/admin/pertanyaan" style={{ fontSize: '0.8rem', color: '#7C3AED', fontWeight: 600, textDecoration: 'none' }}>Moderasi →</Link>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+            <div style={{ background: '#EDE9FE', borderRadius: '14px', padding: '1rem', textAlign: 'center' }}>
+              <div style={{ fontWeight: 900, fontSize: '2rem', color: '#7C3AED' }}>{stats.totalQuestions}</div>
+              <div style={{ fontSize: '0.78rem', color: '#6D28D9', fontWeight: 600 }}>Pertanyaan</div>
+            </div>
+            <div style={{ background: '#F0FDF4', borderRadius: '14px', padding: '1rem', textAlign: 'center' }}>
+              <div style={{ fontWeight: 900, fontSize: '2rem', color: '#059669' }}>{stats.totalAnswers}</div>
+              <div style={{ fontSize: '0.78rem', color: '#047857', fontWeight: 600 }}>Jawaban</div>
+            </div>
+          </div>
+          <div style={{ fontSize: '0.82rem', color: '#8B98A9', textAlign: 'center' }}>
+            Rasio jawaban: {stats.totalQuestions > 0 ? ((stats.totalAnswers / stats.totalQuestions)).toFixed(1) : '0'} per pertanyaan
+          </div>
+        </div>
+
+        {/* Top Wishlisted */}
+        <div style={{ background: 'white', borderRadius: '20px', padding: '1.5rem', border: '1px solid #E5E9F0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.25rem' }}>
+            <Heart size={18} color="#DC2626" />
+            <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', margin: 0 }}>Paling Banyak di-Wishlist</h2>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {stats.topWishlisted.map((d, i) => (
+              <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem', borderRadius: '10px', background: '#F8FAFC' }}>
+                <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: i === 0 ? '#DC2626' : '#E5E9F0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: i === 0 ? 'white' : '#8B98A9', fontWeight: 800, fontSize: '0.8rem', flexShrink: 0 }}>{i + 1}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: '0.82rem', color: '#1A2332', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.name}</div>
+                  <div style={{ fontSize: '0.72rem', color: '#8B98A9' }}>{d.category.icon} {d.category.name}</div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                  <Heart size={12} color="#DC2626" fill="#DC2626" />
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#DC2626' }}>{d._count.wishlistItems}</span>
+                </div>
+              </div>
+            ))}
+            {stats.topWishlisted.length === 0 && <p style={{ color: '#8B98A9', fontSize: '0.85rem', textAlign: 'center' }}>Belum ada data wishlist</p>}
+          </div>
         </div>
       </div>
 

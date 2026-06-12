@@ -12,6 +12,7 @@ import {
   LogOut,
   ChevronRight,
   Calendar,
+  MessageCircle,
 } from 'lucide-react'
 
 const navItems = [
@@ -20,6 +21,7 @@ const navItems = [
   { href: '/admin/bookings', label: 'Pemesanan', icon: Ticket },
   { href: '/admin/users', label: 'Pengguna', icon: Users },
   { href: '/admin/ulasan', label: 'Ulasan', icon: Star },
+  { href: '/admin/pertanyaan', label: 'Tanya Komunitas', icon: MessageCircle },
   { href: '/admin/events', label: 'Event', icon: Calendar },
 ]
 
