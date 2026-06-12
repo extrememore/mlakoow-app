@@ -65,11 +65,6 @@ export default async function DetailCafePage({
 
   if (!destination) notFound()
 
-  // If someone navigates here but it's not a kuliner destination, redirect to destinasi
-  if (destination.category.slug !== 'cafe') {
-    redirect(`/wisata/${slug}`)
-  }
-
   const session = await auth()
   const isLoggedIn = !!session?.user
   const currentUserId = session?.user ? parseInt(session.user.id as string) : undefined

@@ -62,11 +62,6 @@ export default async function DetailKulinerPage({
 
   if (!destination) notFound()
 
-  // If someone navigates here but it's not an oleh-oleh destination, redirect to destinasi
-  if (destination.category.slug !== 'oleh-oleh') {
-    redirect(`/wisata/${slug}`)
-  }
-
   const session = await auth()
   const isLoggedIn = !!session?.user
   const currentUserId = session?.user ? parseInt(session.user.id as string) : undefined
