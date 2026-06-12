@@ -438,7 +438,7 @@ export default function ItineraryDetailPage() {
 
           {/* Booking Section */}
           {(() => {
-            const nonTourismCategories = ['kuliner', 'oleh-oleh', 'cafe', 'kafe', 'restoran']
+            const nonTourismCategories = ['kuliner', 'oleh-oleh', 'cafe', 'kafe', 'restoran', 'hiburan']
             const paidItems = itinerary.items.filter((i) => {
               const isTourism = !nonTourismCategories.some(c => i.destination.category.name.toLowerCase().includes(c))
               return i.destination.ticketPrice > 0 && isTourism
