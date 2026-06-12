@@ -438,6 +438,8 @@ export default function ItineraryDetailPage() {
 
           {/* Booking Section */}
           {(() => {
+            const isPastItinerary = itinerary.startDate && new Date(new Date(itinerary.startDate).getTime() + (itinerary.duration - 1) * 86400000).setHours(0,0,0,0) < new Date().setHours(0,0,0,0)
+
             const paidItems = itinerary.items.filter((i) => {
               const isWisataTree = i.destination.category.id === 11 || i.destination.category.parentId === 11
               return i.destination.ticketPrice > 0 && isWisataTree
@@ -573,12 +575,20 @@ export default function ItineraryDetailPage() {
                 {/* Booking form for un-booked destinations */}
                 {!allBooked && (
                   <>
-                    {/* Trip date */}
-                    <div style={{ marginBottom: '1rem' }}>
-                      <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', color: '#1A2332', marginBottom: '0.5rem' }}>
-                        <Calendar size={13} style={{ display: 'inline', marginRight: '5px', verticalAlign: '-2px' }} />
-                        Tanggal Mulai Trip
-                      </label>
+                    {isPastItinerary ? (
+                      <div style={{ padding: '1.5rem', background: '#F8FAFC', borderRadius: '16px', textAlign: 'center', border: '1px solid #E5E9F0', marginTop: '1rem' }}>
+                        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⌛</div>
+                        <h4 style={{ fontWeight: 800, color: '#1A2332', marginBottom: '4px' }}>Itinerary Sudah Berlalu</h4>
+                        <p style={{ fontSize: '0.85rem', color: '#64748B', margin: 0 }}>Pemesanan tiket tidak lagi tersedia karena jadwal perjalanan telah usai.</p>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Trip date */}
+                        <div style={{ marginBottom: '1rem', marginTop: '1rem' }}>
+                          <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', color: '#1A2332', marginBottom: '0.5rem' }}>
+                            <Calendar size={13} style={{ display: 'inline', marginRight: '5px', verticalAlign: '-2px' }} />
+                            Tanggal Mulai Trip
+                          </label>
                       {itinerary.startDate ? (
                         <div style={{ background: '#F0F7FA', padding: '0.75rem', borderRadius: '10px', border: '1px solid #E5E9F0', fontSize: '0.85rem', color: '#0A4A5E', fontWeight: 700 }}>
                           {new Date(itinerary.startDate).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
@@ -718,6 +728,9 @@ export default function ItineraryDetailPage() {
                         <><Ticket size={16} /> Pesan {selectedIds.length} Tiket Sekaligus</>
                       )}
                     </button>
+                    {bookingError && <p style={{ color: '#E11D48', fontSize: '0.8rem', marginTop: '0.5rem', fontWeight: 600 }}>{bookingError}</p>}
+                  </>
+                )}
                   </>
                 )}
               </div>

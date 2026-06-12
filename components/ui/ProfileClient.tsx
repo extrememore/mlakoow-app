@@ -819,6 +819,8 @@ export default function ProfileClient({ data }: Props) {
         {activeTab === 'itinerary' && (() => {
           const kanvasItineraries = itineraries.filter(i => i.isCanvas)
           const fixItineraries = itineraries.filter(i => !i.isCanvas)
+          const upcomingItineraries = fixItineraries.filter(i => !i.startDate || new Date(new Date(i.startDate).getTime() + (i.duration - 1) * 86400000).setHours(0,0,0,0) >= new Date().setHours(0,0,0,0))
+          const pastItineraries = fixItineraries.filter(i => i.startDate && new Date(new Date(i.startDate).getTime() + (i.duration - 1) * 86400000).setHours(0,0,0,0) < new Date().setHours(0,0,0,0))
           
           return (
             <div>
@@ -840,13 +842,24 @@ export default function ProfileClient({ data }: Props) {
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
-                  {fixItineraries.length > 0 && (
+                  {upcomingItineraries.length > 0 && (
                     <div>
                       <h3 style={{ fontWeight: 700, fontSize: '1.1rem', color: '#1A2332', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #E5E9F0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Map size={18} color="#059669" /> Itinerary Fix ({fixItineraries.length})
+                        <Map size={18} color="#059669" /> Itinerary Mendatang ({upcomingItineraries.length})
                       </h3>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}>
-                        {fixItineraries.map(renderItineraryCard)}
+                        {upcomingItineraries.map(renderItineraryCard)}
+                      </div>
+                    </div>
+                  )}
+
+                  {pastItineraries.length > 0 && (
+                    <div>
+                      <h3 style={{ fontWeight: 700, fontSize: '1.1rem', color: '#8B98A9', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #E5E9F0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Map size={18} color="#94A3B8" /> Itinerary Berlalu ({pastItineraries.length})
+                      </h3>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem', opacity: 0.85 }}>
+                        {pastItineraries.map(renderItineraryCard)}
                       </div>
                     </div>
                   )}
