@@ -66,7 +66,7 @@ interface ItineraryDetail {
       closeHour: string
       lat: number
       lng: number
-      category: { name: string; icon: string; color: string }
+      category: { id: number; name: string; icon: string; color: string; parentId: number | null }
     }
   }[]
 }
@@ -438,13 +438,9 @@ export default function ItineraryDetailPage() {
 
           {/* Booking Section */}
           {(() => {
-            const nonTourismCategories = [
-              'kuliner', 'oleh-oleh', 'cafe', 'kafe', 'restoran', 'hiburan',
-              'restoran & rumah makan', 'kedai', 'minuman & bumbu', 'kerajinan tangan', 'seafood'
-            ]
             const paidItems = itinerary.items.filter((i) => {
-              const isTourism = !nonTourismCategories.some(c => i.destination.category.name.toLowerCase().includes(c))
-              return i.destination.ticketPrice > 0 && isTourism
+              const isWisataTree = i.destination.category.id === 11 || i.destination.category.parentId === 11
+              return i.destination.ticketPrice > 0 && isWisataTree
             })
             if (paidItems.length === 0) return null
 
