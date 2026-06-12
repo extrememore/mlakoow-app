@@ -76,7 +76,9 @@ export default async function OwnerDashboard() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {destinations.slice(0, 5).map(d => (
               <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '0.75rem', borderRadius: '12px', background: '#F8FAFC' }}>
-                <img src={d.mainImage} alt={d.name} style={{ width: '48px', height: '42px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} onError={() => {}} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={d.mainImage} alt={d.name} width={48} height={42} style={{ borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} />
+
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 700, fontSize: '0.875rem', color: '#1A2332', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.name}</div>
                   <div style={{ fontSize: '0.75rem', color: '#8B98A9' }}>{d.category.icon} {d.category.name} • {d.area}</div>

@@ -51,10 +51,17 @@ export default async function OwnerDestinasiPage() {
             </thead>
             <tbody>
               {destinations.map(d => (
-                <tr key={d.id} style={{ borderBottom: '1px solid #F0F4F8' }} className="table-row">
+                <tr key={d.id} style={{ borderBottom: '1px solid #F0F4F8' }}>
                   <td style={{ padding: '12px 16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <img src={d.mainImage} alt={d.name} style={{ width: '42px', height: '38px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} onError={() => {}} />
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={d.mainImage}
+                        alt={d.name}
+                        width={42}
+                        height={38}
+                        style={{ borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }}
+                      />
                       <div>
                         <div style={{ fontWeight: 700, fontSize: '0.875rem', color: '#1A2332' }}>{d.name}</div>
                         <div style={{ fontSize: '0.72rem', color: '#8B98A9' }}>{d.reviewCount} ulasan • ⭐ {d.rating.toFixed(1)}</div>
@@ -94,7 +101,6 @@ export default async function OwnerDestinasiPage() {
           </table>
         </div>
       )}
-      <style>{`.table-row:hover { background: #F8FAFC; }`}</style>
     </div>
   )
 }
