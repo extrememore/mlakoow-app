@@ -64,7 +64,8 @@ export default function ChatbotWidget() {
 
   // Parse message content to replace [DESTINATION:ID] with the BotDestinationCard component
   const renderMessageContent = (content: string) => {
-    const parts = content.split(/(\[DESTINATION:\d+\])/g)
+    // Split by the tag, including any surrounding asterisks or spaces the AI might add
+    const parts = content.split(/(\**\s*\[DESTINATION:\d+\]\s*\**)/g)
     
     return parts.map((part, index) => {
       const match = part.match(/\[DESTINATION:(\d+)\]/)
@@ -72,6 +73,8 @@ export default function ChatbotWidget() {
         const destId = parseInt(match[1])
         return <BotDestinationCard key={index} id={destId} />
       }
+      if (!part.trim()) return null
+      
       return (
         <div key={index} className="prose prose-sm prose-p:leading-relaxed prose-a:text-[#FF6B35] max-w-none">
           <ReactMarkdown>{part}</ReactMarkdown>

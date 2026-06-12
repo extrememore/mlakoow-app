@@ -34,7 +34,7 @@ export default function BotDestinationCard({ id }: { id: number }) {
   if (!dest) return null
 
   return (
-    <div className="w-full bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden my-2 flex hover:shadow-md transition-shadow">
+    <div className="w-full bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden my-3 flex hover:shadow-md transition-shadow">
       <div 
         className="w-[100px] sm:w-[120px] bg-cover bg-center shrink-0" 
         style={{ backgroundImage: `url(${dest.mainImage})` }}
