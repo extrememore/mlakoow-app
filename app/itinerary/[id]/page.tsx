@@ -438,7 +438,11 @@ export default function ItineraryDetailPage() {
 
           {/* Booking Section */}
           {(() => {
-            const paidItems = itinerary.items.filter((i) => i.destination.ticketPrice > 0)
+            const nonTourismCategories = ['kuliner', 'oleh-oleh', 'cafe', 'kafe', 'restoran']
+            const paidItems = itinerary.items.filter((i) => {
+              const isTourism = !nonTourismCategories.some(c => i.destination.category.name.toLowerCase().includes(c))
+              return i.destination.ticketPrice > 0 && isTourism
+            })
             if (paidItems.length === 0) return null
 
             const bookedIds = existingBookings.map((b) => b.destinationId)
