@@ -168,7 +168,11 @@ export default function ProfileClient({ data }: Props) {
   const memberSince = new Date(user.createdAt).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
 
   // --- GAMIFICATION LOGIC ---
-  const totalPoints = (stats.itineraryCount * 150) + (stats.confirmedBookings * 500) + (stats.reviewCount * 250) + (savedEvents.length * 50)
+  let totalPoints = (stats.itineraryCount * 150) + (stats.confirmedBookings * 500) + (stats.reviewCount * 250) + (savedEvents.length * 50)
+  
+  if (user.role === 'admin') {
+    totalPoints = Math.max(totalPoints, 99999)
+  }
   
   const LEVELS = [
     { level: 1, name: 'Turis Amatir', min: 0, max: 499, icon: '🐣', color: '#9CA3AF', bg: 'linear-gradient(135deg, #F3F4F6, #D1D5DB)', glow: 'rgba(156,163,175,0.4)' },
