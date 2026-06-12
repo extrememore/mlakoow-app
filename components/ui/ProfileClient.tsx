@@ -63,26 +63,7 @@ function StatCard({ value, label, icon, color, prefix = '', suffix = '' }: { val
   )
 }
 
-/* ── Achievement badge ── */
-function AchievementBadge({ icon, label, desc, unlocked }: { icon: string; label: string; desc: string; unlocked: boolean }) {
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: '10px',
-      padding: '10px 14px', borderRadius: '14px',
-      background: unlocked ? 'linear-gradient(135deg, #FFF7ED, #FED7AA)' : '#F8F6F2',
-      border: `1.5px solid ${unlocked ? '#FDBA74' : '#E5E9F0'}`,
-      opacity: unlocked ? 1 : 0.5,
-      transition: 'all 0.2s',
-    }}>
-      <div style={{ fontSize: '1.5rem', filter: unlocked ? 'none' : 'grayscale(1)' }}>{icon}</div>
-      <div>
-        <div style={{ fontWeight: 700, fontSize: '0.82rem', color: unlocked ? '#92400E' : '#8B98A9' }}>{label}</div>
-        <div style={{ fontSize: '0.7rem', color: '#8B98A9' }}>{desc}</div>
-      </div>
-      {unlocked && <div style={{ marginLeft: 'auto', color: '#F59E0B', fontSize: '0.65rem', fontWeight: 800, background: '#FEF3C7', padding: '2px 7px', borderRadius: '50px' }}>UNLOCKED</div>}
-    </div>
-  )
-}
+
 
 const TABS = [
   { id: 'overview', label: '📊 Overview', icon: TrendingUp },
@@ -238,14 +219,7 @@ export default function ProfileClient({ data }: Props) {
     ? ((totalPoints - currentLevel.min) / (nextLevel.min - currentLevel.min)) * 100 
     : 100
 
-  const achievements = [
-    { icon: '🌟', label: 'Petualang Pertama', desc: 'Buat itinerary pertama', unlocked: stats.itineraryCount >= 1 },
-    { icon: '🎟️', label: 'Traveler Aktif', desc: 'Booking 1 tiket', unlocked: stats.confirmedBookings >= 1 },
-    { icon: '🗺️', label: 'Multi-Area Explorer', desc: 'Kunjungi 2+ area', unlocked: stats.uniqueAreas >= 2 },
-    { icon: '✍️', label: 'Reviewer Andal', desc: 'Tulis 3 review', unlocked: stats.reviewCount >= 3 },
-    { icon: '📅', label: 'Planner Pro', desc: 'Trip 5+ hari total', unlocked: stats.totalDays >= 5 },
-    { icon: '💰', label: 'Big Spender', desc: 'Total belanja Rp 500rb+', unlocked: stats.totalSpent >= 500000 },
-  ]
+
 
   const renderItineraryCard = (itin: Itinerary) => (
     <Link key={itin.id} href={itin.isCanvas ? `/itinerary/kanvas/${itin.id}` : `/itinerary/${itin.id}`} style={{ textDecoration: 'none' }}>
@@ -551,24 +525,7 @@ export default function ProfileClient({ data }: Props) {
               )}
             </div>
 
-            {/* Achievements */}
-            <div style={{ background: 'white', borderRadius: '20px', padding: '1.75rem', border: '1px solid #E5E9F0', boxShadow: '0 4px 20px rgba(10,74,94,0.05)' }}>
-              <h2 style={{ fontWeight: 800, fontSize: '1.1rem', color: '#1A2332', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Award size={18} color="#F59E0B" /> Pencapaian
-              </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {achievements.map(a => <AchievementBadge key={a.label} {...a} />)}
-              </div>
-              <div style={{ marginTop: '1rem', padding: '0.75rem', background: '#F8F6F2', borderRadius: '12px', textAlign: 'center' }}>
-                <div style={{ fontWeight: 800, fontSize: '1.2rem', color: '#0A4A5E' }}>
-                  {achievements.filter(a => a.unlocked).length} / {achievements.length}
-                </div>
-                <div style={{ fontSize: '0.75rem', color: '#8B98A9' }}>pencapaian terbuka</div>
-                <div style={{ height: '6px', background: '#E5E9F0', borderRadius: '50px', marginTop: '8px', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${(achievements.filter(a => a.unlocked).length / achievements.length) * 100}%`, background: 'linear-gradient(to right, #0A4A5E, #FF6B35)', borderRadius: '50px', transition: 'width 0.5s' }} />
-                </div>
-              </div>
-            </div>
+
 
             {/* Quick links + area map */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
