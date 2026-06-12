@@ -110,7 +110,10 @@ export default function ItineraryDetailPage() {
       fetch('/api/bookings').then((res) => res.ok ? res.json() : []).catch(() => []),
     ])
       .then(([itinData, bookingsData]) => {
-        if (itinData) setItinerary(itinData)
+        if (itinData) {
+          setItinerary(itinData)
+          if (itinData.startDate) setTripDate(itinData.startDate.split('T')[0])
+        }
         if (Array.isArray(bookingsData)) {
           setExistingBookings(bookingsData.map((b: Record<string, unknown>) => ({
             destinationId: (b.destination as Record<string, unknown> & { id?: number })?.id || b.destinationId as number,
@@ -573,20 +576,29 @@ export default function ItineraryDetailPage() {
                         <Calendar size={13} style={{ display: 'inline', marginRight: '5px', verticalAlign: '-2px' }} />
                         Tanggal Mulai Trip
                       </label>
-                      <input
-                        type="date"
-                        min={new Date().toISOString().split('T')[0]}
-                        max={new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
-                        value={tripDate}
-                        onChange={(e) => setTripDate(e.target.value)}
-                        className="input-field"
-                        style={{ width: '100%' }}
-                      />
-                      {tripDate && (
-                        <div style={{ fontSize: '0.75rem', color: '#0A4A5E', fontWeight: 600, marginTop: '4px' }}>
-                          {new Date(tripDate + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}
-                          {itinerary.duration > 1 && ` — ${new Date(new Date(tripDate + 'T00:00:00').getTime() + (itinerary.duration - 1) * 86400000).toLocaleDateString('id-ID', { day: 'numeric', month: 'long' })}`}
+                      {itinerary.startDate ? (
+                        <div style={{ background: '#F0F7FA', padding: '0.75rem', borderRadius: '10px', border: '1px solid #E5E9F0', fontSize: '0.85rem', color: '#0A4A5E', fontWeight: 700 }}>
+                          {new Date(itinerary.startDate).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                          {itinerary.duration > 1 && ` — ${new Date(new Date(itinerary.startDate).getTime() + (itinerary.duration - 1) * 86400000).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`}
                         </div>
+                      ) : (
+                        <>
+                          <input
+                            type="date"
+                            min={new Date().toISOString().split('T')[0]}
+                            max={new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+                            value={tripDate}
+                            onChange={(e) => setTripDate(e.target.value)}
+                            className="input-field"
+                            style={{ width: '100%' }}
+                          />
+                          {tripDate && (
+                            <div style={{ fontSize: '0.75rem', color: '#0A4A5E', fontWeight: 600, marginTop: '4px' }}>
+                              {new Date(tripDate + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}
+                              {itinerary.duration > 1 && ` — ${new Date(new Date(tripDate + 'T00:00:00').getTime() + (itinerary.duration - 1) * 86400000).toLocaleDateString('id-ID', { day: 'numeric', month: 'long' })}`}
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
 
