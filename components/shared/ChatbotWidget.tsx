@@ -102,33 +102,36 @@ export default function ChatbotWidget() {
       {isOpen && (
         <div className="fixed bottom-24 right-6 w-[350px] sm:w-[380px] h-[550px] max-h-[calc(100vh-120px)] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50 border border-gray-100 font-sans animate-in slide-in-from-bottom-5">
           {/* Header */}
-          <div className="bg-[#0A4A5E] p-4 text-white flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-              <Sparkles size={20} className="text-yellow-400" />
+          <div className="bg-[#0A4A5E] p-4 sm:p-5 text-white flex items-center gap-3">
+            <div className="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-md shadow-inner">
+              <Sparkles size={22} className="text-yellow-400" />
             </div>
             <div>
-              <h3 className="font-bold text-lg leading-tight flex items-center gap-2">
-                Tanya Mlaky <span className="text-[10px] bg-[#FF6B35] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Beta</span>
+              <h3 className="font-bold text-lg leading-tight flex items-center">
+                Tanya Mlaky 
+                <span className="ml-2 text-[10px] bg-gradient-to-r from-[#FF6B35] to-[#E5522A] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold shadow-sm">
+                  Beta
+                </span>
               </h3>
-              <p className="text-xs text-white/70">AI Travel Assistant Surabaya</p>
+              <p className="text-[13px] text-white/80 mt-0.5">AI Travel Assistant Surabaya</p>
             </div>
-            <button onClick={() => setIsOpen(false)} className="ml-auto text-white/70 hover:text-white">
-              <X size={20} />
+            <button onClick={() => setIsOpen(false)} className="ml-auto text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-full">
+              <X size={18} />
             </button>
           </div>
 
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 bg-[#F8F9FA] flex flex-col gap-4">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-5 bg-[#F8F9FA] flex flex-col gap-6">
             {messages.map((msg) => (
               <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.role === 'user' ? 'bg-gray-200 text-gray-600' : 'bg-gradient-to-br from-[#FF6B35] to-[#E5522A] text-white'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm ${msg.role === 'user' ? 'bg-white border border-gray-200 text-[#0A4A5E]' : 'bg-gradient-to-br from-[#FF6B35] to-[#E5522A] text-white'}`}>
                   {msg.role === 'user' ? <User size={16} /> : <Sparkles size={16} />}
                 </div>
-                <div className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-4 py-3 ${msg.role === 'user' ? 'bg-[#0A4A5E] text-white rounded-tr-sm' : 'bg-white border border-gray-100 shadow-sm text-gray-800 rounded-tl-sm'}`}>
+                <div className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-5 py-3.5 break-words ${msg.role === 'user' ? 'bg-[#0A4A5E] text-white rounded-tr-sm shadow-md' : 'bg-white border border-gray-200 shadow-sm text-gray-800 rounded-tl-sm'}`}>
                   {msg.role === 'user' ? (
-                    <p className="text-[14px] leading-relaxed">{msg.content}</p>
+                    <p className="text-[15px] leading-relaxed">{msg.content}</p>
                   ) : (
-                    <div className="text-[14px] leading-relaxed flex flex-col gap-1">
+                    <div className="text-[15px] leading-relaxed flex flex-col gap-2">
                       {renderMessageContent(msg.content)}
                     </div>
                   )}
@@ -136,12 +139,12 @@ export default function ChatbotWidget() {
               </div>
             ))}
             {isLoading && (
-              <div className="flex gap-3 flex-row">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF6B35] to-[#E5522A] text-white flex items-center justify-center shrink-0">
+              <div className="flex gap-3 flex-row animate-pulse">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF6B35] to-[#E5522A] text-white flex items-center justify-center shrink-0 shadow-sm">
                   <Sparkles size={16} />
                 </div>
-                <div className="bg-white border border-gray-100 shadow-sm text-gray-800 rounded-2xl rounded-tl-sm p-3">
-                  <Loader2 size={16} className="animate-spin text-gray-400" />
+                <div className="bg-white border border-gray-200 shadow-sm text-gray-800 rounded-2xl rounded-tl-sm px-5 py-3.5">
+                  <Loader2 size={18} className="animate-spin text-[#FF6B35]" />
                 </div>
               </div>
             )}
@@ -149,22 +152,22 @@ export default function ChatbotWidget() {
           </div>
 
           {/* Input Area */}
-          <div className="p-3 bg-white border-t border-gray-100 flex gap-2">
+          <div className="p-4 bg-white border-t border-gray-100 flex gap-3 shadow-[0_-4px_20px_-15px_rgba(0,0,0,0.1)]">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder="Tanya rekomendasi wisata..."
-              className="flex-1 bg-gray-50 border border-gray-200 rounded-full px-4 py-2.5 text-sm focus:outline-none focus:border-[#FF6B35] focus:ring-1 focus:ring-[#FF6B35] transition-all"
+              className="flex-1 bg-gray-50/50 border border-gray-200 rounded-full px-5 py-3 text-[15px] focus:outline-none focus:border-[#0A4A5E] focus:ring-1 focus:ring-[#0A4A5E] transition-all placeholder:text-gray-400 shadow-inner"
               disabled={isLoading}
             />
             <button
               onClick={handleSend}
               disabled={!input.trim() || isLoading}
-              className="w-10 h-10 bg-[#FF6B35] rounded-full flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#E5522A] transition-colors shrink-0"
+              className="w-12 h-12 bg-[#0A4A5E] rounded-full flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#062E3A] hover:scale-105 active:scale-95 transition-all shrink-0 shadow-md"
             >
-              <Send size={18} className="ml-1" />
+              <Send size={18} className="ml-0.5" />
             </button>
           </div>
         </div>
