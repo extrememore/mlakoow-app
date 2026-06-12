@@ -1,5 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { type NextRequest } from 'next/server'
+import { auth } from '@/lib/auth'
+import { logAudit } from '@/lib/audit'
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,6 +19,11 @@ export async function POST(request: NextRequest) {
         prisma.wishlistItem.deleteMany({ where: { destinationId: { in: ids } } }),
         prisma.destination.deleteMany({ where: { id: { in: ids } } }),
       ])
+
+      const session = await auth()
+      const userId = parseInt((session?.user as any)?.id || '0')
+      await logAudit(userId, 'BULK_DELETE', 'Destination', ids.join(','))
+
       return Response.json({ success: true, message: `${ids.length} destinasi dihapus` })
     }
 
@@ -36,6 +43,11 @@ export async function POST(request: NextRequest) {
           })
         )
       )
+
+      const session = await auth()
+      const userId = parseInt((session?.user as any)?.id || '0')
+      await logAudit(userId, 'BULK_TOGGLE_FEATURED', 'Destination', ids.join(','))
+
       return Response.json({ success: true, message: `${ids.length} destinasi diperbarui` })
     }
 

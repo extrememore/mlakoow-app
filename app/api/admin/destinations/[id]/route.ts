@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { NextResponse } from 'next/server'
 import { isAdmin } from '@/lib/roles'
+import { logAudit } from '@/lib/audit'
 
 async function checkAdmin() {
   const session = await auth()
@@ -23,10 +24,15 @@ export async function PATCH(
   const ALLOWED_FIELDS = ['name','slug','description','categoryId','area','address','lat','lng','openHour','closeHour','ticketPrice','mainImage','gallery','facilities','estimatedDuration','featured','hiddenGem','menus','wifi','wfc']
   const safeData = Object.fromEntries(Object.entries(body).filter(([k]) => ALLOWED_FIELDS.includes(k)))
 
+  const session = await auth()
+  const userId = parseInt((session?.user as any)?.id || '0')
+
   const destination = await prisma.destination.update({
     where: { id: parseInt(id) },
     data: safeData,
   })
+
+  await logAudit(userId, 'UPDATE', 'Destination', id, safeData)
 
   return NextResponse.json(destination)
 }
@@ -40,11 +46,17 @@ export async function DELETE(
   const { id } = await params
   const destId = parseInt(id)
 
+  const session = await auth()
+  const userId = parseInt((session?.user as any)?.id || '0')
+
   // Hapus relasi dulu sebelum hapus destinasi
   await prisma.itineraryItem.deleteMany({ where: { destinationId: destId } })
   await prisma.review.deleteMany({ where: { destinationId: destId } })
   await prisma.booking.deleteMany({ where: { destinationId: destId } })
+  await prisma.wishlistItem.deleteMany({ where: { destinationId: destId } })
   await prisma.destination.delete({ where: { id: destId } })
+
+  await logAudit(userId, 'DELETE', 'Destination', id)
 
   return NextResponse.json({ success: true })
 }

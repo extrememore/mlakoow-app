@@ -6,8 +6,9 @@ import { signOut } from 'next-auth/react'
 import { useState, useEffect } from 'react'
 import {
   LayoutDashboard, MapPin, Ticket, Users, Star, LogOut,
-  ChevronRight, Calendar, MessageCircle, CheckSquare, Menu, X, Globe,
+  ChevronRight, Calendar, MessageCircle, CheckSquare, Menu, X, Globe, Activity, Settings
 } from 'lucide-react'
+import NotificationBell from '@/components/shared/NotificationBell'
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -16,8 +17,10 @@ const navItems = [
   { href: '/admin/bookings', label: 'Pemesanan', icon: Ticket },
   { href: '/admin/users', label: 'Pengguna', icon: Users },
   { href: '/admin/ulasan', label: 'Ulasan', icon: Star },
+  { href: '/admin/audit-logs', label: 'Audit Logs', icon: Activity },
   { href: '/admin/pertanyaan', label: 'Tanya Komunitas', icon: MessageCircle },
   { href: '/admin/events', label: 'Event', icon: Calendar },
+  { href: '/admin/settings', label: 'Pengaturan Situs', icon: Settings },
 ]
 
 export default function AdminSidebar() {

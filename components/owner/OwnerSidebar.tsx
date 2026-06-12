@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
 import { useState, useEffect } from 'react'
 import { LayoutDashboard, MapPin, Plus, LogOut, ChevronRight, Menu, X, Globe } from 'lucide-react'
+import NotificationBell from '@/components/shared/NotificationBell'
 
 const navItems = [
   { href: '/owner', label: 'Dashboard', icon: LayoutDashboard },
@@ -54,20 +55,23 @@ export default function OwnerSidebar() {
         ) : (
           <div style={{ width: '34px', height: '34px', background: '#A855F7', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>🏪</div>
         )}
-        {!onNav && (
-          <button
-            onClick={() => setCollapsed(c => !c)}
-            title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            style={{ background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '8px', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', flexShrink: 0, marginLeft: isCollapsed ? 0 : '8px', marginTop: isCollapsed ? '8px' : 0 }}
-          >
-            {isCollapsed ? <ChevronRight size={16} /> : <Menu size={16} />}
-          </button>
-        )}
-        {onNav && (
-          <button onClick={onNav} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '8px', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white' }}>
-            <X size={16} />
-          </button>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: isCollapsed ? 0 : '8px', marginTop: isCollapsed ? '12px' : 0 }}>
+          {!onNav && <NotificationBell isCollapsed={isCollapsed} />}
+          {!onNav && (
+            <button
+              onClick={() => setCollapsed(c => !c)}
+              title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              style={{ background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '8px', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', flexShrink: 0 }}
+            >
+              {isCollapsed ? <ChevronRight size={16} /> : <Menu size={16} />}
+            </button>
+          )}
+          {onNav && (
+            <button onClick={onNav} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '8px', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white' }}>
+              <X size={16} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Nav */}

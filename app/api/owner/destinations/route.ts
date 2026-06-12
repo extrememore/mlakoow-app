@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { NextResponse } from 'next/server'
+import { createAdminNotification } from '@/lib/notify'
 
 export async function GET() {
   const session = await auth()
@@ -35,5 +36,13 @@ export async function POST(request: Request) {
       facilities: safeData.facilities || '[]',
     } as any,
   })
+
+  await createAdminNotification(
+    'WARNING',
+    'Destinasi Baru Menunggu Approval',
+    `Owner telah menambahkan destinasi "${safeData.name}" dan menunggu review.`,
+    '/admin/approval'
+  )
+
   return NextResponse.json(destination, { status: 201 })
 }
