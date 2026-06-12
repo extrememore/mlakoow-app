@@ -143,10 +143,10 @@ export default function ItineraryDetailPage() {
     }
   }
 
-  // Group items by day (order 1-based, estimated 4 per day)
-  function getDay(order: number, duration: number) {
+  // Group items by day (idx 0-based)
+  function getDay(idx: number, duration: number) {
     const itemsPerDay = Math.ceil((itinerary?.items.length || 1) / duration)
-    return Math.ceil(order / itemsPerDay)
+    return Math.floor(idx / itemsPerDay) + 1
   }
 
   // Assign time slots starting from 08:00
@@ -449,9 +449,9 @@ export default function ItineraryDetailPage() {
             const unbookedPaidItems = paidItems.filter((i) => !bookedIds.includes(i.destination.id))
             const bookedPaidItems = paidItems.filter((i) => bookedIds.includes(i.destination.id))
 
-            function getBookingDate(order: number): string {
+            function getBookingDate(idx: number): string {
               if (!tripDate) return ''
-              const day = getDay(order, itinerary!.duration)
+              const day = getDay(idx, itinerary!.duration)
               const d = new Date(tripDate + 'T00:00:00')
               d.setDate(d.getDate() + day - 1)
               return d.toISOString().split('T')[0]
@@ -613,8 +613,9 @@ export default function ItineraryDetailPage() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                         {unbookedPaidItems.map((item) => {
                           const isSelected = selectedIds.includes(item.destination.id)
-                          const day = getDay(item.order, itinerary!.duration)
-                          const visitDate = getBookingDate(item.order)
+                          const idx = itinerary!.items.findIndex(i => i.destination.id === item.destination.id)
+                          const day = getDay(idx, itinerary!.duration)
+                          const visitDate = getBookingDate(idx)
                           return (
                             <div
                               key={item.destination.id}
