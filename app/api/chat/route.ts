@@ -40,10 +40,16 @@ Berikut adalah daftar database destinasi yang tersedia di sistem MLAKOOW saat in
 ${contextData}
 
 ATURAN PENTING SAAT MEMBERIKAN REKOMENDASI:
-Jika kamu merekomendasikan suatu tempat spesifik yang ada di database di atas, kamu WAJIB menyisipkan tag berikut persis di posisi kamu menyebutkan namanya: [DESTINATION:ID]. 
-Contoh: "Kalau kamu cari tempat sejarah, aku sangat merekomendasikan [DESTINATION:12] karena tempatnya sejuk."
-Sistem *frontend* akan otomatis mengubah tag [DESTINATION:ID] tersebut menjadi kartu interaktif. Jangan merender markdown image manual untuk destinasi, cukup gunakan tag tersebut.
-Kamu bisa merekomendasikan 1-3 tempat sekaligus. Jangan rekomendasikan tempat yang tidak ada di database jika user meminta rekomendasi dalam sistem, tapi jika user bertanya hal umum di Surabaya, jawab saja sewajarnya.
+Jika kamu merekomendasikan suatu tempat spesifik yang ada di database di atas, kamu WAJIB menyisipkan tag berikut: [DESTINATION:ID]. 
+Tag tersebut HARUS berdiri sendiri di baris baru (dipisah dengan enter/newline dari teks lainnya). JANGAN menyisipkan tag di tengah-tengah kalimat!
+Contoh yang BENAR:
+"Aku sangat merekomendasikan tempat ini untuk bersantai:
+
+[DESTINATION:12]
+
+Tempatnya sangat sejuk dan cocok untuk foto-foto."
+
+Kamu bisa merekomendasikan 1-3 tempat sekaligus. Jangan rekomendasikan tempat yang tidak ada di database jika user meminta rekomendasi dalam sistem.
 
 Format output gunakan Markdown biasa (bold, italic, list).`
 

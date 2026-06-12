@@ -76,7 +76,7 @@ export default function ChatbotWidget() {
       if (!part.trim()) return null
       
       return (
-        <div key={index} className="prose prose-sm prose-p:leading-relaxed prose-a:text-[#FF6B35] max-w-none">
+        <div key={index} className="prose prose-sm prose-p:leading-relaxed prose-p:my-1 prose-ul:my-1 prose-li:my-0 prose-a:text-[#FF6B35] max-w-none">
           <ReactMarkdown>{part}</ReactMarkdown>
         </div>
       )
@@ -124,11 +124,11 @@ export default function ChatbotWidget() {
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.role === 'user' ? 'bg-gray-200 text-gray-600' : 'bg-gradient-to-br from-[#FF6B35] to-[#E5522A] text-white'}`}>
                   {msg.role === 'user' ? <User size={16} /> : <Sparkles size={16} />}
                 </div>
-                <div className={`max-w-[80%] rounded-2xl p-3 ${msg.role === 'user' ? 'bg-[#0A4A5E] text-white rounded-tr-sm' : 'bg-white border border-gray-100 shadow-sm text-gray-800 rounded-tl-sm'}`}>
+                <div className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-4 py-3 ${msg.role === 'user' ? 'bg-[#0A4A5E] text-white rounded-tr-sm' : 'bg-white border border-gray-100 shadow-sm text-gray-800 rounded-tl-sm'}`}>
                   {msg.role === 'user' ? (
-                    <p className="text-sm">{msg.content}</p>
+                    <p className="text-[14px] leading-relaxed">{msg.content}</p>
                   ) : (
-                    <div className="text-sm">
+                    <div className="text-[14px] leading-relaxed flex flex-col gap-1">
                       {renderMessageContent(msg.content)}
                     </div>
                   )}
