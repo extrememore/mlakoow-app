@@ -107,6 +107,70 @@ export default function ProfileClient({ data }: Props) {
     { icon: '💰', label: 'Big Spender', desc: 'Total belanja Rp 500rb+', unlocked: stats.totalSpent >= 500000 },
   ]
 
+  const renderItineraryCard = (itin: Itinerary) => (
+    <Link key={itin.id} href={`/itinerary/${itin.id}`} style={{ textDecoration: 'none' }}>
+      <div style={{
+        background: 'white', borderRadius: '20px', border: '1px solid #E5E9F0',
+        overflow: 'hidden', transition: 'all 0.2s', cursor: 'pointer',
+        boxShadow: '0 2px 12px rgba(10,74,94,0.05)',
+      }}
+        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 12px 30px rgba(10,74,94,0.12)' }}
+        onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 12px rgba(10,74,94,0.05)' }}
+      >
+        <div style={{ display: 'flex', height: '80px', overflow: 'hidden' }}>
+          {itin.items.slice(0, 3).map((item, i) => (
+            <div key={i} style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
+              <img src={item.mainImage} alt={item.destinationName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.2)' }} />
+            </div>
+          ))}
+          {itin.items.length === 0 && (
+            <div style={{ flex: 1, background: 'linear-gradient(135deg, #0A4A5E, #0D6E84)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem' }}>🗺️</div>
+          )}
+        </div>
+
+        <div style={{ padding: '1.25rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
+            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#1A2332', lineHeight: 1.3 }}>{itin.title}</div>
+            <ArrowRight size={15} color="#8B98A9" style={{ flexShrink: 0 }} />
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', fontSize: '0.78rem', color: '#8B98A9', marginBottom: '10px', flexWrap: 'wrap' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><Calendar size={11} /> {itin.duration} hari</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><MapPin size={11} /> {itin.area}</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><Wallet size={11} /> Rp {itin.totalEstimatedCost.toLocaleString('id-ID')}</span>
+          </div>
+
+          {itin.startDate && (
+            <div style={{ fontSize: '0.75rem', color: '#0A4A5E', fontWeight: 700, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              🗓️ Trip: {new Date(itin.startDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+            {itin.items.map(item => (
+              <span key={item.id} style={{
+                padding: '2px 8px', borderRadius: '50px', fontSize: '0.68rem', fontWeight: 700,
+                background: item.categoryColor + '15', color: item.categoryColor, border: `1px solid ${item.categoryColor}30`,
+              }}>
+                {item.categoryIcon} {item.destinationName}
+              </span>
+            ))}
+            {itin.itemCount > 4 && (
+              <span style={{ padding: '2px 8px', borderRadius: '50px', fontSize: '0.68rem', fontWeight: 700, background: '#F0F4F8', color: '#8B98A9' }}>
+                +{itin.itemCount - 4} lainnya
+              </span>
+            )}
+          </div>
+
+          <div style={{ marginTop: '10px', fontSize: '0.7rem', color: '#8B98A9' }}>
+            Dibuat {new Date(itin.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+          </div>
+        </div>
+      </div>
+    </Link>
+  )
+
   return (
     <div style={{ flex: 1 }}>
       {/* ── HERO BANNER ── */}
@@ -336,94 +400,56 @@ export default function ProfileClient({ data }: Props) {
         )}
 
         {/* ════ ITINERARY TAB ════ */}
-        {activeTab === 'itinerary' && (
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-              <h2 style={{ fontWeight: 800, fontSize: '1.25rem', color: '#1A2332', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <BookOpen size={20} color="#0A4A5E" /> Semua Itinerary ({itineraries.length})
-              </h2>
-              <Link href="/itinerary" className="btn-primary" style={{ padding: '0.6rem 1.25rem', fontSize: '0.875rem' }}>
-                + Buat Itinerary Baru
-              </Link>
-            </div>
-
-            {itineraries.length === 0 ? (
-              <div style={{ background: 'white', borderRadius: '20px', padding: '4rem 2rem', textAlign: 'center', border: '2px dashed #E5E9F0' }}>
-                <BookOpen size={48} color="#E5E9F0" style={{ marginBottom: '1rem' }} />
-                <h3 style={{ fontWeight: 800, color: '#1A2332', marginBottom: '0.5rem' }}>Belum ada itinerary</h3>
-                <p style={{ color: '#8B98A9', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Mulai rencanakan perjalananmu dengan Smart Itinerary!</p>
-                <Link href="/itinerary" className="btn-primary">Buat Itinerary Pertama 🚀</Link>
+        {activeTab === 'itinerary' && (() => {
+          const kanvasItineraries = itineraries.filter(i => i.itemCount === 0)
+          const fixItineraries = itineraries.filter(i => i.itemCount > 0)
+          
+          return (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                <h2 style={{ fontWeight: 800, fontSize: '1.25rem', color: '#1A2332', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <BookOpen size={20} color="#0A4A5E" /> Semua Itinerary ({itineraries.length})
+                </h2>
+                <Link href="/itinerary" className="btn-primary" style={{ padding: '0.6rem 1.25rem', fontSize: '0.875rem' }}>
+                  + Buat Itinerary Baru
+                </Link>
               </div>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}>
-                {itineraries.map(itin => (
-                  <Link key={itin.id} href={`/itinerary/${itin.id}`} style={{ textDecoration: 'none' }}>
-                    <div style={{
-                      background: 'white', borderRadius: '20px', border: '1px solid #E5E9F0',
-                      overflow: 'hidden', transition: 'all 0.2s', cursor: 'pointer',
-                      boxShadow: '0 2px 12px rgba(10,74,94,0.05)',
-                    }}
-                      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 12px 30px rgba(10,74,94,0.12)' }}
-                      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 12px rgba(10,74,94,0.05)' }}
-                    >
-                      {/* Destination image strip */}
-                      <div style={{ display: 'flex', height: '80px', overflow: 'hidden' }}>
-                        {itin.items.slice(0, 3).map((item, i) => (
-                          <div key={i} style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
-                            <img src={item.mainImage} alt={item.destinationName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.2)' }} />
-                          </div>
-                        ))}
-                        {itin.items.length === 0 && (
-                          <div style={{ flex: 1, background: 'linear-gradient(135deg, #0A4A5E, #0D6E84)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem' }}>🗺️</div>
-                        )}
-                      </div>
 
-                      <div style={{ padding: '1.25rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
-                          <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#1A2332', lineHeight: 1.3 }}>{itin.title}</div>
-                          <ArrowRight size={15} color="#8B98A9" style={{ flexShrink: 0 }} />
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '10px', fontSize: '0.78rem', color: '#8B98A9', marginBottom: '10px', flexWrap: 'wrap' }}>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><Calendar size={11} /> {itin.duration} hari</span>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><MapPin size={11} /> {itin.area}</span>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><Wallet size={11} /> Rp {itin.totalEstimatedCost.toLocaleString('id-ID')}</span>
-                        </div>
-
-                        {itin.startDate && (
-                          <div style={{ fontSize: '0.75rem', color: '#0A4A5E', fontWeight: 700, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            🗓️ Trip: {new Date(itin.startDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                          </div>
-                        )}
-
-                        <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-                          {itin.items.map(item => (
-                            <span key={item.id} style={{
-                              padding: '2px 8px', borderRadius: '50px', fontSize: '0.68rem', fontWeight: 700,
-                              background: item.categoryColor + '15', color: item.categoryColor, border: `1px solid ${item.categoryColor}30`,
-                            }}>
-                              {item.categoryIcon} {item.destinationName}
-                            </span>
-                          ))}
-                          {itin.itemCount > 4 && (
-                            <span style={{ padding: '2px 8px', borderRadius: '50px', fontSize: '0.68rem', fontWeight: 700, background: '#F0F4F8', color: '#8B98A9' }}>
-                              +{itin.itemCount - 4} lainnya
-                            </span>
-                          )}
-                        </div>
-
-                        <div style={{ marginTop: '10px', fontSize: '0.7rem', color: '#8B98A9' }}>
-                          Dibuat {new Date(itin.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                        </div>
+              {itineraries.length === 0 ? (
+                <div style={{ background: 'white', borderRadius: '20px', padding: '4rem 2rem', textAlign: 'center', border: '2px dashed #E5E9F0' }}>
+                  <BookOpen size={48} color="#E5E9F0" style={{ marginBottom: '1rem' }} />
+                  <h3 style={{ fontWeight: 800, color: '#1A2332', marginBottom: '0.5rem' }}>Belum ada itinerary</h3>
+                  <p style={{ color: '#8B98A9', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Mulai rencanakan perjalananmu dengan Smart Itinerary!</p>
+                  <Link href="/itinerary" className="btn-primary">Buat Itinerary Pertama 🚀</Link>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+                  {fixItineraries.length > 0 && (
+                    <div>
+                      <h3 style={{ fontWeight: 700, fontSize: '1.1rem', color: '#1A2332', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #E5E9F0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Map size={18} color="#059669" /> Itinerary Fix ({fixItineraries.length})
+                      </h3>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}>
+                        {fixItineraries.map(renderItineraryCard)}
                       </div>
                     </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+                  )}
+
+                  {kanvasItineraries.length > 0 && (
+                    <div>
+                      <h3 style={{ fontWeight: 700, fontSize: '1.1rem', color: '#8B98A9', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #E5E9F0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <BookOpen size={18} /> Kanvas Kosong ({kanvasItineraries.length})
+                      </h3>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem', opacity: 0.85 }}>
+                        {kanvasItineraries.map(renderItineraryCard)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })()}
 
         {/* ════ BOOKING TAB ════ */}
         {activeTab === 'booking' && (
