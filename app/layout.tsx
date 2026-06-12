@@ -3,7 +3,6 @@ import { Outfit } from 'next/font/google'
 import Providers from '@/components/Providers'
 import RegisterPWA from '@/components/RegisterPWA'
 import ChatbotWidget from '@/components/shared/ChatbotWidget'
-import NextTopLoader from 'nextjs-toploader'
 import './globals.css'
 
 const outfit = Outfit({
@@ -60,7 +59,6 @@ export default function RootLayout({
   return (
     <html lang="id" className={outfit.variable}>
       <body className="min-h-screen" style={{ fontFamily: 'var(--font-outfit), Outfit, sans-serif' }}>
-        <NextTopLoader color="#FF6B35" showSpinner={false} speed={300} zIndex={1600} />
         <Providers>
           <RegisterPWA />
           {children}
