@@ -220,6 +220,39 @@ export default function ProfileClient({ data }: Props) {
     : 100
 
 
+  // --- OVERVIEW WIDGETS DATA ---
+  // 1. Radar Persona
+  const maxRadarVal = Math.max(culinaryBookings, historyBookings, natureBookings, entertainmentBookings, shoppingBookings, 1)
+  const radarData = [
+    { label: 'Kuliner', value: culinaryBookings },
+    { label: 'Sejarah', value: historyBookings },
+    { label: 'Alam', value: natureBookings },
+    { label: 'Hiburan', value: entertainmentBookings },
+    { label: 'Belanja', value: shoppingBookings },
+  ]
+  const sortedRadar = [...radarData].sort((a,b) => b.value - a.value)
+  const isRadarEmpty = maxRadarVal === 1 && sortedRadar[0].value === 0
+  const personaTitle = isRadarEmpty ? 'Traveler Pemula' : `Si Pencinta ${sortedRadar[0].label}`
+
+  // 2. Upcoming Trip
+  const upcomingTrip = confirmedBookingsList
+    .filter(b => new Date(b.visitDate).getTime() >= new Date().setHours(0,0,0,0))
+    .sort((a,b) => new Date(a.visitDate).getTime() - new Date(b.visitDate).getTime())[0]
+
+  // 3. Monthly Spending (Last 5 Months)
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"]
+  const last5Months = Array.from({length: 5}).map((_, i) => {
+    const d = new Date()
+    d.setMonth(d.getMonth() - (4 - i))
+    return { name: `${monthNames[d.getMonth()]}`, month: d.getMonth(), year: d.getFullYear(), spent: 0 }
+  })
+
+  confirmedBookingsList.forEach(b => {
+    const d = new Date(b.visitDate)
+    const m = last5Months.find(x => x.month === d.getMonth() && x.year === d.getFullYear())
+    if(m) m.spent += b.totalPrice
+  })
+  const maxSpend = Math.max(...last5Months.map(m => m.spent), 1)
 
   const renderItineraryCard = (itin: Itinerary) => (
     <Link key={itin.id} href={itin.isCanvas ? `/itinerary/kanvas/${itin.id}` : `/itinerary/${itin.id}`} style={{ textDecoration: 'none' }}>
@@ -463,6 +496,121 @@ export default function ProfileClient({ data }: Props) {
         {/* ════ OVERVIEW TAB ════ */}
         {activeTab === 'overview' && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+
+            {/* Upcoming Trip Boarding Pass */}
+            {upcomingTrip && (
+              <div style={{ gridColumn: 'span 2', background: 'linear-gradient(135deg, #0A4A5E, #0D6E84)', borderRadius: '24px', padding: '0', display: 'flex', overflow: 'hidden', color: 'white', position: 'relative', boxShadow: '0 10px 30px rgba(10,74,94,0.15)', flexWrap: 'wrap' }}>
+                {/* Decorative Pattern */}
+                <div style={{ position: 'absolute', right: 0, top: 0, opacity: 0.1, pointerEvents: 'none' }}>
+                  <svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M45.7,-77.5C59.5,-69.3,71.2,-55.8,78.2,-40.7C85.2,-25.6,87.6,-8.8,85.2,7.2C82.8,23.1,75.7,38.1,64.9,49.5C54,60.9,39.4,68.7,24.1,73.4C8.8,78.2,-7.1,79.9,-22.3,77.1C-37.4,74.2,-51.7,66.8,-62.5,55.5C-73.3,44.1,-80.6,28.7,-84.6,12.5C-88.6,-3.8,-89.3,-20.9,-83,-35.1C-76.7,-49.3,-63.4,-60.7,-48.8,-68.6C-34.2,-76.5,-18.3,-80.9,-1.2,-79.1C15.9,-77.3,31.8,-69.3,45.7,-77.5Z" transform="translate(100 100)" />
+                  </svg>
+                </div>
+                {/* Left: Destination Img */}
+                <div style={{ width: '180px', flexShrink: 0, position: 'relative', minHeight: '160px' }}>
+                  <img src={upcomingTrip.destination.mainImage} alt={upcomingTrip.destination.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, transparent, #0D6E84)' }} />
+                </div>
+                {/* Center: Info */}
+                <div style={{ flex: 1, padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: '250px' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#38BDF8', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}><Ticket size={14}/> Petualangan Mendatang</div>
+                  <div style={{ fontSize: '1.75rem', fontWeight: 900, lineHeight: 1.2, marginBottom: '12px' }}>{upcomingTrip.destination.name}</div>
+                  <div style={{ display: 'flex', gap: '1.5rem' }}>
+                    <div>
+                      <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>TANGGAL</div>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{new Date(upcomingTrip.visitDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>JUMLAH TIKET</div>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 800 }}>{upcomingTrip.ticketCount} Orang</div>
+                    </div>
+                  </div>
+                </div>
+                {/* Right: Stub/Barcode */}
+                <div style={{ width: '140px', borderLeft: '2px dashed rgba(255,255,255,0.2)', padding: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.1)', flexGrow: 1 }}>
+                  <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600, marginBottom: '8px' }}>KODE BOOKING</div>
+                  <div style={{ fontSize: '1rem', fontWeight: 900, letterSpacing: '0.05em', color: '#38BDF8' }}>{upcomingTrip.bookingCode}</div>
+                  <div style={{ marginTop: '12px', opacity: 0.5 }}>
+                    <QrCode size={48} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Persona Radar */}
+            <div style={{ background: 'white', borderRadius: '24px', padding: '1.75rem', border: '1px solid #E5E9F0', boxShadow: '0 4px 20px rgba(10,74,94,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <h2 style={{ fontWeight: 800, fontSize: '1.1rem', color: '#1A2332', alignSelf: 'flex-start', margin: 0 }}>Tipe Traveler Anda</h2>
+              <div style={{ fontSize: '0.8rem', color: '#8B98A9', alignSelf: 'flex-start', marginBottom: '1.5rem' }}>Kalkulasi berdasarkan riwayat liburan</div>
+              
+              <div style={{ width: '200px', height: '200px', position: 'relative' }}>
+                <svg viewBox="0 0 200 200" width="100%" height="100%">
+                  {/* Web Background */}
+                  {[0.2, 0.4, 0.6, 0.8, 1].map(scale => (
+                    <polygon key={scale} points={radarData.map((_, i) => {
+                      const angle = (Math.PI / 2) - (2 * Math.PI * i / 5);
+                      const r = scale * 80;
+                      return `${100 + r * Math.cos(angle)},${100 - r * Math.sin(angle)}`;
+                    }).join(' ')} fill="none" stroke="#F1F5F9" strokeWidth="1" />
+                  ))}
+                  {/* Axis lines */}
+                  {radarData.map((_, i) => {
+                    const angle = (Math.PI / 2) - (2 * Math.PI * i / 5);
+                    const r = 80;
+                    return <line key={`l-${i}`} x1="100" y1="100" x2={100 + r * Math.cos(angle)} y2={100 - r * Math.sin(angle)} stroke="#F1F5F9" strokeWidth="1" />
+                  })}
+                  {/* Data Polygon */}
+                  {!isRadarEmpty && (
+                    <polygon points={radarData.map((d, i) => {
+                      const angle = (Math.PI / 2) - (2 * Math.PI * i / 5);
+                      const r = (d.value / maxRadarVal) * 80;
+                      return `${100 + r * Math.cos(angle)},${100 - r * Math.sin(angle)}`;
+                    }).join(' ')} fill="rgba(255, 107, 53, 0.2)" stroke="#FF6B35" strokeWidth="2.5" strokeLinejoin="round" />
+                  )}
+                  {/* Axis Labels */}
+                  {radarData.map((d, i) => {
+                    const angle = (Math.PI / 2) - (2 * Math.PI * i / 5);
+                    const r = 95;
+                    const x = 100 + r * Math.cos(angle);
+                    const y = 100 - r * Math.sin(angle);
+                    return (
+                      <text key={`t-${i}`} x={x} y={y} fontSize="10" fontWeight="700" fill="#64748B" textAnchor="middle" dominantBaseline="middle">
+                        {d.label}
+                      </text>
+                    )
+                  })}
+                </svg>
+              </div>
+              <div style={{ marginTop: '1rem', background: '#FEF3C7', color: '#B45309', padding: '6px 14px', borderRadius: '50px', fontSize: '0.85rem', fontWeight: 800 }}>
+                {personaTitle}
+              </div>
+            </div>
+
+            {/* Monthly Spend Chart */}
+            <div style={{ background: 'white', borderRadius: '24px', padding: '1.75rem', border: '1px solid #E5E9F0', boxShadow: '0 4px 20px rgba(10,74,94,0.05)', display: 'flex', flexDirection: 'column' }}>
+              <h2 style={{ fontWeight: 800, fontSize: '1.1rem', color: '#1A2332', margin: 0 }}>Pengeluaran Bulanan</h2>
+              <div style={{ fontSize: '0.8rem', color: '#8B98A9', marginBottom: '1.5rem' }}>Tren belanja tiket 5 bulan terakhir</div>
+              
+              <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '10px', marginTop: 'auto', paddingTop: '20px' }}>
+                {last5Months.map((m, i) => {
+                  const heightPercent = maxSpend === 1 ? 5 : (m.spent / maxSpend) * 100;
+                  return (
+                    <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', flex: 1 }}>
+                      <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#64748B', opacity: m.spent > 0 ? 1 : 0.3, transition: 'opacity 0.2s' }}>
+                        {m.spent >= 1000000 ? `${(m.spent/1000000).toFixed(1)}M` : m.spent >= 1000 ? `${(m.spent/1000).toFixed(0)}k` : m.spent}
+                      </div>
+                      <div style={{ width: '100%', maxWidth: '32px', height: '120px', display: 'flex', alignItems: 'flex-end', background: '#F8FAFC', borderRadius: '8px', overflow: 'hidden' }}>
+                        <div style={{
+                          width: '100%', height: `${heightPercent}%`, 
+                          background: m.spent === maxSpend && maxSpend > 1 ? 'linear-gradient(to top, #0A4A5E, #0D6E84)' : 'linear-gradient(to top, #93C5FD, #60A5FA)',
+                          borderRadius: '8px', transition: 'height 1s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                        }} />
+                      </div>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#8B98A9' }}>{m.name}</div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
 
             {/* Recent Activity */}
             <div style={{ gridColumn: 'span 2', background: 'white', borderRadius: '20px', padding: '1.75rem', border: '1px solid #E5E9F0', boxShadow: '0 4px 20px rgba(10,74,94,0.05)' }}>
