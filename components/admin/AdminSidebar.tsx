@@ -85,7 +85,6 @@ export default function AdminSidebar() {
             🧭
           </div>
         )}
-        )}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: collapsed && !mobileOpen ? 0 : '8px', marginTop: collapsed && !mobileOpen ? '8px' : 0 }}>
           <NotificationBell isCollapsed={collapsed && !mobileOpen} />
           <button
@@ -244,7 +243,6 @@ export default function AdminSidebar() {
               <div style={{ color: 'white', fontWeight: 900, fontSize: '1.05rem' }}>MLAKOOW</div>
               <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Admin Panel</div>
             </div>
-          </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <NotificationBell isCollapsed={false} />
