@@ -66,6 +66,13 @@ export default async function DetailCafePage({
 
   if (!destination) notFound()
 
+  // Redirect guard — only cafe subcategories belong here
+  const CAFE_SLUGS = new Set(['cafe','cafe-umum','coffee-shop','creative-space','kedai'])
+  if (!CAFE_SLUGS.has(destination.category.slug)) {
+    const { getDetailHref } = await import('@/lib/categoryRoutes')
+    redirect(getDetailHref(slug, destination.category.slug))
+  }
+
   const session = await auth()
   const isLoggedIn = !!session?.user
   const currentUserId = session?.user ? parseInt(session.user.id as string) : undefined
@@ -73,7 +80,7 @@ export default async function DetailCafePage({
     ? destination.reviews.some(r => (r.user as any).id === currentUserId)
     : false
 
-  // Related kuliner destinations
+  // Related cafe destinations
   const related = await prisma.destination.findMany({
     where: {
       categoryId: destination.categoryId,

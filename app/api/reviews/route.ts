@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
   // Update destination average rating
   const reviews = await prisma.review.findMany({ where: { destinationId } })
-  const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+  const avgRating = reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0
 
   await prisma.destination.update({
     where: { id: destinationId },

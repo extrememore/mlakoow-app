@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { auth } from '@/lib/auth'
 import Navbar from '@/components/layout/Navbar'
@@ -65,6 +65,13 @@ export default async function DetailDestinasiPage({
   })
 
   if (!destination) notFound()
+
+  // Redirect guard — non-wisata slugs belong in their own category pages
+  const WISATA_SLUGS = new Set(['wisata','alam','budaya','sejarah','keluarga','edukasi','petualangan','taman-rekreasi','hidden-gem'])
+  if (!WISATA_SLUGS.has(destination.category.slug)) {
+    const { getDetailHref } = await import('@/lib/categoryRoutes')
+    redirect(getDetailHref(slug, destination.category.slug))
+  }
 
   // Session & review status
   const session = await auth()

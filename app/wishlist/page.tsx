@@ -135,13 +135,8 @@ export default function WishlistPage() {
   }
 
   function getHref(item: WishlistDestination) {
-    const slug = item.slug
-    const cat = item.category.slug
-    if (cat === 'kuliner') return `/kuliner/${slug}`
-    if (cat === 'cafe') return `/cafe/${slug}`
-    if (cat === 'oleh-oleh') return `/oleh-oleh/${slug}`
-    if (cat === 'hiburan' || cat === 'spot-foto') return `/hiburan/${slug}`
-    return `/wisata/${slug}`
+    const { getCategoryRoute } = require('@/lib/categoryRoutes')
+    return `/${getCategoryRoute(item.category.slug)}/${item.slug}`
   }
 
   const categories = [...new Set(items.map((i) => i.destination.category.name))]

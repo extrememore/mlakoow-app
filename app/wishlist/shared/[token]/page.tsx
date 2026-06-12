@@ -27,12 +27,8 @@ export default function SharedWishlistPage() {
   }, [token])
 
   function getHref(d: any) {
-    const cat = d.category.slug
-    if (cat === 'kuliner') return `/kuliner/${d.slug}`
-    if (cat === 'cafe') return `/cafe/${d.slug}`
-    if (cat === 'oleh-oleh') return `/oleh-oleh/${d.slug}`
-    if (cat === 'hiburan' || cat === 'spot-foto') return `/hiburan/${d.slug}`
-    return `/wisata/${d.slug}`
+    const { getCategoryRoute } = require('@/lib/categoryRoutes')
+    return `/${getCategoryRoute(d.category.slug)}/${d.slug}`
   }
 
   return (

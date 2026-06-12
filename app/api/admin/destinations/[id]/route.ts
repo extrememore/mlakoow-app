@@ -19,9 +19,13 @@ export async function PATCH(
   const { id } = await params
   const body = await request.json()
 
+  // Whitelist allowed fields — prevent injection of rating, reviewCount, id, etc.
+  const ALLOWED_FIELDS = ['name','slug','description','categoryId','area','address','lat','lng','openHour','closeHour','ticketPrice','mainImage','gallery','facilities','estimatedDuration','featured','hiddenGem','menus','wifi','wfc']
+  const safeData = Object.fromEntries(Object.entries(body).filter(([k]) => ALLOWED_FIELDS.includes(k)))
+
   const destination = await prisma.destination.update({
     where: { id: parseInt(id) },
-    data: body,
+    data: safeData,
   })
 
   return NextResponse.json(destination)

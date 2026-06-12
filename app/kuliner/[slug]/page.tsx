@@ -63,6 +63,13 @@ export default async function DetailKulinerPage({
 
   if (!destination) notFound()
 
+  // Redirect guard — only kuliner subcategories belong here
+  const KULINER_SLUGS = new Set(['kuliner','makanan-tradisional','street-food','seafood','restoran','warung-lokal','jajanan-snack'])
+  if (!KULINER_SLUGS.has(destination.category.slug)) {
+    const { getDetailHref } = await import('@/lib/categoryRoutes')
+    redirect(getDetailHref(slug, destination.category.slug))
+  }
+
   const session = await auth()
   const isLoggedIn = !!session?.user
   const currentUserId = session?.user ? parseInt(session.user.id as string) : undefined

@@ -17,8 +17,8 @@ export async function GET(request: NextRequest) {
   const facilities = searchParams.get('facilities') || ''
   const pageType = searchParams.get('pageType') || 'default'
 
-  const limit = parseInt(searchParams.get('limit') || '50')
-  const page = parseInt(searchParams.get('page') || '1')
+  const limit = Math.max(1, parseInt(searchParams.get('limit') || '50') || 50)
+  const page  = Math.max(1, parseInt(searchParams.get('page')  || '1')  || 1)
   const skip = (page - 1) * limit
   
   const userLatStr = searchParams.get('userLat')

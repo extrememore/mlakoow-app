@@ -35,14 +35,14 @@ import {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const dest = await prisma.destination.findUnique({ where: { slug }, include: { category: true } })
-  if (!dest) return { title: 'Kuliner tidak ditemukan' }
+  if (!dest) return { title: 'Oleh-oleh tidak ditemukan' }
   return {
-    title: `${dest.name} — Kuliner Surabaya | MLAKOOW`,
+    title: `${dest.name} — Oleh-oleh Surabaya | MLAKOOW`,
     description: dest.description.slice(0, 160),
   }
 }
 
-export default async function DetailKulinerPage({
+export default async function DetailOlehOlehPage({
   params,
 }: {
   params: Promise<{ slug: string }>
@@ -63,6 +63,13 @@ export default async function DetailKulinerPage({
 
   if (!destination) notFound()
 
+  // Redirect guard — only oleh-oleh subcategories belong here
+  const OLEHOLEH_SLUGS = new Set(['oleh-oleh','batik-fashion','kerajinan-tangan','kue-roti','makanan-khas','minuman-bumbu','souvenir-aksesoris'])
+  if (!OLEHOLEH_SLUGS.has(destination.category.slug)) {
+    const { getDetailHref } = await import('@/lib/categoryRoutes')
+    redirect(getDetailHref(slug, destination.category.slug))
+  }
+
   const session = await auth()
   const isLoggedIn = !!session?.user
   const currentUserId = session?.user ? parseInt(session.user.id as string) : undefined
@@ -70,7 +77,7 @@ export default async function DetailKulinerPage({
     ? destination.reviews.some(r => (r.user as any).id === currentUserId)
     : false
 
-  // Related kuliner destinations
+  // Related oleh-oleh destinations
   const related = await prisma.destination.findMany({
     where: {
       categoryId: destination.categoryId,
