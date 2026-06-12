@@ -21,6 +21,8 @@ interface UserData { name: string; email: string; role: string; avatar: string |
 
 interface Props {
   data: {
+    categories: any[]
+    allVisitedCategoryIds: number[]
     user: UserData
     stats: Stats
     itineraries: Itinerary[]
@@ -151,11 +153,29 @@ export default function ProfileClient({ data }: Props) {
 
   // --- GAMIFICATION & QUEST LOGIC ---
   const confirmedBookingsList = bookings.filter(b => b.status === 'confirmed')
-  const culinaryBookings = confirmedBookingsList.filter(b => b.destination.categoryName.toLowerCase().includes('kuliner')).length
-  const historyBookings = confirmedBookingsList.filter(b => b.destination.categoryName.toLowerCase().includes('sejarah') || b.destination.categoryName.toLowerCase().includes('budaya')).length
-  const natureBookings = confirmedBookingsList.filter(b => b.destination.categoryName.toLowerCase().includes('alam') || b.destination.categoryName.toLowerCase().includes('taman')).length
-  const entertainmentBookings = confirmedBookingsList.filter(b => b.destination.categoryName.toLowerCase().includes('hiburan') || b.destination.categoryName.toLowerCase().includes('rekreasi')).length
-  const shoppingBookings = confirmedBookingsList.filter(b => b.destination.categoryName.toLowerCase().includes('oleh-oleh') || b.destination.categoryName.toLowerCase().includes('belanja')).length
+  
+  const getPillar = (categoryId: number) => {
+    let currentId: number | null = categoryId;
+    while (currentId) {
+      const cat = data.categories.find((c: any) => c.id === currentId);
+      if (!cat) break;
+      if (cat.name === 'Kuliner') return 'Kuliner';
+      if (cat.name === 'Sejarah' || cat.name === 'Budaya') return 'Sejarah';
+      if (cat.name === 'Alam' || cat.name === 'Taman & Rekreasi' || cat.name === 'Petualangan') return 'Alam';
+      if (cat.name === 'Hiburan' || cat.name === 'Keluarga') return 'Hiburan';
+      if (cat.name === 'Oleh-Oleh' || cat.name === 'Belanja') return 'Belanja';
+      currentId = cat.parentId;
+    }
+    return null;
+  }
+
+  const pillarCounts = { Kuliner: 0, Sejarah: 0, Alam: 0, Hiburan: 0, Belanja: 0 }
+  data.allVisitedCategoryIds.forEach(id => {
+    const pillar = getPillar(id)
+    if (pillar && pillar in pillarCounts) {
+      pillarCounts[pillar as keyof typeof pillarCounts]++
+    }
+  })
 
   const questList = [
     { id: 1, title: 'Turis Pemula', desc: 'Booking 1 tiket', goal: 1, progress: confirmedBookingsList.length, pts: 50, medal: '🎟️' },
@@ -164,15 +184,15 @@ export default function ProfileClient({ data }: Props) {
     { id: 4, title: 'Turis Fanatik', desc: 'Booking 10 tiket', goal: 10, progress: confirmedBookingsList.length, pts: 500, medal: '🎗️' },
     { id: 5, title: 'Sang Kolektor', desc: 'Booking 20 tiket', goal: 20, progress: confirmedBookingsList.length, pts: 1000, medal: '🎖️' },
     { id: 6, title: 'Tamu Kehormatan', desc: 'Booking 30 tiket', goal: 30, progress: confirmedBookingsList.length, pts: 1500, medal: '🏆' },
-    { id: 7, title: 'Pencinta Kuliner', desc: 'Booking 1 Kuliner', goal: 1, progress: culinaryBookings, pts: 100, medal: '🍜' },
-    { id: 8, title: 'Raja Kuliner', desc: 'Booking 5 Kuliner', goal: 5, progress: culinaryBookings, pts: 300, medal: '🍱' },
-    { id: 9, title: 'Sang Sejarawan', desc: 'Booking 1 Sejarah', goal: 1, progress: historyBookings, pts: 100, medal: '🏛️' },
-    { id: 10, title: 'Penjaga Budaya', desc: 'Booking 5 Sejarah', goal: 5, progress: historyBookings, pts: 300, medal: '🏺' },
-    { id: 11, title: 'Anak Alam', desc: 'Booking 1 Alam', goal: 1, progress: natureBookings, pts: 100, medal: '🌳' },
-    { id: 12, title: 'Penjelajah Rimba', desc: 'Booking 5 Alam', goal: 5, progress: natureBookings, pts: 300, medal: '🏕️' },
-    { id: 13, title: 'Pemburu Hiburan', desc: 'Booking 1 Hiburan', goal: 1, progress: entertainmentBookings, pts: 100, medal: '🎢' },
-    { id: 14, title: 'Raja Pesta', desc: 'Booking 5 Hiburan', goal: 5, progress: entertainmentBookings, pts: 300, medal: '🎡' },
-    { id: 15, title: 'Penggila Belanja', desc: 'Booking 3 Oleh-oleh', goal: 3, progress: shoppingBookings, pts: 200, medal: '🛍️' },
+    { id: 7, title: 'Pencinta Kuliner', desc: 'Kunjungi 1 Kuliner', goal: 1, progress: pillarCounts.Kuliner, pts: 100, medal: '🍜' },
+    { id: 8, title: 'Raja Kuliner', desc: 'Kunjungi 5 Kuliner', goal: 5, progress: pillarCounts.Kuliner, pts: 300, medal: '🍱' },
+    { id: 9, title: 'Sang Sejarawan', desc: 'Kunjungi 1 Sejarah', goal: 1, progress: pillarCounts.Sejarah, pts: 100, medal: '🏛️' },
+    { id: 10, title: 'Penjaga Budaya', desc: 'Kunjungi 5 Sejarah', goal: 5, progress: pillarCounts.Sejarah, pts: 300, medal: '🏺' },
+    { id: 11, title: 'Anak Alam', desc: 'Kunjungi 1 Alam', goal: 1, progress: pillarCounts.Alam, pts: 100, medal: '🌳' },
+    { id: 12, title: 'Penjelajah Rimba', desc: 'Kunjungi 5 Alam', goal: 5, progress: pillarCounts.Alam, pts: 300, medal: '🏕️' },
+    { id: 13, title: 'Pemburu Hiburan', desc: 'Kunjungi 1 Hiburan', goal: 1, progress: pillarCounts.Hiburan, pts: 100, medal: '🎢' },
+    { id: 14, title: 'Raja Pesta', desc: 'Kunjungi 5 Hiburan', goal: 5, progress: pillarCounts.Hiburan, pts: 300, medal: '🎡' },
+    { id: 15, title: 'Penggila Belanja', desc: 'Kunjungi 3 Oleh-oleh', goal: 3, progress: pillarCounts.Belanja, pts: 200, medal: '🛍️' },
     { id: 16, title: 'Kritikus Pemula', desc: 'Tulis 1 Ulasan', goal: 1, progress: stats.reviewCount, pts: 50, medal: '✍️' },
     { id: 17, title: 'Kritikus Handal', desc: 'Tulis 5 Ulasan', goal: 5, progress: stats.reviewCount, pts: 250, medal: '📝' },
     { id: 18, title: 'Suara Masyarakat', desc: 'Tulis 15 Ulasan', goal: 15, progress: stats.reviewCount, pts: 600, medal: '🗣️' },
@@ -222,13 +242,13 @@ export default function ProfileClient({ data }: Props) {
 
   // --- OVERVIEW WIDGETS DATA ---
   // 1. Radar Persona
-  const maxRadarVal = Math.max(culinaryBookings, historyBookings, natureBookings, entertainmentBookings, shoppingBookings, 1)
+  const maxRadarVal = Math.max(...Object.values(pillarCounts), 1)
   const radarData = [
-    { label: 'Kuliner', value: culinaryBookings },
-    { label: 'Sejarah', value: historyBookings },
-    { label: 'Alam', value: natureBookings },
-    { label: 'Hiburan', value: entertainmentBookings },
-    { label: 'Belanja', value: shoppingBookings },
+    { label: 'Kuliner', value: pillarCounts.Kuliner },
+    { label: 'Sejarah', value: pillarCounts.Sejarah },
+    { label: 'Alam', value: pillarCounts.Alam },
+    { label: 'Hiburan', value: pillarCounts.Hiburan },
+    { label: 'Belanja', value: pillarCounts.Belanja },
   ]
   const sortedRadar = [...radarData].sort((a,b) => b.value - a.value)
   const isRadarEmpty = maxRadarVal === 1 && sortedRadar[0].value === 0

@@ -18,7 +18,7 @@ export default async function ProfilPage() {
 
   const userId = parseInt(session.user.id as string)
 
-  const [user, itineraries, bookings, reviews, savedEvents] = await Promise.all([
+  const [user, itineraries, bookings, reviews, savedEvents, categories] = await Promise.all([
     prisma.user.findUnique({ where: { id: userId } }),
     prisma.itinerary.findMany({
       where: { userId },
@@ -45,6 +45,7 @@ export default async function ProfilPage() {
       include: { event: true },
       orderBy: { createdAt: 'desc' }
     }),
+    prisma.category.findMany()
   ])
 
   if (!user) redirect('/login')
@@ -53,11 +54,17 @@ export default async function ProfilPage() {
   const totalSpent = bookings.filter(b => b.status === 'confirmed').reduce((s, b) => s + b.totalPrice, 0)
   const confirmedBookings = bookings.filter(b => b.status === 'confirmed').length
   const avgRating = reviews.length > 0 ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : null
-  const uniqueAreas = [...new Set(bookings.map(b => b.destination.area))]
+  
+  // Also count unique areas from ALL itinerary destinations, not just bookings!
+  const itineraryDestinations = itineraries.flatMap(i => i.items.map(it => it.destination))
+  const uniqueAreas = [...new Set([...bookings.map(b => b.destination.area), ...itineraryDestinations.map(d => d.area)])]
+  
   const totalDays = itineraries.reduce((s, i) => s + i.duration, 0)
 
   // Serialize for client
   const data = {
+    categories,
+    allVisitedCategoryIds: itineraryDestinations.map(d => d.categoryId),
     user: {
       name: user.name,
       email: user.email,
