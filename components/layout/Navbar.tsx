@@ -401,11 +401,12 @@ export default function Navbar() {
                         color: '#1A2332',
                         fontWeight: 500,
                         fontSize: '0.9rem',
+                        whiteSpace: 'nowrap',
                       }}
                       className="menu-item"
                     >
                       <Compass size={16} color="#FF6B35" />
-                      {(session.user as any).role === 'superadmin' ? '👑 Super Admin Panel' : '🛡️ Admin Panel'}
+                      {(session.user as any).role === 'superadmin' ? 'Super Admin Panel' : 'Admin Panel'}
                     </Link>
                   )}
                   {(session.user as any).role === 'owner' && (
@@ -421,11 +422,12 @@ export default function Navbar() {
                         color: '#1A2332',
                         fontWeight: 500,
                         fontSize: '0.9rem',
+                        whiteSpace: 'nowrap',
                       }}
                       className="menu-item"
                     >
                       <Compass size={16} color="#7C3AED" />
-                      🏪 Portal Pengelola
+                      Portal Pengelola
                     </Link>
                   )}
                   <div style={{ borderTop: '1px solid #E5E9F0' }}>
