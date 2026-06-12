@@ -59,8 +59,9 @@ export default async function DetailHiburanPage({
 
   if (!destination) notFound()
 
-  // Only hiburan & spot-foto belong here
-  if (destination.category.slug !== 'hiburan' && destination.category.slug !== 'spot-foto') {
+  // Allow all hiburan subcategories (7 total in DB)
+  const HIBURAN_SLUGS = new Set(['hiburan','bioskop-hiburan','olahraga-petualangan','permainan-arcade','spot-foto','spot-foto-indoor','spot-foto-outdoor','studio-foto'])
+  if (!HIBURAN_SLUGS.has(destination.category.slug)) {
     redirect(`/wisata/${slug}`)
   }
 
