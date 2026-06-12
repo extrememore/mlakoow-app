@@ -56,7 +56,7 @@ export default function OwnerSidebar() {
           <div style={{ width: '34px', height: '34px', background: '#A855F7', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>🏪</div>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: isCollapsed ? 0 : '8px', marginTop: isCollapsed ? '12px' : 0 }}>
-          {!onNav && <NotificationBell isCollapsed={isCollapsed} />}
+          <NotificationBell isCollapsed={isCollapsed} />
           {!onNav && (
             <button
               onClick={() => setCollapsed(c => !c)}

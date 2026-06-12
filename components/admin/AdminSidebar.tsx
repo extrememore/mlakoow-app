@@ -85,27 +85,29 @@ export default function AdminSidebar() {
             🧭
           </div>
         )}
-        <button
-          onClick={() => collapsed ? setCollapsed(false) : setCollapsed(true)}
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          style={{
-            background: 'rgba(255,255,255,0.08)',
-            border: 'none',
-            borderRadius: '8px',
-            width: '30px',
-            height: '30px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            color: 'rgba(255,255,255,0.7)',
-            flexShrink: 0,
-            marginLeft: collapsed && !mobileOpen ? 0 : '8px',
-            marginTop: collapsed && !mobileOpen ? '8px' : 0,
-          }}
-        >
-          {collapsed && !mobileOpen ? <ChevronRight size={16} /> : <Menu size={16} />}
-        </button>
+        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: collapsed && !mobileOpen ? 0 : '8px', marginTop: collapsed && !mobileOpen ? '8px' : 0 }}>
+          <NotificationBell isCollapsed={collapsed && !mobileOpen} />
+          <button
+            onClick={() => collapsed ? setCollapsed(false) : setCollapsed(true)}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            style={{
+              background: 'rgba(255,255,255,0.08)',
+              border: 'none',
+              borderRadius: '8px',
+              width: '30px',
+              height: '30px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              color: 'rgba(255,255,255,0.7)',
+              flexShrink: 0,
+            }}
+          >
+            {collapsed && !mobileOpen ? <ChevronRight size={16} /> : <Menu size={16} />}
+          </button>
+        </div>
       </div>
 
       {/* Nav */}
@@ -243,9 +245,13 @@ export default function AdminSidebar() {
               <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Admin Panel</div>
             </div>
           </div>
-          <button onClick={() => setMobileOpen(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '8px', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white' }}>
-            <X size={16} />
-          </button>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <NotificationBell isCollapsed={false} />
+            <button onClick={() => setMobileOpen(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '8px', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white' }}>
+              <X size={16} />
+            </button>
+          </div>
         </div>
         {/* Mobile nav */}
         <nav style={{ flex: 1, padding: '1rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
