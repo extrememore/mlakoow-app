@@ -81,6 +81,7 @@ export default async function ProfilPage() {
       totalEstimatedCost: i.totalEstimatedCost,
       startDate: i.startDate?.toISOString() ?? null,
       createdAt: i.createdAt.toISOString(),
+      isCanvas: i.isCanvas,
       itemCount: i.items.length,
       items: i.items.slice(0, 4).map(it => ({
         id: it.id,

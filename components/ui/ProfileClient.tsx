@@ -12,7 +12,7 @@ import {
 
 /* ── types ── */
 interface ItineraryItem { id: number; destinationName: string; categoryIcon: string; categoryColor: string; mainImage: string }
-interface Itinerary { id: number; title: string; duration: number; area: string; totalEstimatedCost: number; startDate: string | null; createdAt: string; itemCount: number; items: ItineraryItem[] }
+interface Itinerary { id: number; title: string; duration: number; area: string; totalEstimatedCost: number; startDate: string | null; createdAt: string; isCanvas: boolean; itemCount: number; items: ItineraryItem[] }
 interface Booking { id: number; bookingCode: string; status: string; visitDate: string; ticketCount: number; totalPrice: number; createdAt: string; destination: { name: string; mainImage: string; slug: string; area: string; categoryName: string; categoryIcon: string; categoryColor: string } }
 interface Review { id: number; rating: number; comment: string; createdAt: string; destination: { name: string; slug: string; mainImage: string } }
 interface Stats { itineraryCount: number; bookingCount: number; reviewCount: number; totalSpent: number; confirmedBookings: number; avgRating: string | null; uniqueAreas: number; totalDays: number }
@@ -401,8 +401,8 @@ export default function ProfileClient({ data }: Props) {
 
         {/* ════ ITINERARY TAB ════ */}
         {activeTab === 'itinerary' && (() => {
-          const kanvasItineraries = itineraries.filter(i => i.itemCount === 0)
-          const fixItineraries = itineraries.filter(i => i.itemCount > 0)
+          const kanvasItineraries = itineraries.filter(i => i.isCanvas)
+          const fixItineraries = itineraries.filter(i => !i.isCanvas)
           
           return (
             <div>
