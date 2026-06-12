@@ -62,3 +62,36 @@ export async function DELETE(
   await prisma.itinerary.delete({ where: { id: itineraryId } })
   return NextResponse.json({ success: true })
 }
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await auth()
+  if (!session?.user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { id } = await params
+  const itineraryId = parseInt(id)
+
+  const itinerary = await prisma.itinerary.findFirst({
+    where: { id: itineraryId, userId: parseInt(session.user.id as string) },
+  })
+
+  if (!itinerary) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+  const body = await request.json()
+  if (!body.title) {
+    return NextResponse.json({ error: 'Title required' }, { status: 400 })
+  }
+
+  const updated = await prisma.itinerary.update({
+    where: { id: itineraryId },
+    data: { title: body.title },
+  })
+
+  return NextResponse.json({ success: true, itinerary: updated })
+}

@@ -8,7 +8,7 @@ import LogoutButton from '@/components/ui/LogoutButton'
 import {
   BookOpen, Ticket, Star, MapPin, Calendar, Wallet, ArrowRight,
   TrendingUp, Award, Clock, User, Mail, ChevronRight, QrCode, ExternalLink,
-  Map, Heart, Zap, Shield,
+  Map, Heart, Zap, Shield, Trash2
 } from 'lucide-react'
 
 /* ── types ── */
@@ -93,8 +93,9 @@ const TABS = [
 ]
 
 export default function ProfileClient({ data }: Props) {
-  const { user: initialUser, stats, itineraries, bookings, reviews, savedEvents } = data
+  const { user: initialUser, stats, itineraries: initialItineraries, bookings, reviews, savedEvents } = data
   const [user, setUser] = useState(initialUser)
+  const [itineraries, setItineraries] = useState(initialItineraries)
   const searchParams = useSearchParams()
   const tabParam = searchParams?.get('tab')
   const [activeTab, setActiveTab] = useState(tabParam || 'overview')
@@ -143,6 +144,17 @@ export default function ProfileClient({ data }: Props) {
     }
   }
 
+  const handleDeleteCanvas = async (id: number) => {
+    try {
+      const res = await fetch(`/api/itineraries/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Gagal menghapus kanvas')
+      setItineraries(prev => prev.filter(i => i.id !== id))
+    } catch (error) {
+      console.error(error)
+      alert('Terjadi kesalahan saat menghapus kanvas')
+    }
+  }
+
   useEffect(() => {
     if (tabParam) {
       setActiveTab(tabParam)
@@ -162,7 +174,7 @@ export default function ProfileClient({ data }: Props) {
   ]
 
   const renderItineraryCard = (itin: Itinerary) => (
-    <Link key={itin.id} href={`/itinerary/${itin.id}`} style={{ textDecoration: 'none' }}>
+    <Link key={itin.id} href={itin.isCanvas ? `/itinerary/kanvas/${itin.id}` : `/itinerary/${itin.id}`} style={{ textDecoration: 'none' }}>
       <div style={{
         background: 'white', borderRadius: '20px', border: '1px solid #E5E9F0',
         overflow: 'hidden', transition: 'all 0.2s', cursor: 'pointer',
@@ -186,7 +198,27 @@ export default function ProfileClient({ data }: Props) {
         <div style={{ padding: '1.25rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
             <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#1A2332', lineHeight: 1.3 }}>{itin.title}</div>
-            <ArrowRight size={15} color="#8B98A9" style={{ flexShrink: 0 }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {itin.isCanvas && (
+                <button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    if(confirm('Hapus kanvas ini?')) {
+                      handleDeleteCanvas(itin.id)
+                    }
+                  }}
+                  style={{
+                    background: '#FEF2F2', color: '#EF4444', border: 'none', borderRadius: '8px',
+                    padding: '6px', cursor: 'pointer', flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}
+                  title="Hapus Kanvas"
+                >
+                  <Trash2 size={15} />
+                </button>
+              )}
+              <ArrowRight size={15} color="#8B98A9" style={{ flexShrink: 0 }} />
+            </div>
           </div>
 
           <div style={{ display: 'flex', gap: '10px', fontSize: '0.78rem', color: '#8B98A9', marginBottom: '10px', flexWrap: 'wrap' }}>
