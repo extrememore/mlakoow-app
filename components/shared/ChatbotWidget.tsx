@@ -51,32 +51,28 @@ export default function ChatbotWidget() {
       const data = await res.json()
       
       if (data.error) {
-        setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', content: `**Error:** ${data.error}` }])
+        setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', content: `**Oops!** ${data.error}` }])
       } else {
         setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', content: data.reply }])
       }
-    } catch (err) {
+    } catch {
       setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', content: 'Maaf, sistem sedang sibuk. Coba lagi nanti ya!' }])
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Parse message content to replace [DESTINATION:ID] with the BotDestinationCard component
   const renderMessageContent = (content: string) => {
-    // Split by the tag, including any surrounding asterisks or spaces the AI might add
     const parts = content.split(/(\**\s*\[DESTINATION:\d+\]\s*\**)/g)
     
     return parts.map((part, index) => {
       const match = part.match(/\[DESTINATION:(\d+)\]/)
       if (match) {
-        const destId = parseInt(match[1])
-        return <BotDestinationCard key={index} id={destId} />
+        return <BotDestinationCard key={index} id={parseInt(match[1])} />
       }
       if (!part.trim()) return null
-      
       return (
-        <div key={index} className="prose prose-sm prose-p:leading-relaxed prose-p:my-1 prose-ul:my-1 prose-li:my-0 prose-a:text-[#FF6B35] max-w-none">
+        <div key={index} style={{ lineHeight: '1.65' }}>
           <ReactMarkdown>{part}</ReactMarkdown>
         </div>
       )
@@ -100,51 +96,212 @@ export default function ChatbotWidget() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-[350px] sm:w-[380px] h-[550px] max-h-[calc(100vh-120px)] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50 border border-gray-100 font-sans animate-in slide-in-from-bottom-5">
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '96px',
+            right: '24px',
+            width: '370px',
+            maxWidth: 'calc(100vw - 32px)',
+            height: '560px',
+            maxHeight: 'calc(100vh - 120px)',
+            backgroundColor: '#ffffff',
+            borderRadius: '20px',
+            boxShadow: '0 25px 60px rgba(0,0,0,0.18)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            zIndex: 50,
+            border: '1px solid #E5E9F0',
+            fontFamily: "'Outfit', sans-serif",
+          }}
+        >
           {/* Header */}
-          <div className="bg-[#0A4A5E] p-4 sm:p-5 text-white flex items-center gap-3">
-            <div className="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-md shadow-inner">
-              <Sparkles size={22} className="text-yellow-400" />
+          <div
+            style={{
+              background: 'linear-gradient(135deg, #0A4A5E 0%, #0d5a72 100%)',
+              padding: '16px 20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '14px',
+              flexShrink: 0,
+            }}
+          >
+            <div
+              style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '50%',
+                background: 'rgba(255,255,255,0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                backdropFilter: 'blur(8px)',
+              }}
+            >
+              <Sparkles size={22} color="#FBBF24" />
             </div>
-            <div>
-              <h3 className="font-bold text-lg leading-tight flex items-center">
-                Tanya Mlaky 
-                <span className="ml-2 text-[10px] bg-gradient-to-r from-[#FF6B35] to-[#E5522A] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold shadow-sm">
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h3 style={{ color: '#fff', fontWeight: 700, fontSize: '17px', margin: 0, lineHeight: 1.2 }}>
+                  Tanya Mlaky
+                </h3>
+                <span
+                  style={{
+                    fontSize: '10px',
+                    background: 'linear-gradient(135deg, #FF6B35, #E5522A)',
+                    color: '#fff',
+                    padding: '2px 8px',
+                    borderRadius: '20px',
+                    fontWeight: 700,
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                    boxShadow: '0 2px 6px rgba(229,82,42,0.4)',
+                  }}
+                >
                   Beta
                 </span>
-              </h3>
-              <p className="text-[13px] text-white/80 mt-0.5">AI Travel Assistant Surabaya</p>
+              </div>
+              <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '13px', margin: '3px 0 0 0' }}>
+                AI Travel Assistant Surabaya
+              </p>
             </div>
-            <button onClick={() => setIsOpen(false)} className="ml-auto text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-full">
+            <button
+              onClick={() => setIsOpen(false)}
+              style={{
+                background: 'rgba(255,255,255,0.15)',
+                border: 'none',
+                borderRadius: '50%',
+                width: '34px',
+                height: '34px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                color: 'rgba(255,255,255,0.85)',
+                transition: 'background 0.2s',
+                flexShrink: 0,
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.25)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.15)')}
+            >
               <X size={18} />
             </button>
           </div>
 
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-5 bg-[#F8F9FA] flex flex-col gap-6">
+          <div
+            style={{
+              flex: 1,
+              overflowY: 'auto',
+              padding: '20px 16px',
+              background: '#F4F6F8',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '20px',
+            }}
+          >
             {messages.map((msg) => (
-              <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm ${msg.role === 'user' ? 'bg-white border border-gray-200 text-[#0A4A5E]' : 'bg-gradient-to-br from-[#FF6B35] to-[#E5522A] text-white'}`}>
-                  {msg.role === 'user' ? <User size={16} /> : <Sparkles size={16} />}
+              <div
+                key={msg.id}
+                style={{
+                  display: 'flex',
+                  gap: '10px',
+                  flexDirection: msg.role === 'user' ? 'row-reverse' : 'row',
+                  alignItems: 'flex-start',
+                }}
+              >
+                {/* Avatar */}
+                <div
+                  style={{
+                    width: '34px',
+                    height: '34px',
+                    borderRadius: '50%',
+                    background: msg.role === 'user'
+                      ? '#ffffff'
+                      : 'linear-gradient(135deg, #FF6B35, #E5522A)',
+                    border: msg.role === 'user' ? '1.5px solid #E5E9F0' : 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  }}
+                >
+                  {msg.role === 'user'
+                    ? <User size={16} color="#0A4A5E" />
+                    : <Sparkles size={16} color="#fff" />
+                  }
                 </div>
-                <div className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-5 py-3.5 break-words ${msg.role === 'user' ? 'bg-[#0A4A5E] text-white rounded-tr-sm shadow-md' : 'bg-white border border-gray-200 shadow-sm text-gray-800 rounded-tl-sm'}`}>
+
+                {/* Bubble */}
+                <div
+                  style={{
+                    maxWidth: '82%',
+                    borderRadius: msg.role === 'user' ? '18px 4px 18px 18px' : '4px 18px 18px 18px',
+                    padding: '12px 16px',
+                    fontSize: '14.5px',
+                    lineHeight: '1.65',
+                    wordBreak: 'break-word',
+                    ...(msg.role === 'user'
+                      ? {
+                          background: 'linear-gradient(135deg, #0A4A5E, #0d5a72)',
+                          color: '#ffffff',
+                          boxShadow: '0 3px 10px rgba(10,74,94,0.25)',
+                        }
+                      : {
+                          background: '#ffffff',
+                          color: '#1A2332',
+                          border: '1px solid #E5E9F0',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                        }
+                    ),
+                  }}
+                >
                   {msg.role === 'user' ? (
-                    <p className="text-[15px] leading-relaxed">{msg.content}</p>
+                    <p style={{ margin: 0 }}>{msg.content}</p>
                   ) : (
-                    <div className="text-[15px] leading-relaxed flex flex-col gap-2">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {renderMessageContent(msg.content)}
                     </div>
                   )}
                 </div>
               </div>
             ))}
+
+            {/* Loading indicator */}
             {isLoading && (
-              <div className="flex gap-3 flex-row animate-pulse">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF6B35] to-[#E5522A] text-white flex items-center justify-center shrink-0 shadow-sm">
-                  <Sparkles size={16} />
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                <div
+                  style={{
+                    width: '34px',
+                    height: '34px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #FF6B35, #E5522A)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  }}
+                >
+                  <Sparkles size={16} color="#fff" />
                 </div>
-                <div className="bg-white border border-gray-200 shadow-sm text-gray-800 rounded-2xl rounded-tl-sm px-5 py-3.5">
-                  <Loader2 size={18} className="animate-spin text-[#FF6B35]" />
+                <div
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #E5E9F0',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                    borderRadius: '4px 18px 18px 18px',
+                    padding: '14px 18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <Loader2 size={18} color="#FF6B35" style={{ animation: 'spin 1s linear infinite' }} />
+                  <span style={{ fontSize: '13px', color: '#8B98A9' }}>Mlaky lagi mikir...</span>
                 </div>
               </div>
             )}
@@ -152,22 +309,63 @@ export default function ChatbotWidget() {
           </div>
 
           {/* Input Area */}
-          <div className="p-4 bg-white border-t border-gray-100 flex gap-3 shadow-[0_-4px_20px_-15px_rgba(0,0,0,0.1)]">
+          <div
+            style={{
+              padding: '14px 16px',
+              background: '#ffffff',
+              borderTop: '1px solid #EEF1F5',
+              display: 'flex',
+              gap: '10px',
+              alignItems: 'center',
+              boxShadow: '0 -4px 20px rgba(0,0,0,0.05)',
+              flexShrink: 0,
+            }}
+          >
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder="Tanya rekomendasi wisata..."
-              className="flex-1 bg-gray-50/50 border border-gray-200 rounded-full px-5 py-3 text-[15px] focus:outline-none focus:border-[#0A4A5E] focus:ring-1 focus:ring-[#0A4A5E] transition-all placeholder:text-gray-400 shadow-inner"
               disabled={isLoading}
+              style={{
+                flex: 1,
+                background: '#F4F6F8',
+                border: '1.5px solid #E5E9F0',
+                borderRadius: '50px',
+                padding: '11px 20px',
+                fontSize: '14.5px',
+                color: '#1A2332',
+                outline: 'none',
+                fontFamily: "'Outfit', sans-serif",
+                transition: 'border-color 0.2s',
+              }}
+              onFocus={e => (e.target.style.borderColor = '#0A4A5E')}
+              onBlur={e => (e.target.style.borderColor = '#E5E9F0')}
             />
             <button
               onClick={handleSend}
               disabled={!input.trim() || isLoading}
-              className="w-12 h-12 bg-[#0A4A5E] rounded-full flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#062E3A] hover:scale-105 active:scale-95 transition-all shrink-0 shadow-md"
+              style={{
+                width: '46px',
+                height: '46px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #0A4A5E, #0d5a72)',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#fff',
+                cursor: input.trim() && !isLoading ? 'pointer' : 'not-allowed',
+                opacity: input.trim() && !isLoading ? 1 : 0.45,
+                flexShrink: 0,
+                boxShadow: '0 4px 12px rgba(10,74,94,0.3)',
+                transition: 'opacity 0.2s, transform 0.15s',
+              }}
+              onMouseEnter={e => { if (input.trim() && !isLoading) e.currentTarget.style.transform = 'scale(1.07)' }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}
             >
-              <Send size={18} className="ml-0.5" />
+              <Send size={18} style={{ marginLeft: '2px' }} />
             </button>
           </div>
         </div>
