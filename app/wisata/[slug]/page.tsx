@@ -15,6 +15,7 @@ import ImageGallery from '@/components/ui/ImageGallery'
 import TransportEstimator from '@/components/ui/TransportEstimator'
 import DistanceBadge from '@/components/ui/DistanceBadge'
 import MenuImage from '@/components/ui/MenuImage'
+import { getDetailHref } from '@/lib/categoryRoutes'
 import {
   MapPin,
   Clock,
@@ -376,7 +377,7 @@ export default async function DetailDestinasiPage({
                   {related.map((rel) => (
                     <Link
                       key={rel.id}
-                      href={`/wisata/${rel.slug}`}
+                      href={getDetailHref(rel.slug, rel.category?.slug ?? '')}
                       style={{ textDecoration: 'none', display: 'flex', gap: '12px', alignItems: 'center' }}
                     >
                       <SafeImage

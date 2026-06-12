@@ -112,21 +112,27 @@ export default function DestinationCard({
   }, [menuOpen])
 
 
-  let href = `/wisata/${slug}`
-  if (category.slug === 'kuliner') href = `/kuliner/${slug}`
-  if (category.slug === 'cafe') href = `/cafe/${slug}`
-  if (category.slug === 'oleh-oleh') href = `/oleh-oleh/${slug}`
-  if (category.slug === 'hiburan') href = `/hiburan/${slug}`
-  if (category.slug === 'spot-foto') href = `/hiburan/${slug}`
+  // Complete subcategory → parent route mapping (covers all 30 subcategories in DB)
+  const KULINER_SLUGS = new Set(['kuliner','makanan-tradisional','street-food','seafood','restoran','warung-lokal','jajanan-snack'])
+  const CAFE_SLUGS    = new Set(['cafe','cafe-umum','coffee-shop','creative-space','kedai'])
+  const OLEHOLEH_SLUGS= new Set(['oleh-oleh','batik-fashion','kerajinan-tangan','kue-roti','makanan-khas','minuman-bumbu','souvenir-aksesoris'])
+  const HIBURAN_SLUGS = new Set(['hiburan','bioskop-hiburan','olahraga-petualangan','permainan-arcade','spot-foto','spot-foto-indoor','spot-foto-outdoor','studio-foto'])
 
-  const isCafe = category.slug === 'cafe'
-  const isKulinerOrCafeOrOleh = isKuliner || isCafe || category.slug === 'kuliner' || category.slug === 'oleh-oleh'
+  const catSlug = category.slug
+  let href = `/wisata/${slug}`
+  if (KULINER_SLUGS.has(catSlug))  href = `/kuliner/${slug}`
+  else if (CAFE_SLUGS.has(catSlug))    href = `/cafe/${slug}`
+  else if (OLEHOLEH_SLUGS.has(catSlug)) href = `/oleh-oleh/${slug}`
+  else if (HIBURAN_SLUGS.has(catSlug))  href = `/hiburan/${slug}`
+
+  const isCafe = CAFE_SLUGS.has(catSlug)
+  const isKulinerOrCafeOrOleh = isKuliner || KULINER_SLUGS.has(catSlug) || CAFE_SLUGS.has(catSlug) || OLEHOLEH_SLUGS.has(catSlug)
 
   // Determine if this is a bookable wisata (non-free, non-food category)
   const isBookableWisata = !isKulinerOrCafeOrOleh
-    && category.slug !== 'hiburan'
-    && category.slug !== 'spot-foto'
+    && !HIBURAN_SLUGS.has(catSlug)
     && ticketPrice > 0
+
 
   let priceDisplay = 'Gratis'
   if (ticketPrice > 0) {

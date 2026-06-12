@@ -18,6 +18,7 @@ import ImageGallery from '@/components/ui/ImageGallery'
 import TransportEstimator from '@/components/ui/TransportEstimator'
 import MenuImage from '@/components/ui/MenuImage'
 import DistanceBadge from '@/components/ui/DistanceBadge'
+import { getDetailHref } from '@/lib/categoryRoutes'
 import {
   MapPin,
   Clock,
@@ -358,7 +359,7 @@ export default async function DetailKulinerPage({
                   {related.map((rel) => (
                     <Link
                       key={rel.id}
-                      href={`/kuliner/${rel.slug}`}
+                      href={getDetailHref(rel.slug, rel.category?.slug ?? '')}
                       style={{ textDecoration: 'none', display: 'flex', gap: '12px', alignItems: 'center' }}
                     >
                       <SafeImage

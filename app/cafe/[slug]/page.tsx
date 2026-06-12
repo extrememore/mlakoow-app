@@ -18,6 +18,7 @@ import ImageGallery from '@/components/ui/ImageGallery'
 import TransportEstimator from '@/components/ui/TransportEstimator'
 import MenuImage from '@/components/ui/MenuImage'
 import DistanceBadge from '@/components/ui/DistanceBadge'
+import { getDetailHref } from '@/lib/categoryRoutes'
 import {
   MapPin,
   Clock,
@@ -110,7 +111,7 @@ export default async function DetailCafePage({
       />
 
       {/* Hero info bar */}
-      <div style={{ background: 'linear-gradient(135deg, #4C1D95 0%, #7C3AED 100%)', padding: '1.5rem 1.5rem 1.25rem' }}>
+      <div style={{ background: 'linear-gradient(135deg, #7B1A00 0%, #C0392B 100%)', padding: '1.5rem 1.5rem 1.25rem' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
             <span className="badge" style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.3)' }}>
@@ -321,19 +322,19 @@ export default async function DetailCafePage({
                 borderRadius: '20px',
                 padding: '1.75rem',
                 border: '1px solid #E5E9F0',
-                boxShadow: '0 8px 30px rgba(76,29,149,0.08)',
+                boxShadow: '0 8px 30px rgba(192,57,43,0.08)',
               }}
             >
               <div style={{ marginBottom: '1.25rem' }}>
                 <div style={{ fontSize: '0.85rem', color: '#8B98A9', fontWeight: 600, marginBottom: '4px' }}>RATA-RATA HARGA MENU</div>
-                <div style={{ fontSize: '2rem', fontWeight: 900, color: averageMenuPrice === 0 ? '#10B981' : '#4C1D95' }}>
+                <div style={{ fontSize: '2rem', fontWeight: 900, color: averageMenuPrice === 0 ? '#10B981' : '#C0392B' }}>
                   {averageMenuPrice === 0 ? 'Bervariasi' : `Rp ${averageMenuPrice.toLocaleString('id-ID')}`}
                 </div>
               </div>
 
               <WishlistButton
                 destinationId={destination.id}
-                style={{ marginBottom: '0.75rem', background: 'linear-gradient(135deg, #4C1D95, #7C3AED)' }}
+                style={{ marginBottom: '0.75rem', background: 'linear-gradient(135deg, #7B1A00, #C0392B)' }}
               />
 
               <ItineraryPickerModal
@@ -359,13 +360,13 @@ export default async function DetailCafePage({
                 }}
               >
                 <h3 style={{ fontWeight: 800, fontSize: '1.25rem', color: '#1A2332', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Coffee size={22} color="#4C1D95" /> Cafe Serupa
+                  <Coffee size={22} color="#C0392B" /> Cafe Serupa
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {related.map((rel) => (
                     <Link
                       key={rel.id}
-                      href={`/cafe/${rel.slug}`}
+                      href={getDetailHref(rel.slug, rel.category?.slug ?? '')}
                       style={{ textDecoration: 'none', display: 'flex', gap: '12px', alignItems: 'center' }}
                     >
                       <SafeImage

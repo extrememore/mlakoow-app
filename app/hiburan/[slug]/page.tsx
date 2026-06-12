@@ -13,6 +13,7 @@ import TransportEstimator from '@/components/ui/TransportEstimator'
 import DistanceBadge from '@/components/ui/DistanceBadge'
 import WishlistButton from '@/components/ui/WishlistButton'
 import ItineraryPickerModal from '@/components/ui/ItineraryPickerModal'
+import { getDetailHref } from '@/lib/categoryRoutes'
 import {
   MapPin,
   Clock,
@@ -279,7 +280,7 @@ export default async function DetailHiburanPage({
                   {related.map((rel) => (
                     <Link
                       key={rel.id}
-                      href={`/hiburan/${rel.slug}`}
+                      href={getDetailHref(rel.slug, rel.category?.slug ?? '')}
                       style={{ textDecoration: 'none', display: 'flex', gap: '12px', alignItems: 'center' }}
                     >
                       <SafeImage

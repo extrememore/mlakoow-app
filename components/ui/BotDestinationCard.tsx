@@ -45,25 +45,26 @@ export default function BotDestinationCard({ id }: { id: number }) {
 
   if (!dest) return null
 
-  // Map category slug to the correct Next.js route path
+  // Complete subcategory → parent route mapping (all 30 subcategories in DB)
   const categoryRouteMap: Record<string, string> = {
-    'wisata': 'wisata',
-    'alam': 'wisata',
-    'sejarah': 'wisata',
-    'budaya': 'wisata',
-    'keluarga': 'wisata',
-    'hidden-gem': 'wisata',
-    'kuliner': 'kuliner',
-    'makanan-tradisional': 'kuliner',
-    'street-food': 'kuliner',
-    'restoran': 'kuliner',
-    'cafe': 'cafe',
-    'coffee-shop': 'cafe',
-    'kafe': 'cafe',
-    'hiburan': 'hiburan',
-    'oleh-oleh': 'oleh-oleh',
-    'batik': 'oleh-oleh',
-    'fashion': 'oleh-oleh',
+    // Wisata & subcategories
+    'wisata': 'wisata', 'alam': 'wisata', 'budaya': 'wisata', 'sejarah': 'wisata',
+    'keluarga': 'wisata', 'edukasi': 'wisata', 'petualangan': 'wisata',
+    'taman-rekreasi': 'wisata', 'hidden-gem': 'wisata',
+    // Kuliner & subcategories
+    'kuliner': 'kuliner', 'makanan-tradisional': 'kuliner', 'street-food': 'kuliner',
+    'seafood': 'kuliner', 'restoran': 'kuliner', 'warung-lokal': 'kuliner', 'jajanan-snack': 'kuliner',
+    // Cafe & subcategories
+    'cafe': 'cafe', 'cafe-umum': 'cafe', 'coffee-shop': 'cafe',
+    'creative-space': 'cafe', 'kedai': 'cafe',
+    // Hiburan & subcategories
+    'hiburan': 'hiburan', 'bioskop-hiburan': 'hiburan', 'olahraga-petualangan': 'hiburan',
+    'permainan-arcade': 'hiburan', 'spot-foto': 'hiburan',
+    'spot-foto-indoor': 'hiburan', 'spot-foto-outdoor': 'hiburan', 'studio-foto': 'hiburan',
+    // Oleh-oleh & subcategories
+    'oleh-oleh': 'oleh-oleh', 'batik-fashion': 'oleh-oleh', 'kerajinan-tangan': 'oleh-oleh',
+    'kue-roti': 'oleh-oleh', 'makanan-khas': 'oleh-oleh',
+    'minuman-bumbu': 'oleh-oleh', 'souvenir-aksesoris': 'oleh-oleh',
   }
 
   const categorySlug = dest.category?.slug || ''
