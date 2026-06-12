@@ -63,12 +63,11 @@ export default function AdminSidebar() {
         top: 0,
         height: '100vh',
         transition: 'width 0.25s cubic-bezier(0.4,0,0.2,1)',
-        overflow: 'hidden',
         zIndex: 100,
       }}
     >
       {/* Brand + toggle */}
-      <div style={{ padding: collapsed && !mobileOpen ? '1.25rem 0' : '1.25rem 1.25rem 1rem', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: collapsed && !mobileOpen ? 'center' : 'space-between' }}>
+      <div style={{ padding: collapsed && !mobileOpen ? '1.25rem 0' : '1.25rem 1.25rem 1rem', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: collapsed && !mobileOpen ? 'column' : 'row', alignItems: 'center', justifyContent: collapsed && !mobileOpen ? 'center' : 'space-between' }}>
         {(!collapsed || mobileOpen) && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ width: '34px', height: '34px', background: '#FF6B35', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', flexShrink: 0 }}>
@@ -85,7 +84,7 @@ export default function AdminSidebar() {
             🧭
           </div>
         )}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: collapsed && !mobileOpen ? 0 : '8px', marginTop: collapsed && !mobileOpen ? '8px' : 0 }}>
+        <div style={{ display: 'flex', flexDirection: collapsed && !mobileOpen ? 'column' : 'row', alignItems: 'center', gap: '8px', marginTop: collapsed && !mobileOpen ? '16px' : 0 }}>
           <NotificationBell isCollapsed={collapsed && !mobileOpen} />
           <button
             onClick={() => collapsed ? setCollapsed(false) : setCollapsed(true)}

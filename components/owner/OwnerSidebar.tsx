@@ -41,7 +41,7 @@ export default function OwnerSidebar() {
       <div style={{
         padding: isCollapsed ? '1.25rem 0' : '1.25rem 1.25rem 1rem',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
-        display: 'flex', alignItems: 'center',
+        display: 'flex', flexDirection: isCollapsed ? 'column' : 'row', alignItems: 'center',
         justifyContent: isCollapsed ? 'center' : 'space-between',
       }}>
         {!isCollapsed ? (
@@ -55,7 +55,7 @@ export default function OwnerSidebar() {
         ) : (
           <div style={{ width: '34px', height: '34px', background: '#A855F7', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>🏪</div>
         )}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: isCollapsed ? 0 : '8px', marginTop: isCollapsed ? '12px' : 0 }}>
+        <div style={{ display: 'flex', flexDirection: isCollapsed ? 'column' : 'row', alignItems: 'center', gap: '8px', marginTop: isCollapsed ? '16px' : 0 }}>
           <NotificationBell isCollapsed={isCollapsed} />
           {!onNav && (
             <button
@@ -137,7 +137,7 @@ export default function OwnerSidebar() {
           display: 'flex', flexDirection: 'column', flexShrink: 0,
           position: 'sticky', top: 0, height: '100vh',
           transition: 'width 0.25s cubic-bezier(0.4,0,0.2,1)',
-          overflow: 'hidden', zIndex: 100,
+          zIndex: 100,
         }}
       >
         <SidebarContent />
