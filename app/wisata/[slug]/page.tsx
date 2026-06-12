@@ -14,6 +14,7 @@ import QnaSection from '@/components/ui/QnaSection'
 import ImageGallery from '@/components/ui/ImageGallery'
 import TransportEstimator from '@/components/ui/TransportEstimator'
 import DistanceBadge from '@/components/ui/DistanceBadge'
+import MenuImage from '@/components/ui/MenuImage'
 import {
   MapPin,
   Clock,
@@ -30,6 +31,7 @@ import {
   Share2,
   Heart,
   CalendarPlus,
+  UtensilsCrossed,
 } from 'lucide-react'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -84,6 +86,10 @@ export default async function DetailDestinasiPage({
 
   const gallery: string[] = JSON.parse(destination.gallery || '[]')
   const facilities: string[] = JSON.parse(destination.facilities || '[]')
+  let menus: any[] = []
+  if (destination.menus) {
+    try { menus = JSON.parse(destination.menus) } catch(e) {}
+  }
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
@@ -192,6 +198,42 @@ export default async function DetailDestinasiPage({
                 {destination.description}
               </p>
             </div>
+
+            {/* Menu & Harga — hanya muncul jika ada data menus */}
+            {menus.length > 0 && (
+              <div style={{ background: 'white', borderRadius: '20px', padding: '2rem', border: '1px solid #E5E9F0' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1A2332', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <UtensilsCrossed size={20} color="#C0392B" /> Menu & Harga
+                </h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {menus.map((menu: any, index: number) => (
+                    <div key={index} style={{ display: 'flex', gap: '1.25rem', borderBottom: index < menus.length - 1 ? '1px dashed #E5E9F0' : 'none', paddingBottom: index < menus.length - 1 ? '1.25rem' : '0' }}>
+                      {menu.image ? (
+                        <MenuImage src={menu.image} alt={menu.name} />
+                      ) : (
+                        <div style={{ flexShrink: 0, width: '72px', height: '72px', borderRadius: '12px', background: '#FFF5F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <UtensilsCrossed size={22} color="#C0392B" />
+                        </div>
+                      )}
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                          <h4 style={{ fontSize: '1rem', fontWeight: 800, color: '#1A2332', margin: 0 }}>{menu.name}</h4>
+                          {menu.recommended && (
+                            <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#D97706', background: '#FEF3C7', padding: '2px 8px', borderRadius: '50px' }}>⭐ Rekomendasi</span>
+                          )}
+                        </div>
+                        {menu.desc && (
+                          <p style={{ fontSize: '0.85rem', color: '#8B98A9', margin: 0, lineHeight: 1.5 }}>{menu.desc}</p>
+                        )}
+                      </div>
+                      <div style={{ fontWeight: 900, color: '#C0392B', fontSize: '1.05rem', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
+                        Rp {menu.price?.toLocaleString('id-ID')}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Facilities */}
             {facilities.length > 0 && (
