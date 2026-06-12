@@ -371,7 +371,7 @@ export default function Navbar() {
                     Wishlist Saya
                   </Link>
                   <Link
-                    href="/itinerary/riwayat"
+                    href="/profil?tab=itinerary"
                     onClick={() => setUserMenuOpen(false)}
                     style={{
                       display: 'flex',
@@ -628,7 +628,7 @@ export default function Navbar() {
                 <Heart size={18} color="#7C3AED" /> Wishlist Saya
               </Link>
               <Link
-                href="/itinerary/riwayat"
+                href="/profil?tab=itinerary"
                 onClick={() => setMobileOpen(false)}
                 style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0.85rem 0', textDecoration: 'none', color: '#1A2332', fontWeight: 600, borderBottom: '1px solid #E5E9F0' }}
               >

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { QRModal } from '@/components/ui/QRModal'
 import LogoutButton from '@/components/ui/LogoutButton'
 import {
@@ -93,7 +94,15 @@ const TABS = [
 
 export default function ProfileClient({ data }: Props) {
   const { user, stats, itineraries, bookings, reviews, savedEvents } = data
-  const [activeTab, setActiveTab] = useState('overview')
+  const searchParams = useSearchParams()
+  const tabParam = searchParams?.get('tab')
+  const [activeTab, setActiveTab] = useState(tabParam || 'overview')
+
+  useEffect(() => {
+    if (tabParam) {
+      setActiveTab(tabParam)
+    }
+  }, [tabParam])
 
   const initial = user.name.charAt(0).toUpperCase()
   const memberSince = new Date(user.createdAt).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })

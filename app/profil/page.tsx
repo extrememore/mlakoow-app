@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import Navbar from '@/components/layout/Navbar'
 
 export const dynamic = 'force-dynamic'
@@ -139,7 +140,9 @@ export default async function ProfilPage() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
       <Navbar />
-      <ProfileClient data={data} />
+      <Suspense fallback={<div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center' }}>Memuat profil...</div>}>
+        <ProfileClient data={data} />
+      </Suspense>
       <Footer />
     </div>
   )
