@@ -307,8 +307,18 @@ export default function ProfileClient({ data }: Props) {
               </div>
             </div>
 
-            {/* Logout */}
-            <div style={{ flexShrink: 0 }}>
+            {/* Action Buttons */}
+            <div style={{ flexShrink: 0, display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <button
+                onClick={() => setIsEditModalOpen(true)}
+                className="btn-primary"
+                style={{
+                  padding: '0.6rem 1.25rem', fontSize: '0.85rem',
+                  boxShadow: '0 4px 15px rgba(255,107,53,0.3)',
+                  background: '#FF6B35', border: 'none', color: 'white', borderRadius: '50px', fontWeight: 800, cursor: 'pointer'
+                }}>
+                Edit Profil
+              </button>
               <LogoutButton />
             </div>
           </div>
