@@ -479,6 +479,12 @@ async function main() {
       hiddenGem: false,
       estimatedDuration: 45,
       facilities: JSON.stringify(['Parkir Tepi Jalan', 'Kursi & Meja']),
+      menus: JSON.stringify([
+        { name: 'Rujak Cingur Komplit', price: 25000, desc: 'Cingur, petis udang, sayuran segar, dan lontong', recommended: true },
+        { name: 'Rujak Cingur Setengah', price: 15000, desc: 'Porsi lebih kecil, cocok untuk pertama kali mencoba' },
+        { name: 'Lontong Campur', price: 18000, desc: 'Lontong + tauco + krupuk + sayuran' },
+        { name: 'Es Dawet Segar', price: 8000, desc: 'Minuman pendamping khas warung ini' },
+      ]),
     },
     {
       name: 'Warung Rawon Nguling',
@@ -500,6 +506,13 @@ async function main() {
       hiddenGem: false,
       estimatedDuration: 45,
       facilities: JSON.stringify(['Parkir Terbatas', 'Kursi & Meja', 'Take Away']),
+      menus: JSON.stringify([
+        { name: 'Rawon Spesial', price: 45000, desc: 'Daging sapi empuk, kuah kluwek pekat, tauge, telur asin', recommended: true },
+        { name: 'Rawon Biasa', price: 32000, desc: 'Porsi standar dengan kuah rawon legendaris 1948' },
+        { name: 'Rawon + Telur Asin', price: 38000, desc: 'Rawon biasa ditambah telur asin khas' },
+        { name: 'Nasi Putih', price: 5000, desc: 'Tambahan nasi putih pulen' },
+        { name: 'Es Teh Manis', price: 5000, desc: 'Minuman segar pendamping' },
+      ]),
     },
     {
       name: 'Pecel Semanggi Bu Siti',
@@ -521,6 +534,11 @@ async function main() {
       hiddenGem: true,
       estimatedDuration: 30,
       facilities: JSON.stringify(['Duduk di Pinggir Jalan', 'Take Away']),
+      menus: JSON.stringify([
+        { name: 'Pecel Semanggi', price: 12000, desc: 'Daun semanggi rebus dengan bumbu kacang petis khas', recommended: true },
+        { name: 'Pecel Semanggi + Kerupuk Puli', price: 15000, desc: 'Dilengkapi kerupuk puli renyah khas Surabaya' },
+        { name: 'Es Jeruk Peras', price: 7000, desc: 'Jeruk segar cocok diminum setelah makan pecel' },
+      ]),
     },
 
     // ===== SURABAYA BARAT & SELATAN =====
