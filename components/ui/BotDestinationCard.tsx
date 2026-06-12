@@ -203,6 +203,9 @@ export default function BotDestinationCard({ id }: { id: number }) {
               fontSize: '13px',
               fontWeight: 700,
               color: isFree ? '#10B981' : '#FF6B35',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
             }}
           >
             {isFree ? '🎟 Gratis' : `Rp${dest.ticketPrice.toLocaleString('id-ID')}`}
