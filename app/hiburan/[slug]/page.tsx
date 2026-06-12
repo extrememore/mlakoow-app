@@ -7,6 +7,7 @@ import Footer from '@/components/layout/Footer'
 import SafeImage from '@/components/ui/SafeImage'
 import MapWrapper from '@/components/ui/MapWrapper'
 import ReviewSection from '@/components/ui/ReviewSection'
+import QnaSection from '@/components/ui/QnaSection'
 import ImageGallery from '@/components/ui/ImageGallery'
 import TransportEstimator from '@/components/ui/TransportEstimator'
 import DistanceBadge from '@/components/ui/DistanceBadge'
@@ -334,6 +335,12 @@ export default async function DetailHiburanPage({
         isLoggedIn={isLoggedIn}
         currentUserId={currentUserId}
         hasReviewed={hasReviewed}
+      />
+
+      <QnaSection
+        destinationId={destination.id}
+        isLoggedIn={isLoggedIn}
+        currentUserId={currentUserId}
       />
 
       <Footer />

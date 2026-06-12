@@ -13,6 +13,7 @@ import WishlistButton from '@/components/ui/WishlistButton'
 import ItineraryPickerModal from '@/components/ui/ItineraryPickerModal'
 import MapWrapper from '@/components/ui/MapWrapper'
 import ReviewSection from '@/components/ui/ReviewSection'
+import QnaSection from '@/components/ui/QnaSection'
 import ImageGallery from '@/components/ui/ImageGallery'
 import TransportEstimator from '@/components/ui/TransportEstimator'
 import MenuImage from '@/components/ui/MenuImage'
@@ -440,6 +441,12 @@ export default async function DetailCafePage({
         isLoggedIn={isLoggedIn}
         currentUserId={currentUserId}
         hasReviewed={hasReviewed}
+      />
+
+      <QnaSection
+        destinationId={destination.id}
+        isLoggedIn={isLoggedIn}
+        currentUserId={currentUserId}
       />
 
       <Footer />

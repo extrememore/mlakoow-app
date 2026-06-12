@@ -23,6 +23,8 @@ model User {
   savedEvents SavedEvent[]
   wishlistItems WishlistItem[]
   wishlistShare WishlistShare?
+  questions   Question[]
+  answers     Answer[]
 }
 
 model Category {
@@ -66,6 +68,7 @@ model Destination {
   itineraryItems ItineraryItem[]
   bookings       Booking[]
   wishlistItems  WishlistItem[]
+  questions      Question[]
 }
 
 model Review {
@@ -175,4 +178,27 @@ model WishlistShare {
   updatedAt DateTime @updatedAt
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Question {
+  id            Int         @id @default(autoincrement())
+  userId        Int
+  destinationId Int
+  content       String      @db.Text
+  createdAt     DateTime    @default(now())
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  destination Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  answers     Answer[]
+}
+
+model Answer {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  questionId Int
+  content    String   @db.Text
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 }
