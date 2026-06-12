@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { MapPin, Users, Ticket, Star, TrendingUp, BookOpen, CheckCircle, Clock, MessageCircle, Heart } from 'lucide-react'
 import Link from 'next/link'
+import DashboardCharts from '@/components/admin/DashboardCharts'
 
 export const dynamic = 'force-dynamic'
 
@@ -56,12 +57,46 @@ async function getStats() {
     where: { status: 'confirmed' },
   })
 
+  // Generate Booking Trends (Last 6 Months)
+  const bookingTrends = []
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des']
+  const now = new Date()
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const nextD = new Date(now.getFullYear(), now.getMonth() - i + 1, 1)
+    const count = await prisma.booking.aggregate({
+      _sum: { ticketCount: true },
+      where: {
+        status: 'confirmed',
+        createdAt: { gte: d, lt: nextD }
+      }
+    })
+    bookingTrends.push({
+      name: months[d.getMonth()],
+      total: count._sum.ticketCount || 0
+    })
+  }
+
+  // Generate Category Distribution
+  const catGroups = await prisma.destination.groupBy({
+    by: ['categoryId'],
+    _count: true
+  })
+  const catDetails = await prisma.category.findMany({
+    where: { id: { in: catGroups.map(g => g.categoryId) } }
+  })
+  const categoryDistribution = catGroups.map(g => {
+    const cat = catDetails.find(c => c.id === g.categoryId)
+    return { name: cat ? cat.name : 'Other', value: g._count }
+  }).filter(c => c.value > 0).sort((a, b) => b.value - a.value).slice(0, 5)
+
   return {
     totalDestinations, totalUsers, totalBookings, totalReviews,
     pendingBookings, confirmedBookings, featuredDestinations,
     recentBookings, topDestinations, recentReviews,
     totalRevenue: totalRevenue._sum.totalPrice || 0,
     totalQuestions, totalAnswers, topWishlisted,
+    bookingTrends, categoryDistribution,
   }
 }
 
@@ -105,6 +140,12 @@ export default async function AdminDashboard() {
           </Link>
         ))}
       </div>
+
+      {/* Charts Row */}
+      <DashboardCharts 
+        bookingTrends={stats.bookingTrends} 
+        categoryDistribution={stats.categoryDistribution} 
+      />
 
       {/* Tables Row */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>

@@ -24,6 +24,7 @@ interface Destination {
   featured: boolean
   hiddenGem: boolean
   mainImage: string
+  menus?: string | null
   category: Category
 }
 
@@ -36,6 +37,9 @@ export default function AdminDestinasiPage() {
   const [sortBy, setSortBy] = useState<'name' | 'rating' | 'reviewCount' | 'ticketPrice'>('name')
   const [deleting, setDeleting] = useState<number | null>(null)
   const [showFilters, setShowFilters] = useState(false)
+  const [filterNoMenu, setFilterNoMenu] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<number[]>([])
+  const [bulkActioning, setBulkActioning] = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -55,7 +59,8 @@ export default function AdminDestinasiPage() {
         d.name.toLowerCase().includes(search.toLowerCase()) ||
         d.area.toLowerCase().includes(search.toLowerCase())
       const matchCategory = !categoryFilter || d.category.slug === categoryFilter || d.category.name === categoryFilter
-      return matchSearch && matchCategory
+      const matchNoMenu = !filterNoMenu || !d.menus || d.menus === '[]'
+      return matchSearch && matchCategory && matchNoMenu
     })
     .sort((a, b) => {
       if (sortBy === 'rating') return b.rating - a.rating
@@ -88,6 +93,42 @@ export default function AdminDestinasiPage() {
     await fetch(`/api/admin/destinations/${id}`, { method: 'DELETE' })
     setDestinations(prev => prev.filter(d => d.id !== id))
     setDeleting(null)
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.length === filtered.length) {
+      setSelectedIds([])
+    } else {
+      setSelectedIds(filtered.map(d => d.id))
+    }
+  }
+
+  function toggleSelect(id: number) {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+  }
+
+  async function handleBulkAction(action: 'delete' | 'toggleFeatured') {
+    if (action === 'delete' && !confirm(`Hapus ${selectedIds.length} destinasi terpilih? Data terkait akan ikut terhapus permanen.`)) return
+    
+    setBulkActioning(true)
+    const res = await fetch('/api/admin/destinations/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ids: selectedIds }),
+    })
+    
+    if (res.ok) {
+      if (action === 'delete') {
+        setDestinations(prev => prev.filter(d => !selectedIds.includes(d.id)))
+        setSelectedIds([])
+      } else if (action === 'toggleFeatured') {
+        setDestinations(prev => prev.map(d => selectedIds.includes(d.id) ? { ...d, featured: !d.featured } : d))
+        setSelectedIds([])
+      }
+    } else {
+      alert('Gagal melakukan aksi massal.')
+    }
+    setBulkActioning(false)
   }
 
   const inputStyle = { padding: '8px 12px', borderRadius: '10px', border: '1.5px solid #E5E9F0', fontSize: '0.82rem', fontFamily: 'Outfit, sans-serif', outline: 'none', background: 'white', cursor: 'pointer' } as const
@@ -147,14 +188,20 @@ export default function AdminDestinasiPage() {
         </select>
 
         {/* Clear filter */}
-        {(search || categoryFilter) && (
+        {(search || categoryFilter || filterNoMenu) && (
           <button
-            onClick={() => { setSearch(''); setCategoryFilter('') }}
+            onClick={() => { setSearch(''); setCategoryFilter(''); setFilterNoMenu(false) }}
             style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '8px 14px', borderRadius: '10px', border: '1.5px solid #FCA5A5', background: '#FEF2F2', color: '#DC2626', cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem', fontFamily: 'Outfit, sans-serif' }}
           >
             <X size={13} /> Reset
           </button>
         )}
+
+        {/* Filter Tanpa Menu */}
+        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, color: '#4A5568', background: filterNoMenu ? '#F0FDF4' : 'white', padding: '8px 12px', borderRadius: '10px', border: `1.5px solid ${filterNoMenu ? '#86EFAC' : '#E5E9F0'}` }}>
+          <input type="checkbox" checked={filterNoMenu} onChange={e => setFilterNoMenu(e.target.checked)} style={{ accentColor: '#059669' }} />
+          Tanpa Menu
+        </label>
       </div>
 
       {/* Category Quick-filter chips */}
@@ -180,6 +227,18 @@ export default function AdminDestinasiPage() {
         })}
       </div>
 
+      {/* Bulk Action Bar */}
+      {selectedIds.length > 0 && (
+        <div style={{ position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)', background: '#1A2332', color: 'white', padding: '12px 24px', borderRadius: '50px', display: 'flex', alignItems: 'center', gap: '1.5rem', boxShadow: '0 10px 30px rgba(0,0,0,0.3)', zIndex: 100 }}>
+          <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{selectedIds.length} Terpilih</div>
+          <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.2)' }}></div>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button onClick={() => handleBulkAction('toggleFeatured')} disabled={bulkActioning} style={{ background: 'rgba(255,255,255,0.15)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '50px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>Toggle Featured</button>
+            <button onClick={() => handleBulkAction('delete')} disabled={bulkActioning} style={{ background: '#DC2626', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '50px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>Hapus</button>
+          </div>
+        </div>
+      )}
+
       {/* Table */}
       <div style={{ background: 'white', borderRadius: '20px', border: '1px solid #E5E9F0', overflow: 'hidden' }}>
         {loading ? (
@@ -190,6 +249,9 @@ export default function AdminDestinasiPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E5E9F0' }}>
+                <th style={{ padding: '12px 16px', width: '40px' }}>
+                  <input type="checkbox" checked={filtered.length > 0 && selectedIds.length === filtered.length} onChange={toggleSelectAll} style={{ accentColor: '#0A4A5E' }} />
+                </th>
                 {['Destinasi', 'Kategori', 'Area', 'Harga', 'Rating', '⭐ Featured', '💎 Gem', 'Aksi'].map(h => (
                   <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: '0.73rem', fontWeight: 700, color: '#8B98A9', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
@@ -197,7 +259,10 @@ export default function AdminDestinasiPage() {
             </thead>
             <tbody>
               {filtered.map(d => (
-                <tr key={d.id} style={{ borderBottom: '1px solid #F0F4F8' }} className="table-row">
+                <tr key={d.id} style={{ borderBottom: '1px solid #F0F4F8', background: selectedIds.includes(d.id) ? '#F0F9FF' : 'transparent' }} className="table-row">
+                  <td style={{ padding: '10px 16px' }}>
+                    <input type="checkbox" checked={selectedIds.includes(d.id)} onChange={() => toggleSelect(d.id)} style={{ accentColor: '#0A4A5E' }} />
+                  </td>
                   {/* Destinasi */}
                   <td style={{ padding: '10px 16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
