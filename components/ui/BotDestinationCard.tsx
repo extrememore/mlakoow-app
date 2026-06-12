@@ -45,6 +45,30 @@ export default function BotDestinationCard({ id }: { id: number }) {
 
   if (!dest) return null
 
+  // Map category slug to the correct Next.js route path
+  const categoryRouteMap: Record<string, string> = {
+    'wisata': 'wisata',
+    'alam': 'wisata',
+    'sejarah': 'wisata',
+    'budaya': 'wisata',
+    'keluarga': 'wisata',
+    'hidden-gem': 'wisata',
+    'kuliner': 'kuliner',
+    'makanan-tradisional': 'kuliner',
+    'street-food': 'kuliner',
+    'restoran': 'kuliner',
+    'cafe': 'cafe',
+    'coffee-shop': 'cafe',
+    'kafe': 'cafe',
+    'hiburan': 'hiburan',
+    'oleh-oleh': 'oleh-oleh',
+    'batik': 'oleh-oleh',
+    'fashion': 'oleh-oleh',
+  }
+
+  const categorySlug = dest.category?.slug || ''
+  const routePath = categoryRouteMap[categorySlug] || 'wisata'
+
   const isFree = dest.ticketPrice === 0
   const categoryColor = dest.category?.color || '#0A4A5E'
   const categoryName = dest.category?.name || 'Destinasi'
@@ -211,7 +235,7 @@ export default function BotDestinationCard({ id }: { id: number }) {
             {isFree ? '🎟 Gratis' : `Rp${dest.ticketPrice.toLocaleString('id-ID')}`}
           </span>
           <Link
-            href={`/detail/${dest.slug}`}
+            href={`/${routePath}/${dest.slug}`}
             target="_blank"
             style={{
               fontSize: '12px',
