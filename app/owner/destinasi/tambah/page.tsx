@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft, Save, Loader } from 'lucide-react'
 import MapPickerWrapper from '@/components/admin/MapPickerWrapper'
 
-interface Category { id: number; name: string; icon: string }
+interface Category { id: number; name: string; icon: string; children?: Category[] }
 const AREAS = ['Surabaya Pusat', 'Surabaya Utara', 'Surabaya Selatan', 'Surabaya Timur', 'Surabaya Barat']
 
 export default function OwnerTambahDestinasiPage() {
@@ -97,7 +97,17 @@ export default function OwnerTambahDestinasiPage() {
                 <label style={labelStyle}>Kategori *</label>
                 <select name="categoryId" value={form.categoryId} onChange={handleChange} required style={inputStyle}>
                   <option value="">Pilih kategori...</option>
-                  {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
+                  {categories.map(parent => (
+                    parent.children && parent.children.length > 0 ? (
+                      <optgroup key={parent.id} label={`${parent.icon} ${parent.name}`}>
+                        {parent.children.map(child => (
+                          <option key={child.id} value={child.id}>{child.icon} {child.name}</option>
+                        ))}
+                      </optgroup>
+                    ) : (
+                      <option key={parent.id} value={parent.id}>{parent.icon} {parent.name}</option>
+                    )
+                  ))}
                 </select>
               </div>
               <div>

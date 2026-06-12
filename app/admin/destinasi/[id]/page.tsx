@@ -7,7 +7,7 @@ import { ArrowLeft, Save, Loader, Plus, Trash2, Image, Eye } from 'lucide-react'
 import MapPickerWrapper from '@/components/admin/MapPickerWrapper'
 import { getDetailHref } from '@/lib/categoryRoutes'
 
-interface Category { id: number; name: string; icon: string; slug: string }
+interface Category { id: number; name: string; icon: string; slug: string; children?: Category[] }
 
 const AREAS = ['Surabaya Pusat', 'Surabaya Utara', 'Surabaya Selatan', 'Surabaya Timur', 'Surabaya Barat']
 
@@ -128,7 +128,9 @@ export default function EditDestinasiPage() {
             <ArrowLeft size={16} /> Kembali ke Destinasi
           </Link>
           {form.slug && form.categoryId && (() => {
-            const cat = categories.find(c => c.id === parseInt(form.categoryId))
+            const catId = parseInt(form.categoryId)
+            const cat = categories.find(c => c.id === catId)
+              ?? categories.flatMap(c => c.children ?? []).find(c => c.id === catId)
             const href = cat ? getDetailHref(form.slug, cat.slug) : null
             return href ? (
               <a href={href} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '7px 14px', borderRadius: '50px', background: '#D1FAE5', color: '#059669', textDecoration: 'none', fontWeight: 700, fontSize: '0.82rem' }}>
@@ -169,7 +171,18 @@ export default function EditDestinasiPage() {
               <div>
                 <label style={labelStyle}>Kategori *</label>
                 <select name="categoryId" value={form.categoryId} onChange={handleChange} required style={inputStyle}>
-                  {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
+                  <option value="">Pilih kategori...</option>
+                  {categories.map(parent => (
+                    parent.children && parent.children.length > 0 ? (
+                      <optgroup key={parent.id} label={`${parent.icon} ${parent.name}`}>
+                        {parent.children.map(child => (
+                          <option key={child.id} value={child.id}>{child.icon} {child.name}</option>
+                        ))}
+                      </optgroup>
+                    ) : (
+                      <option key={parent.id} value={parent.id}>{parent.icon} {parent.name}</option>
+                    )
+                  ))}
                 </select>
               </div>
               <div>
