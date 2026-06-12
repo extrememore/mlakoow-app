@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import MapWrapper from '@/components/ui/MapWrapper'
+import dynamic from 'next/dynamic'
+const ItineraryMap = dynamic(() => import('@/components/ui/ItineraryMap'), { ssr: false, loading: () => <div style={{ height: '320px', background: '#F0F4F8', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🗺️ Memuat peta pintar...</div> })
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { QRModal } from '@/components/ui/QRModal'
@@ -382,20 +383,30 @@ export default function ItineraryDetailPage() {
           {itinerary.items.some(item => item.destination.lat && item.destination.lng) && (
             <div style={{ background: 'white', borderRadius: '20px', padding: '1.25rem', border: '1px solid #E5E9F0', boxShadow: '0 4px 16px rgba(10,74,94,0.05)' }}>
               <h3 style={{ fontWeight: 800, color: '#1A2332', marginBottom: '0.875rem', fontSize: '1.05rem' }}>🗺️ Peta Rute Perjalanan</h3>
-              <MapWrapper
-                pins={itinerary.items
-                  .filter(item => item.destination.lat && item.destination.lng)
-                  .map((item, idx) => ({
-                    lat: item.destination.lat,
-                    lng: item.destination.lng,
-                    label: item.destination.name,
-                    order: idx + 1,
-                  }))}
-                height="320px"
-                zoom={12}
-                showRoute={true}
-              />
-              <p style={{ marginTop: '0.75rem', fontSize: '0.78rem', color: '#8B98A9' }}>Garis putus-putus menunjukkan urutan rute kunjungan destinasi</p>
+              <div style={{ height: '320px' }}>
+                <ItineraryMap
+                  items={itinerary.items
+                    .filter(item => item.destination.lat && item.destination.lng)
+                    .map((item, idx) => {
+                      const startHour = 8 + idx * Math.ceil(item.estimatedVisitTime / 60 + 0.5)
+                      const startTime = `${String(Math.min(startHour, 20)).padStart(2, '0')}:00`
+                      return {
+                        day: Math.floor(idx / itemsPerDay) + 1,
+                        order: (idx % itemsPerDay) + 1,
+                        startTime,
+                        estimatedVisitTime: item.estimatedVisitTime,
+                        destination: {
+                          id: item.destination.id,
+                          name: item.destination.name,
+                          lat: item.destination.lat,
+                          lng: item.destination.lng,
+                        }
+                      }
+                    })}
+                  hoveredItemId={null}
+                />
+              </div>
+              <p style={{ marginTop: '0.75rem', fontSize: '0.78rem', color: '#8B98A9' }}>Garis rute menunjukkan estimasi perjalanan aktual (turn-by-turn) menggunakan jalan raya.</p>
             </div>
           )}
 
