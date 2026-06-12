@@ -8,7 +8,7 @@ import LogoutButton from '@/components/ui/LogoutButton'
 import {
   BookOpen, Ticket, Star, MapPin, Calendar, Wallet, ArrowRight,
   TrendingUp, Award, Clock, User, Mail, ChevronRight, QrCode, ExternalLink,
-  Map, Heart, Zap, Shield, Trash2
+  Map, Heart, Zap, Shield, Trash2, HelpCircle, X
 } from 'lucide-react'
 
 /* ── types ── */
@@ -101,12 +101,15 @@ export default function ProfileClient({ data }: Props) {
   const [activeTab, setActiveTab] = useState(tabParam || 'overview')
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [editName, setEditName] = useState(initialUser.name)
-  const [editAvatar, setEditAvatar] = useState(initialUser.avatar || '')
+  const [editName, setEditName] = useState(user.name)
+  const [editAvatar, setEditAvatar] = useState(user.avatar || '')
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [isUpdating, setIsUpdating] = useState(false)
   const [updateError, setUpdateError] = useState('')
+  
+  // Gamification state
+  const [showPointsInfo, setShowPointsInfo] = useState(false)
 
   const AVATARS = ['🦊', '🐼', '🦁', '🐻', '🐰', '🐸', '🦄', '🐧', '👨‍🚀', '👩‍🚀', '🕵️‍♂️', '🕵️‍♀️', '🧙‍♂️', '🥷']
 
@@ -163,6 +166,31 @@ export default function ProfileClient({ data }: Props) {
 
   const initial = user.name.charAt(0).toUpperCase()
   const memberSince = new Date(user.createdAt).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
+
+  // --- GAMIFICATION LOGIC ---
+  const totalPoints = (stats.itineraryCount * 150) + (stats.confirmedBookings * 500) + (stats.reviewCount * 250) + (savedEvents.length * 50)
+  
+  const LEVELS = [
+    { level: 1, name: 'Turis Amatir', min: 0, max: 499, icon: '🐣', color: '#9CA3AF', bg: 'linear-gradient(135deg, #F3F4F6, #D1D5DB)', glow: 'rgba(156,163,175,0.4)' },
+    { level: 2, name: 'Traveler Pemula', min: 500, max: 1499, icon: '🌱', color: '#10B981', bg: 'linear-gradient(135deg, #A7F3D0, #34D399)', glow: 'rgba(16,185,129,0.4)' },
+    { level: 3, name: 'Pejalan Santai', min: 1500, max: 2999, icon: '🚶‍♂️', color: '#3B82F6', bg: 'linear-gradient(135deg, #BFDBFE, #60A5FA)', glow: 'rgba(59,130,246,0.4)' },
+    { level: 4, name: 'Penjelajah Kota', min: 3000, max: 4999, icon: '🏙️', color: '#8B5CF6', bg: 'linear-gradient(135deg, #DDD6FE, #A78BFA)', glow: 'rgba(139,92,246,0.4)' },
+    { level: 5, name: 'Pencari Jejak', min: 5000, max: 7499, icon: '🧭', color: '#F59E0B', bg: 'linear-gradient(135deg, #FDE68A, #FBBF24)', glow: 'rgba(245,158,11,0.4)' },
+    { level: 6, name: 'Petualang Aktif', min: 7500, max: 10999, icon: '🏃‍♂️', color: '#EC4899', bg: 'linear-gradient(135deg, #FBCFE8, #F472B6)', glow: 'rgba(236,72,153,0.4)' },
+    { level: 7, name: 'Pakar Rute', min: 11000, max: 14999, icon: '🗺️', color: '#14B8A6', bg: 'linear-gradient(135deg, #99F6E4, #2DD4BF)', glow: 'rgba(20,184,166,0.4)' },
+    { level: 8, name: 'Sang Navigator', min: 15000, max: 19999, icon: '🚤', color: '#6366F1', bg: 'linear-gradient(135deg, #C7D2FE, #818CF8)', glow: 'rgba(99,102,241,0.4)' },
+    { level: 9, name: 'Suhu Pariwisata', min: 20000, max: 29999, icon: '👑', color: '#F43F5E', bg: 'linear-gradient(135deg, #FECDD3, #FB7185)', glow: 'rgba(244,63,94,0.4)' },
+    { level: 10, name: 'Legenda MlaKoow', min: 30000, max: Infinity, icon: '🌟', color: '#EF4444', bg: 'linear-gradient(135deg, #FFD700, #FF4500)', glow: 'rgba(255,69,0,0.6)' },
+  ]
+
+  let currentLevelIndex = LEVELS.findIndex(l => totalPoints >= l.min && totalPoints <= l.max)
+  if(currentLevelIndex === -1) currentLevelIndex = LEVELS.length - 1 // Fallback max level
+  const currentLevel = LEVELS[currentLevelIndex]
+  const nextLevel = currentLevelIndex < LEVELS.length - 1 ? LEVELS[currentLevelIndex + 1] : null
+  
+  const progressPercent = nextLevel 
+    ? ((totalPoints - currentLevel.min) / (nextLevel.min - currentLevel.min)) * 100 
+    : 100
 
   const achievements = [
     { icon: '🌟', label: 'Petualang Pertama', desc: 'Buat itinerary pertama', unlocked: stats.itineraryCount >= 1 },
@@ -320,6 +348,59 @@ export default function ProfileClient({ data }: Props) {
                 Edit Profil
               </button>
               <LogoutButton />
+            </div>
+          </div>
+
+          {/* ── GAMIFICATION WIDGET ── */}
+          <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '24px', padding: '1.5rem', marginBottom: '2.5rem', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', position: 'relative' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{
+                  width: '64px', height: '64px', borderRadius: '16px', background: currentLevel.bg,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem',
+                  boxShadow: `0 8px 24px ${currentLevel.glow}`, border: '2px solid rgba(255,255,255,0.8)'
+                }}>
+                  {currentLevel.icon}
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Level {currentLevel.level}</div>
+                    <button onClick={() => setShowPointsInfo(true)} style={{ background: 'none', border: 'none', color: '#38BDF8', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}>
+                      <HelpCircle size={14} />
+                    </button>
+                  </div>
+                  <div style={{ fontSize: '1.35rem', fontWeight: 900, color: 'white', textShadow: '0 2px 10px rgba(0,0,0,0.2)' }}>
+                    {currentLevel.name}
+                  </div>
+                </div>
+              </div>
+              
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#38BDF8', lineHeight: 1 }}>
+                  {totalPoints.toLocaleString('id-ID')} <span style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>pts</span>
+                </div>
+                {nextLevel && (
+                  <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', marginTop: '4px' }}>
+                    Butuh {(nextLevel.min - totalPoints).toLocaleString('id-ID')} pts ke Level {nextLevel.level}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div style={{ position: 'relative', width: '100%', height: '8px', background: 'rgba(0,0,0,0.2)', borderRadius: '50px', overflow: 'hidden' }}>
+              <div style={{
+                position: 'absolute', top: 0, left: 0, height: '100%',
+                background: currentLevel.bg, width: `${progressPercent}%`,
+                transition: 'width 1s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                boxShadow: `0 0 10px ${currentLevel.glow}`
+              }} />
+            </div>
+            
+            {/* Markers */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', marginTop: '6px', fontWeight: 600 }}>
+              <span>{currentLevel.min.toLocaleString('id-ID')}</span>
+              <span>{nextLevel ? nextLevel.min.toLocaleString('id-ID') : 'Maks'}</span>
             </div>
           </div>
 
@@ -874,6 +955,69 @@ export default function ProfileClient({ data }: Props) {
                 {isUpdating ? 'Menyimpan...' : 'Simpan Perubahan'}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── POINTS INFO MODAL ── */}
+      {showPointsInfo && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(4,30,40,0.8)', backdropFilter: 'blur(8px)',
+          zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem'
+        }}>
+          <div style={{
+            background: 'white', borderRadius: '32px', width: '100%', maxWidth: '420px',
+            padding: '2.5rem', position: 'relative', boxShadow: '0 24px 60px rgba(0,0,0,0.3)',
+            animation: 'fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+          }}>
+            <button onClick={() => setShowPointsInfo(false)} style={{
+              position: 'absolute', top: '1.5rem', right: '1.5rem', background: '#F8FAFC',
+              border: 'none', width: '40px', height: '40px', borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#8B98A9'
+            }}>
+              <X size={20} />
+            </button>
+
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+              <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🎯</div>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#1A2332', margin: 0 }}>Cara Mendapatkan Poin</h2>
+              <p style={{ color: '#8B98A9', fontSize: '0.95rem', marginTop: '8px' }}>Terus aktif di MlaKoow dan jadilah Legenda!</p>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: '#F8FAFC', borderRadius: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '40px', height: '40px', background: '#DBEAFE', color: '#3B82F6', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Ticket size={20} /></div>
+                  <div style={{ fontWeight: 800, color: '#1A2332', fontSize: '0.95rem' }}>Booking Tiket (Valid)</div>
+                </div>
+                <div style={{ fontWeight: 900, color: '#10B981', fontSize: '1.1rem' }}>+500</div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: '#F8FAFC', borderRadius: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '40px', height: '40px', background: '#FEF3C7', color: '#F59E0B', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Star size={20} /></div>
+                  <div style={{ fontWeight: 800, color: '#1A2332', fontSize: '0.95rem' }}>Tulis Ulasan (Review)</div>
+                </div>
+                <div style={{ fontWeight: 900, color: '#10B981', fontSize: '1.1rem' }}>+250</div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: '#F8FAFC', borderRadius: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '40px', height: '40px', background: '#E0E7FF', color: '#6366F1', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><BookOpen size={20} /></div>
+                  <div style={{ fontWeight: 800, color: '#1A2332', fontSize: '0.95rem' }}>Buat Itinerary</div>
+                </div>
+                <div style={{ fontWeight: 900, color: '#10B981', fontSize: '1.1rem' }}>+150</div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: '#F8FAFC', borderRadius: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '40px', height: '40px', background: '#FCE7F3', color: '#EC4899', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Heart size={20} /></div>
+                  <div style={{ fontWeight: 800, color: '#1A2332', fontSize: '0.95rem' }}>Simpan Event</div>
+                </div>
+                <div style={{ fontWeight: 900, color: '#10B981', fontSize: '1.1rem' }}>+50</div>
+              </div>
+            </div>
+
+            <button onClick={() => setShowPointsInfo(false)} style={{ width: '100%', padding: '1rem', background: '#0A4A5E', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 800, marginTop: '2rem', cursor: 'pointer', fontSize: '1rem' }}>
+              Tutup
+            </button>
           </div>
         </div>
       )}
