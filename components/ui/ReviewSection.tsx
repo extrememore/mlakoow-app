@@ -10,6 +10,8 @@ interface Review {
   createdAt: string
   userId: number
   user: { name: string; avatar?: string | null }
+  ownerReply?: string | null
+  ownerReplyAt?: string | null
 }
 
 interface ReviewSectionProps {
@@ -307,9 +309,20 @@ export default function ReviewSection({
                         </div>
                       </div>
                     ) : (
-                      <p style={{ fontSize: '0.85rem', color: '#4A5568', lineHeight: 1.65, margin: 0 }}>
-                        {review.comment}
-                      </p>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <p style={{ fontSize: '0.85rem', color: '#4A5568', lineHeight: 1.65, margin: 0 }}>
+                          {review.comment}
+                        </p>
+                        {review.ownerReply && review.ownerReplyAt && (
+                          <div style={{ background: '#F8FAFC', borderRadius: '12px', padding: '12px 14px', borderLeft: '4px solid #A855F7', marginTop: '4px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                              <div style={{ background: '#A855F7', color: 'white', fontSize: '0.65rem', padding: '2px 8px', borderRadius: '12px', fontWeight: 700 }}>👑 Owner</div>
+                              <span style={{ fontSize: '0.75rem', color: '#8B98A9' }}>Dibalas pada {new Date(review.ownerReplyAt).toLocaleDateString('id-ID')}</span>
+                            </div>
+                            <p style={{ color: '#4A5568', fontSize: '0.85rem', margin: 0, lineHeight: 1.6 }}>{review.ownerReply}</p>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                 )

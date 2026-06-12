@@ -331,6 +331,8 @@ export default async function DetailHiburanPage({
           createdAt: r.createdAt.toISOString(),
           userId: r.user.id,
           user: { name: r.user.name, avatar: null },
+          ownerReply: (r as any).ownerReply,
+          ownerReplyAt: (r as any).ownerReplyAt ? new Date((r as any).ownerReplyAt).toISOString() : null,
         }))}
         initialRating={destination.rating}
         initialCount={destination.reviewCount}

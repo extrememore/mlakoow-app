@@ -83,6 +83,8 @@ model Review {
   destinationId Int
   rating        Int
   comment       String      @db.Text
+  ownerReply    String?     @db.Text
+  ownerReplyAt  DateTime?
   createdAt     DateTime    @default(now())
 
   user        User        @relation(fields: [userId], references: [id])

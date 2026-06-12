@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { MessageSquare, ChevronDown, ChevronUp, Send, LogIn } from 'lucide-react'
 import Link from 'next/link'
 
-type User = { id: number; name: string; avatar: string | null }
+type User = { id: number; name: string; avatar: string | null; role?: string }
 type Answer = { id: number; content: string; createdAt: string; user: User }
 type Question = {
   id: number
@@ -51,6 +51,9 @@ function AnswerItem({ answer }: { answer: Answer }) {
       <div style={{ flex: 1 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
           <span style={{ fontWeight: 700, fontSize: '13px', color: '#1A2332' }}>{answer.user.name}</span>
+          {answer.user.role === 'owner' && (
+            <div style={{ background: '#A855F7', color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '12px', fontWeight: 700 }}>👑 Owner</div>
+          )}
           <span style={{ fontSize: '12px', color: '#8B98A9' }}>{timeAgo(answer.createdAt)}</span>
         </div>
         <p style={{ fontSize: '14px', color: '#374151', lineHeight: 1.65, margin: 0 }}>{answer.content}</p>

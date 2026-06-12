@@ -4,13 +4,14 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
 import { useState, useEffect } from 'react'
-import { LayoutDashboard, MapPin, Plus, LogOut, ChevronRight, Menu, X, Globe } from 'lucide-react'
+import { LayoutDashboard, MapPin, Plus, LogOut, ChevronRight, Menu, X, Globe, MessageSquare } from 'lucide-react'
 import NotificationBell from '@/components/shared/NotificationBell'
 
 const navItems = [
   { href: '/owner', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/owner/destinasi', label: 'Destinasi Saya', icon: MapPin },
   { href: '/owner/destinasi/tambah', label: 'Tambah Destinasi', icon: Plus },
+  { href: '/owner/interaksi', label: 'Interaksi', icon: MessageSquare },
 ]
 
 export default function OwnerSidebar() {
