@@ -62,6 +62,7 @@ export default async function ProfilPage() {
       name: user.name,
       email: user.email,
       role: user.role,
+      avatar: user.avatar,
       createdAt: user.createdAt.toISOString(),
     },
     stats: {

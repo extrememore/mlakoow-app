@@ -17,7 +17,7 @@ interface Itinerary { id: number; title: string; duration: number; area: string;
 interface Booking { id: number; bookingCode: string; status: string; visitDate: string; ticketCount: number; totalPrice: number; createdAt: string; destination: { name: string; mainImage: string; slug: string; area: string; categoryName: string; categoryIcon: string; categoryColor: string } }
 interface Review { id: number; rating: number; comment: string; createdAt: string; destination: { name: string; slug: string; mainImage: string } }
 interface Stats { itineraryCount: number; bookingCount: number; reviewCount: number; totalSpent: number; confirmedBookings: number; avgRating: string | null; uniqueAreas: number; totalDays: number }
-interface UserData { name: string; email: string; role: string; createdAt: string }
+interface UserData { name: string; email: string; role: string; avatar: string | null; createdAt: string }
 
 interface Props {
   data: {
@@ -93,10 +93,55 @@ const TABS = [
 ]
 
 export default function ProfileClient({ data }: Props) {
-  const { user, stats, itineraries, bookings, reviews, savedEvents } = data
+  const { user: initialUser, stats, itineraries, bookings, reviews, savedEvents } = data
+  const [user, setUser] = useState(initialUser)
   const searchParams = useSearchParams()
   const tabParam = searchParams?.get('tab')
   const [activeTab, setActiveTab] = useState(tabParam || 'overview')
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editName, setEditName] = useState(initialUser.name)
+  const [editAvatar, setEditAvatar] = useState(initialUser.avatar || '')
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [updateError, setUpdateError] = useState('')
+
+  const AVATARS = ['🦊', '🐼', '🦁', '🐻', '🐰', '🐸', '🦄', '🐧', '👨‍🚀', '👩‍🚀', '🕵️‍♂️', '🕵️‍♀️', '🧙‍♂️', '🥷']
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsUpdating(true)
+    setUpdateError('')
+
+    try {
+      const res = await fetch('/api/profil/update', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: editName,
+          avatar: editAvatar,
+          currentPassword,
+          newPassword
+        })
+      })
+
+      if (!res.ok) {
+        const errorText = await res.text()
+        throw new Error(errorText)
+      }
+
+      const data = await res.json()
+      setUser({ ...user, name: data.user.name, avatar: data.user.avatar })
+      setIsEditModalOpen(false)
+      setCurrentPassword('')
+      newPassword && setNewPassword('')
+    } catch (err: any) {
+      setUpdateError(err.message || 'Gagal menyimpan profil')
+    } finally {
+      setIsUpdating(false)
+    }
+  }
 
   useEffect(() => {
     if (tabParam) {
@@ -197,11 +242,11 @@ export default function ProfileClient({ data }: Props) {
                 width: '96px', height: '96px', borderRadius: '50%',
                 background: 'linear-gradient(135deg, #FF6B35 0%, #0D6E84 100%)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '2.5rem', fontWeight: 900, color: 'white',
+                fontSize: '3rem', fontWeight: 900, color: 'white',
                 border: '4px solid rgba(255,255,255,0.25)',
                 boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
               }}>
-                {initial}
+                {user.avatar ? user.avatar : initial}
               </div>
               {/* Online indicator */}
               <div style={{ position: 'absolute', bottom: '4px', right: '4px', width: '18px', height: '18px', borderRadius: '50%', background: '#10B981', border: '3px solid #0A4A5E' }} />
@@ -676,6 +721,120 @@ export default function ProfileClient({ data }: Props) {
         )}
 
       </div>
+
+      {/* ── EDIT PROFILE MODAL ── */}
+      {isEditModalOpen && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(4,30,40,0.85)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 9999, backdropFilter: 'blur(8px)', padding: '1rem',
+        }}>
+          <div style={{
+            background: 'white', width: '100%', maxWidth: '450px',
+            borderRadius: '24px', overflow: 'hidden',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+            animation: 'fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+          }}>
+            <div style={{ padding: '1.5rem 2rem', background: '#0A4A5E', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, fontWeight: 800, fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <User size={20} /> Edit Profil
+              </h3>
+              <button onClick={() => setIsEditModalOpen(false)} style={{ background: 'none', border: 'none', color: 'white', fontSize: '1.5rem', cursor: 'pointer', lineHeight: 1 }}>&times;</button>
+            </div>
+
+            <form onSubmit={handleUpdateProfile} style={{ padding: '2rem' }}>
+              {updateError && (
+                <div style={{ padding: '12px', background: '#FEF2F2', color: '#DC2626', borderRadius: '12px', fontSize: '0.85rem', marginBottom: '1.5rem', fontWeight: 600, border: '1px solid #FCA5A5' }}>
+                  {updateError}
+                </div>
+              )}
+
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#1A2332', marginBottom: '8px' }}>Nama Lengkap</label>
+                <input
+                  type="text" required
+                  value={editName}
+                  onChange={e => setEditName(e.target.value)}
+                  style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #E5E9F0', fontSize: '0.95rem', outline: 'none', transition: 'border 0.2s', background: '#F8FAFC' }}
+                  onFocus={e => e.target.style.borderColor = '#0A4A5E'}
+                  onBlur={e => e.target.style.borderColor = '#E5E9F0'}
+                />
+              </div>
+
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#1A2332', marginBottom: '8px' }}>Pilih Avatar</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                  {AVATARS.map(avatar => (
+                    <button
+                      type="button"
+                      key={avatar}
+                      onClick={() => setEditAvatar(avatar)}
+                      style={{
+                        width: '45px', height: '45px', borderRadius: '12px', fontSize: '1.5rem',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: editAvatar === avatar ? '#FFF3ED' : '#F8FAFC',
+                        border: `2px solid ${editAvatar === avatar ? '#FF6B35' : '#E5E9F0'}`,
+                        cursor: 'pointer', transition: 'all 0.2s',
+                      }}
+                    >
+                      {avatar}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setEditAvatar('')}
+                    style={{
+                      padding: '0 12px', height: '45px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 700,
+                      background: editAvatar === '' ? '#FFF3ED' : '#F8FAFC',
+                      color: editAvatar === '' ? '#FF6B35' : '#8B98A9',
+                      border: `2px solid ${editAvatar === '' ? '#FF6B35' : '#E5E9F0'}`,
+                      cursor: 'pointer', transition: 'all 0.2s',
+                    }}
+                  >
+                    Inisial
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ borderTop: '1px dashed #E5E9F0', paddingTop: '1.5rem', marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#1A2332', marginBottom: '12px' }}>Ganti Password (Opsional)</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <input
+                    type="password"
+                    placeholder="Password Lama"
+                    value={currentPassword}
+                    onChange={e => setCurrentPassword(e.target.value)}
+                    style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #E5E9F0', fontSize: '0.9rem', outline: 'none', background: '#F8FAFC' }}
+                  />
+                  <input
+                    type="password"
+                    placeholder="Password Baru"
+                    value={newPassword}
+                    onChange={e => setNewPassword(e.target.value)}
+                    style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #E5E9F0', fontSize: '0.9rem', outline: 'none', background: '#F8FAFC' }}
+                  />
+                  <p style={{ fontSize: '0.75rem', color: '#8B98A9', margin: 0, fontStyle: 'italic' }}>
+                    *Kosongkan jika tidak ingin mengubah password
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isUpdating}
+                style={{
+                  width: '100%', padding: '14px', borderRadius: '12px',
+                  background: isUpdating ? '#8B98A9' : '#FF6B35', color: 'white',
+                  fontWeight: 800, fontSize: '1rem', border: 'none', cursor: isUpdating ? 'not-allowed' : 'pointer',
+                  display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px'
+                }}
+              >
+                {isUpdating ? 'Menyimpan...' : 'Simpan Perubahan'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       <style>{`
         @media (max-width: 768px) {
