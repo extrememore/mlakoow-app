@@ -8,7 +8,7 @@ import LogoutButton from '@/components/ui/LogoutButton'
 import {
   BookOpen, Ticket, Star, MapPin, Calendar, Wallet, ArrowRight,
   TrendingUp, Award, Clock, User, Mail, ChevronRight, QrCode, ExternalLink,
-  Map, Heart, Zap, Shield, Trash2, HelpCircle, X
+  Map, Heart, Zap, Shield, Trash2, HelpCircle, X, Check
 } from 'lucide-react'
 
 /* ── types ── */
@@ -86,6 +86,7 @@ function AchievementBadge({ icon, label, desc, unlocked }: { icon: string; label
 
 const TABS = [
   { id: 'overview', label: '📊 Overview', icon: TrendingUp },
+  { id: 'missions', label: '🏅 Misi & Medali', icon: Award },
   { id: 'itinerary', label: '🗺️ Itinerary', icon: BookOpen },
   { id: 'booking', label: '🎟️ Booking', icon: Ticket },
   { id: 'review', label: '⭐ Review', icon: Star },
@@ -167,8 +168,49 @@ export default function ProfileClient({ data }: Props) {
   const initial = user.name.charAt(0).toUpperCase()
   const memberSince = new Date(user.createdAt).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
 
-  // --- GAMIFICATION LOGIC ---
-  let totalPoints = (stats.itineraryCount * 150) + (stats.confirmedBookings * 500) + (stats.reviewCount * 250) + (savedEvents.length * 50)
+  // --- GAMIFICATION & QUEST LOGIC ---
+  const confirmedBookingsList = bookings.filter(b => b.status === 'confirmed')
+  const culinaryBookings = confirmedBookingsList.filter(b => b.destination.categoryName.toLowerCase().includes('kuliner')).length
+  const historyBookings = confirmedBookingsList.filter(b => b.destination.categoryName.toLowerCase().includes('sejarah') || b.destination.categoryName.toLowerCase().includes('budaya')).length
+  const natureBookings = confirmedBookingsList.filter(b => b.destination.categoryName.toLowerCase().includes('alam') || b.destination.categoryName.toLowerCase().includes('taman')).length
+  const entertainmentBookings = confirmedBookingsList.filter(b => b.destination.categoryName.toLowerCase().includes('hiburan') || b.destination.categoryName.toLowerCase().includes('rekreasi')).length
+  const shoppingBookings = confirmedBookingsList.filter(b => b.destination.categoryName.toLowerCase().includes('oleh-oleh') || b.destination.categoryName.toLowerCase().includes('belanja')).length
+
+  const questList = [
+    { id: 1, title: 'Turis Pemula', desc: 'Booking 1 tiket', goal: 1, progress: confirmedBookingsList.length, pts: 50, medal: '🎟️' },
+    { id: 2, title: 'Turis Konsisten', desc: 'Booking 3 tiket', goal: 3, progress: confirmedBookingsList.length, pts: 150, medal: '🎫' },
+    { id: 3, title: 'Turis Setia', desc: 'Booking 5 tiket', goal: 5, progress: confirmedBookingsList.length, pts: 300, medal: '🪪' },
+    { id: 4, title: 'Turis Fanatik', desc: 'Booking 10 tiket', goal: 10, progress: confirmedBookingsList.length, pts: 500, medal: '🎗️' },
+    { id: 5, title: 'Sang Kolektor', desc: 'Booking 20 tiket', goal: 20, progress: confirmedBookingsList.length, pts: 1000, medal: '🎖️' },
+    { id: 6, title: 'Tamu Kehormatan', desc: 'Booking 30 tiket', goal: 30, progress: confirmedBookingsList.length, pts: 1500, medal: '🏆' },
+    { id: 7, title: 'Pencinta Kuliner', desc: 'Booking 1 Kuliner', goal: 1, progress: culinaryBookings, pts: 100, medal: '🍜' },
+    { id: 8, title: 'Raja Kuliner', desc: 'Booking 5 Kuliner', goal: 5, progress: culinaryBookings, pts: 300, medal: '🍱' },
+    { id: 9, title: 'Sang Sejarawan', desc: 'Booking 1 Sejarah', goal: 1, progress: historyBookings, pts: 100, medal: '🏛️' },
+    { id: 10, title: 'Penjaga Budaya', desc: 'Booking 5 Sejarah', goal: 5, progress: historyBookings, pts: 300, medal: '🏺' },
+    { id: 11, title: 'Anak Alam', desc: 'Booking 1 Alam', goal: 1, progress: natureBookings, pts: 100, medal: '🌳' },
+    { id: 12, title: 'Penjelajah Rimba', desc: 'Booking 5 Alam', goal: 5, progress: natureBookings, pts: 300, medal: '🏕️' },
+    { id: 13, title: 'Pemburu Hiburan', desc: 'Booking 1 Hiburan', goal: 1, progress: entertainmentBookings, pts: 100, medal: '🎢' },
+    { id: 14, title: 'Raja Pesta', desc: 'Booking 5 Hiburan', goal: 5, progress: entertainmentBookings, pts: 300, medal: '🎡' },
+    { id: 15, title: 'Penggila Belanja', desc: 'Booking 3 Oleh-oleh', goal: 3, progress: shoppingBookings, pts: 200, medal: '🛍️' },
+    { id: 16, title: 'Kritikus Pemula', desc: 'Tulis 1 Ulasan', goal: 1, progress: stats.reviewCount, pts: 50, medal: '✍️' },
+    { id: 17, title: 'Kritikus Handal', desc: 'Tulis 5 Ulasan', goal: 5, progress: stats.reviewCount, pts: 250, medal: '📝' },
+    { id: 18, title: 'Suara Masyarakat', desc: 'Tulis 15 Ulasan', goal: 15, progress: stats.reviewCount, pts: 600, medal: '🗣️' },
+    { id: 19, title: 'Opini Emas', desc: 'Tulis 30 Ulasan', goal: 30, progress: stats.reviewCount, pts: 1000, medal: '🌟' },
+    { id: 20, title: 'Hakim MlaKoow', desc: 'Tulis 50 Ulasan', goal: 50, progress: stats.reviewCount, pts: 2000, medal: '⚖️' },
+    { id: 21, title: 'Perencana Coba-coba', desc: 'Buat 1 Itinerary', goal: 1, progress: stats.itineraryCount, pts: 100, medal: '🗺️' },
+    { id: 22, title: 'Arsitek Liburan', desc: 'Buat 5 Itinerary', goal: 5, progress: stats.itineraryCount, pts: 300, medal: '🏗️' },
+    { id: 23, title: 'Master Planner', desc: 'Buat 15 Itinerary', goal: 15, progress: stats.itineraryCount, pts: 750, medal: '🧭' },
+    { id: 24, title: 'Dewa Perencana', desc: 'Buat 30 Itinerary', goal: 30, progress: stats.itineraryCount, pts: 1500, medal: '🔮' },
+    { id: 25, title: 'Penjelajah Beragam', desc: 'Kunjungi 3 Area', goal: 3, progress: stats.uniqueAreas, pts: 300, medal: '📍' },
+    { id: 26, title: 'Penguasa Wilayah', desc: 'Kunjungi 5 Area', goal: 5, progress: stats.uniqueAreas, pts: 500, medal: '🗺️' },
+    { id: 27, title: 'Pengumpul Memori', desc: 'Simpan 5 Event', goal: 5, progress: savedEvents.length, pts: 200, medal: '📸' },
+    { id: 28, title: 'Warga Aktif', desc: 'Simpan 15 Event', goal: 15, progress: savedEvents.length, pts: 500, medal: '🎟️' },
+    { id: 29, title: 'Sultan MlaKoow', desc: 'Transaksi Rp 1.000.000', goal: 1000000, progress: stats.totalSpent, pts: 500, medal: '💎' },
+    { id: 30, title: 'Crazy Rich Surabaya', desc: 'Transaksi Rp 5.000.000', goal: 5000000, progress: stats.totalSpent, pts: 1500, medal: '👑' },
+  ]
+  const questBonusPoints = questList.filter(q => q.progress >= q.goal).reduce((acc, q) => acc + q.pts, 0)
+
+  let totalPoints = (stats.itineraryCount * 150) + (stats.confirmedBookings * 500) + (stats.reviewCount * 250) + (savedEvents.length * 50) + questBonusPoints
   
   if (user.role === 'admin') {
     totalPoints = Math.max(totalPoints, 99999)
@@ -576,6 +618,94 @@ export default function ProfileClient({ data }: Props) {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* ── MISSIONS TAB ── */}
+        {activeTab === 'missions' && (
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1A2332', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                <Award size={20} color="#FF6B35" /> Koleksi Medali
+              </h2>
+              <div style={{ fontSize: '0.85rem', color: '#8B98A9', fontWeight: 700 }}>
+                Terkumpul: {questList.filter(q => q.progress >= q.goal).length} / 30
+              </div>
+            </div>
+
+            {/* Medals Grid (Carousel-like) */}
+            <div style={{
+              display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '1rem', marginBottom: '2rem',
+              scrollbarWidth: 'thin', WebkitOverflowScrolling: 'touch'
+            }}>
+              {questList.map(q => {
+                const isUnlocked = q.progress >= q.goal
+                return (
+                  <div key={`medal-${q.id}`} style={{
+                    width: '70px', minWidth: '70px', height: '70px', borderRadius: '50%',
+                    background: isUnlocked ? 'linear-gradient(135deg, #FFF3ED, #FFDCD1)' : '#F8FAFC',
+                    border: `2px solid ${isUnlocked ? '#FF6B35' : '#E5E9F0'}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem',
+                    opacity: isUnlocked ? 1 : 0.4, filter: isUnlocked ? 'drop-shadow(0 4px 10px rgba(255,107,53,0.3))' : 'grayscale(1)',
+                    position: 'relative', cursor: 'pointer', transition: 'all 0.2s', flexShrink: 0
+                  }} title={`${q.title} - ${isUnlocked ? 'Terbuka' : 'Terkunci'}`}>
+                    {q.medal}
+                    {isUnlocked && <div style={{ position: 'absolute', bottom: '-4px', right: '-4px', background: '#10B981', color: 'white', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Check size={12} /></div>}
+                  </div>
+                )
+              })}
+            </div>
+
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1A2332', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              🎯 Daftar Tantangan
+            </h2>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.25rem' }}>
+              {questList.map(q => {
+                const isUnlocked = q.progress >= q.goal
+                const percent = isUnlocked ? 100 : Math.min(100, (q.progress / q.goal) * 100)
+                return (
+                  <div key={q.id} style={{
+                    background: isUnlocked ? '#FAFAFA' : 'white', borderRadius: '16px', padding: '1.25rem',
+                    border: `1px solid ${isUnlocked ? '#E5E9F0' : '#E5E9F0'}`, position: 'relative', overflow: 'hidden',
+                    boxShadow: isUnlocked ? 'none' : '0 4px 15px rgba(0,0,0,0.03)'
+                  }}>
+                    {isUnlocked && <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: '#10B981' }} />}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ fontSize: '1.5rem', opacity: isUnlocked ? 1 : 0.5, filter: isUnlocked ? 'none' : 'grayscale(1)' }}>{q.medal}</div>
+                        <div>
+                          <div style={{ fontWeight: 800, color: '#1A2332', fontSize: '0.95rem', textDecoration: isUnlocked ? 'line-through' : 'none' }}>{q.title}</div>
+                          <div style={{ fontSize: '0.75rem', color: '#8B98A9' }}>+{q.pts} Pts</div>
+                        </div>
+                      </div>
+                      {isUnlocked && <Check size={18} color="#10B981" />}
+                    </div>
+                    
+                    <div style={{ fontSize: '0.8rem', color: '#475569', marginBottom: '12px', minHeight: '34px' }}>
+                      {q.desc}
+                    </div>
+
+                    {!isUnlocked && (
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#8B98A9', fontWeight: 700, marginBottom: '6px' }}>
+                          <span>Progres</span>
+                          <span>{q.id >= 29 ? `Rp ${(q.progress/1000).toLocaleString('id-ID')}k / Rp ${(q.goal/1000).toLocaleString('id-ID')}k` : `${q.progress} / ${q.goal}`}</span>
+                        </div>
+                        <div style={{ width: '100%', height: '6px', background: '#F1F5F9', borderRadius: '50px', overflow: 'hidden' }}>
+                          <div style={{ width: `${percent}%`, height: '100%', background: '#FF6B35', borderRadius: '50px' }} />
+                        </div>
+                      </div>
+                    )}
+                    {isUnlocked && (
+                      <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#10B981', textAlign: 'center', background: '#D1FAE5', padding: '4px', borderRadius: '6px' }}>
+                        Tantangan Selesai
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}
