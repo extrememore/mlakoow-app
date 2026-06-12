@@ -2,7 +2,16 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Search, Plus, Edit2, Trash2, Star, MapPin, ToggleLeft, ToggleRight, Loader } from 'lucide-react'
+import { Search, Plus, Edit2, Trash2, Star, MapPin, ToggleLeft, ToggleRight, Loader, Eye, Filter, X } from 'lucide-react'
+import { getDetailHref } from '@/lib/categoryRoutes'
+
+interface Category {
+  id: number
+  name: string
+  icon: string
+  color: string
+  slug: string
+}
 
 interface Destination {
   id: number
@@ -15,25 +24,45 @@ interface Destination {
   featured: boolean
   hiddenGem: boolean
   mainImage: string
-  category: { name: string; icon: string; color: string }
+  category: Category
 }
 
 export default function AdminDestinasiPage() {
   const [destinations, setDestinations] = useState<Destination[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('')
+  const [sortBy, setSortBy] = useState<'name' | 'rating' | 'reviewCount' | 'ticketPrice'>('name')
   const [deleting, setDeleting] = useState<number | null>(null)
+  const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
-    fetch('/api/destinations?limit=100')
-      .then(r => r.json())
-      .then(data => { setDestinations(data.destinations || data); setLoading(false) })
+    Promise.all([
+      fetch('/api/destinations?limit=200').then(r => r.json()),
+      fetch('/api/destinations/categories').then(r => r.json()),
+    ]).then(([destData, cats]) => {
+      setDestinations(destData.destinations || destData)
+      // Only parent categories for filter
+      setCategories(cats.filter((c: Category) => !c.slug?.includes('-')).slice(0, 20))
+      setLoading(false)
+    })
   }, [])
 
-  const filtered = destinations.filter(d =>
-    d.name.toLowerCase().includes(search.toLowerCase()) ||
-    d.area.toLowerCase().includes(search.toLowerCase())
-  )
+  const filtered = destinations
+    .filter(d => {
+      const matchSearch = !search ||
+        d.name.toLowerCase().includes(search.toLowerCase()) ||
+        d.area.toLowerCase().includes(search.toLowerCase())
+      const matchCategory = !categoryFilter || d.category.slug === categoryFilter || d.category.name === categoryFilter
+      return matchSearch && matchCategory
+    })
+    .sort((a, b) => {
+      if (sortBy === 'rating') return b.rating - a.rating
+      if (sortBy === 'reviewCount') return b.reviewCount - a.reviewCount
+      if (sortBy === 'ticketPrice') return a.ticketPrice - b.ticketPrice
+      return a.name.localeCompare(b.name)
+    })
 
   async function toggleFeatured(id: number, current: boolean) {
     await fetch(`/api/admin/destinations/${id}`, {
@@ -61,29 +90,94 @@ export default function AdminDestinasiPage() {
     setDeleting(null)
   }
 
+  const inputStyle = { padding: '8px 12px', borderRadius: '10px', border: '1.5px solid #E5E9F0', fontSize: '0.82rem', fontFamily: 'Outfit, sans-serif', outline: 'none', background: 'white', cursor: 'pointer' } as const
+
   return (
     <div style={{ padding: '2rem' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.75rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '1.75rem', fontWeight: 900, color: '#1A2332', marginBottom: '4px' }}>Manajemen Destinasi</h1>
-          <p style={{ color: '#8B98A9', fontSize: '0.9rem' }}>{destinations.length} destinasi terdaftar</p>
+          <p style={{ color: '#8B98A9', fontSize: '0.9rem' }}>
+            {filtered.length} dari {destinations.length} destinasi
+            {categoryFilter && ` • Filter: ${categoryFilter}`}
+          </p>
         </div>
-        <Link href="/admin/destinasi/tambah" className="btn-primary" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px', padding: '0.75rem 1.5rem', background: '#0A4A5E', color: 'white', borderRadius: '50px', fontWeight: 700, fontSize: '0.9rem' }}>
+        <Link href="/admin/destinasi/tambah" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px', padding: '0.75rem 1.5rem', background: '#0A4A5E', color: 'white', borderRadius: '50px', fontWeight: 700, fontSize: '0.9rem' }}>
           <Plus size={18} /> Tambah Destinasi
         </Link>
       </div>
 
-      {/* Search */}
-      <div style={{ position: 'relative', marginBottom: '1.5rem', maxWidth: '400px' }}>
-        <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#8B98A9' }} />
-        <input
-          type="text"
-          placeholder="Cari nama atau area..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          style={{ width: '100%', padding: '10px 14px 10px 40px', borderRadius: '12px', border: '1px solid #E5E9F0', fontSize: '0.875rem', fontFamily: 'Outfit, sans-serif', outline: 'none', background: 'white' }}
-        />
+      {/* Search & Filter Bar */}
+      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        {/* Search */}
+        <div style={{ position: 'relative', flex: '1', minWidth: '220px', maxWidth: '340px' }}>
+          <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#8B98A9' }} />
+          <input
+            type="text"
+            placeholder="Cari nama atau area..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{ width: '100%', padding: '10px 14px 10px 36px', borderRadius: '12px', border: '1.5px solid #E5E9F0', fontSize: '0.875rem', fontFamily: 'Outfit, sans-serif', outline: 'none', background: 'white', boxSizing: 'border-box' }}
+          />
+        </div>
+
+        {/* Category Filter */}
+        <select
+          value={categoryFilter}
+          onChange={e => setCategoryFilter(e.target.value)}
+          style={{ ...inputStyle, minWidth: '160px' }}
+        >
+          <option value="">Semua Kategori</option>
+          {categories.map(c => (
+            <option key={c.id} value={c.slug}>{c.icon} {c.name}</option>
+          ))}
+        </select>
+
+        {/* Sort */}
+        <select
+          value={sortBy}
+          onChange={e => setSortBy(e.target.value as any)}
+          style={{ ...inputStyle, minWidth: '140px' }}
+        >
+          <option value="name">Urut: Nama</option>
+          <option value="rating">Urut: Rating ↓</option>
+          <option value="reviewCount">Urut: Ulasan ↓</option>
+          <option value="ticketPrice">Urut: Harga ↑</option>
+        </select>
+
+        {/* Clear filter */}
+        {(search || categoryFilter) && (
+          <button
+            onClick={() => { setSearch(''); setCategoryFilter('') }}
+            style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '8px 14px', borderRadius: '10px', border: '1.5px solid #FCA5A5', background: '#FEF2F2', color: '#DC2626', cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem', fontFamily: 'Outfit, sans-serif' }}
+          >
+            <X size={13} /> Reset
+          </button>
+        )}
+      </div>
+
+      {/* Category Quick-filter chips */}
+      <div style={{ display: 'flex', gap: '6px', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+        <button
+          onClick={() => setCategoryFilter('')}
+          style={{ padding: '5px 14px', borderRadius: '50px', border: '1.5px solid', borderColor: !categoryFilter ? '#0A4A5E' : '#E5E9F0', background: !categoryFilter ? '#0A4A5E' : 'white', color: !categoryFilter ? 'white' : '#4A5568', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer', fontFamily: 'Outfit, sans-serif' }}
+        >
+          Semua
+        </button>
+        {['wisata', 'kuliner', 'cafe', 'hiburan', 'oleh-oleh'].map(slug => {
+          const cat = categories.find(c => c.slug === slug)
+          if (!cat) return null
+          return (
+            <button
+              key={slug}
+              onClick={() => setCategoryFilter(slug)}
+              style={{ padding: '5px 14px', borderRadius: '50px', border: '1.5px solid', borderColor: categoryFilter === slug ? cat.color : '#E5E9F0', background: categoryFilter === slug ? cat.color + '18' : 'white', color: categoryFilter === slug ? cat.color : '#4A5568', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer', fontFamily: 'Outfit, sans-serif' }}
+            >
+              {cat.icon} {cat.name}
+            </button>
+          )
+        })}
       </div>
 
       {/* Table */}
@@ -96,58 +190,81 @@ export default function AdminDestinasiPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E5E9F0' }}>
-                {['Destinasi', 'Kategori', 'Area', 'Tiket', 'Rating', 'Featured', 'Hidden Gem', 'Aksi'].map(h => (
-                  <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: '0.78rem', fontWeight: 700, color: '#8B98A9', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
+                {['Destinasi', 'Kategori', 'Area', 'Harga', 'Rating', '⭐ Featured', '💎 Gem', 'Aksi'].map(h => (
+                  <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: '0.73rem', fontWeight: 700, color: '#8B98A9', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {filtered.map((d) => (
+              {filtered.map(d => (
                 <tr key={d.id} style={{ borderBottom: '1px solid #F0F4F8' }} className="table-row">
-                  <td style={{ padding: '12px 16px' }}>
+                  {/* Destinasi */}
+                  <td style={{ padding: '10px 16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <img src={d.mainImage} alt={d.name} style={{ width: '40px', height: '36px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} />
-                      <div style={{ fontWeight: 700, fontSize: '0.875rem', color: '#1A2332', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.name}</div>
+                      <img src={d.mainImage} alt={d.name} style={{ width: '40px', height: '36px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} onError={e => (e.currentTarget.style.display = 'none')} />
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: '0.875rem', color: '#1A2332', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.name}</div>
+                        <div style={{ fontSize: '0.72rem', color: '#8B98A9' }}>{d.reviewCount} ulasan</div>
+                      </div>
                     </div>
                   </td>
-                  <td style={{ padding: '12px 16px' }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, padding: '3px 10px', borderRadius: '8px', background: d.category.color + '22', color: d.category.color }}>
+                  {/* Kategori */}
+                  <td style={{ padding: '10px 16px' }}>
+                    <span style={{ fontSize: '0.78rem', fontWeight: 600, padding: '3px 10px', borderRadius: '8px', background: (d.category.color || '#0A4A5E') + '18', color: d.category.color || '#0A4A5E', whiteSpace: 'nowrap' }}>
                       {d.category.icon} {d.category.name}
                     </span>
                   </td>
-                  <td style={{ padding: '12px 16px', fontSize: '0.85rem', color: '#4A5568' }}>
+                  {/* Area */}
+                  <td style={{ padding: '10px 16px', fontSize: '0.82rem', color: '#4A5568', whiteSpace: 'nowrap' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={12} color="#8B98A9" />{d.area.replace('Surabaya ', '')}</span>
                   </td>
-                  <td style={{ padding: '12px 16px', fontSize: '0.85rem', fontWeight: 600, color: d.ticketPrice === 0 ? '#10B981' : '#1A2332' }}>
+                  {/* Harga */}
+                  <td style={{ padding: '10px 16px', fontSize: '0.85rem', fontWeight: 600, color: d.ticketPrice === 0 ? '#10B981' : '#1A2332', whiteSpace: 'nowrap' }}>
                     {d.ticketPrice === 0 ? 'Gratis' : `Rp ${d.ticketPrice.toLocaleString('id-ID')}`}
                   </td>
-                  <td style={{ padding: '12px 16px' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', color: '#F59E0B', fontWeight: 600 }}>
+                  {/* Rating */}
+                  <td style={{ padding: '10px 16px' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', color: '#F59E0B', fontWeight: 700 }}>
                       <Star size={13} fill="#F59E0B" />{d.rating.toFixed(1)}
                     </span>
                   </td>
-                  <td style={{ padding: '12px 16px' }}>
-                    <button onClick={() => toggleFeatured(d.id, d.featured)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: d.featured ? '#FF6B35' : '#CBD5E1' }}>
-                      {d.featured ? <ToggleRight size={26} /> : <ToggleLeft size={26} />}
+                  {/* Featured toggle */}
+                  <td style={{ padding: '10px 16px' }}>
+                    <button onClick={() => toggleFeatured(d.id, d.featured)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: d.featured ? '#FF6B35' : '#CBD5E1', display: 'flex', alignItems: 'center' }}>
+                      {d.featured ? <ToggleRight size={28} /> : <ToggleLeft size={28} />}
                     </button>
                   </td>
-                  <td style={{ padding: '12px 16px' }}>
-                    <button onClick={() => toggleHiddenGem(d.id, d.hiddenGem)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: d.hiddenGem ? '#7C3AED' : '#CBD5E1' }}>
-                      {d.hiddenGem ? <ToggleRight size={26} /> : <ToggleLeft size={26} />}
+                  {/* HiddenGem toggle */}
+                  <td style={{ padding: '10px 16px' }}>
+                    <button onClick={() => toggleHiddenGem(d.id, d.hiddenGem)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: d.hiddenGem ? '#7C3AED' : '#CBD5E1', display: 'flex', alignItems: 'center' }}>
+                      {d.hiddenGem ? <ToggleRight size={28} /> : <ToggleLeft size={28} />}
                     </button>
                   </td>
-                  <td style={{ padding: '12px 16px' }}>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <Link href={`/admin/destinasi/${d.id}`} title="Edit" style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#E0F2FE', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0A4A5E' }}>
+                  {/* Aksi */}
+                  <td style={{ padding: '10px 16px' }}>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      {/* Preview di website */}
+                      <a
+                        href={getDetailHref(d.slug, d.category.slug)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Lihat di website"
+                        style={{ width: '30px', height: '30px', borderRadius: '8px', background: '#D1FAE5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669', textDecoration: 'none' }}
+                      >
+                        <Eye size={14} />
+                      </a>
+                      {/* Edit */}
+                      <Link href={`/admin/destinasi/${d.id}`} title="Edit" style={{ width: '30px', height: '30px', borderRadius: '8px', background: '#E0F2FE', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0A4A5E' }}>
                         <Edit2 size={14} />
                       </Link>
+                      {/* Hapus */}
                       <button
                         onClick={() => handleDelete(d.id)}
                         disabled={deleting === d.id}
                         title="Hapus"
-                        style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#DC2626', border: 'none', cursor: 'pointer' }}
+                        style={{ width: '30px', height: '30px', borderRadius: '8px', background: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#DC2626', border: 'none', cursor: 'pointer' }}
                       >
-                        {deleting === d.id ? <Loader size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={14} />}
+                        {deleting === d.id ? <Loader size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={13} />}
                       </button>
                     </div>
                   </td>
@@ -157,7 +274,14 @@ export default function AdminDestinasiPage() {
           </table>
         )}
         {!loading && filtered.length === 0 && (
-          <div style={{ padding: '3rem', textAlign: 'center', color: '#8B98A9' }}>Tidak ada destinasi ditemukan</div>
+          <div style={{ padding: '3rem', textAlign: 'center', color: '#8B98A9' }}>
+            Tidak ada destinasi ditemukan
+            {(search || categoryFilter) && (
+              <button onClick={() => { setSearch(''); setCategoryFilter('') }} style={{ display: 'block', margin: '0.75rem auto 0', padding: '7px 18px', borderRadius: '50px', border: 'none', background: '#0A4A5E', color: 'white', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'Outfit, sans-serif' }}>
+                Reset Filter
+              </button>
+            )}
+          </div>
         )}
       </div>
 

@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Save, Loader, Plus, Trash2, Image } from 'lucide-react'
+import { ArrowLeft, Save, Loader, Plus, Trash2, Image, Eye } from 'lucide-react'
 import MapPickerWrapper from '@/components/admin/MapPickerWrapper'
+import { getDetailHref } from '@/lib/categoryRoutes'
 
-interface Category { id: number; name: string; icon: string }
+interface Category { id: number; name: string; icon: string; slug: string }
 
 const AREAS = ['Surabaya Pusat', 'Surabaya Utara', 'Surabaya Selatan', 'Surabaya Timur', 'Surabaya Barat']
 
@@ -114,10 +115,21 @@ export default function EditDestinasiPage() {
   return (
     <div style={{ padding: '2rem', maxWidth: '760px' }}>
       <div style={{ marginBottom: '2rem' }}>
-        <Link href="/admin/destinasi" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#8B98A9', textDecoration: 'none', fontSize: '0.875rem', marginBottom: '1rem' }}>
-          <ArrowLeft size={16} /> Kembali ke Destinasi
-        </Link>
-        <h1 style={{ fontSize: '1.75rem', fontWeight: 900, color: '#1A2332' }}>Edit Destinasi</h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+          <Link href="/admin/destinasi" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#8B98A9', textDecoration: 'none', fontSize: '0.875rem' }}>
+            <ArrowLeft size={16} /> Kembali ke Destinasi
+          </Link>
+          {form.slug && form.categoryId && (() => {
+            const cat = categories.find(c => c.id === parseInt(form.categoryId))
+            const href = cat ? getDetailHref(form.slug, cat.slug) : null
+            return href ? (
+              <a href={href} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '7px 14px', borderRadius: '50px', background: '#D1FAE5', color: '#059669', textDecoration: 'none', fontWeight: 700, fontSize: '0.82rem' }}>
+                <Eye size={14} /> Lihat di Website
+              </a>
+            ) : null
+          })()}
+        </div>
+        <h1 style={{ fontSize: '1.75rem', fontWeight: 900, color: '#1A2332', marginTop: '1rem' }}>Edit Destinasi</h1>
         <p style={{ color: '#8B98A9', fontSize: '0.9rem', marginTop: '4px' }}>{form.name}</p>
       </div>
 
