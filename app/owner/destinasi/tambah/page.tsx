@@ -50,116 +50,161 @@ export default function OwnerTambahDestinasiPage() {
         lat: parseFloat(form.lat), lng: parseFloat(form.lng),
         ticketPrice: parseInt(form.ticketPrice) || 0,
         estimatedDuration: parseInt(form.estimatedDuration) || 60,
-        facilities: form.facilities ? JSON.stringify(form.facilities.split(',').map(f => f.trim())) : '[]',
         gallery: '[]',
+        facilities: form.facilities ? JSON.stringify(form.facilities.split(',').map(f => f.trim())) : '[]',
       }),
     })
-    if (res.ok) { setSuccess(true); setTimeout(() => router.push('/owner/destinasi'), 2000) }
-    else { const d = await res.json(); setError(d.error || 'Gagal menambahkan destinasi'); setSaving(false) }
+    if (res.ok) {
+      setSuccess(true)
+      setTimeout(() => router.push('/owner/destinasi'), 1800)
+    } else {
+      const d = await res.json(); setError(d.error || 'Gagal menyimpan')
+      setSaving(false)
+    }
   }
 
-  const inputStyle: React.CSSProperties = { width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #E5E9F0', fontSize: '0.9rem', fontFamily: 'Outfit, sans-serif', outline: 'none', boxSizing: 'border-box', background: 'white', color: '#1A2332' }
+  const inputStyle: React.CSSProperties = {
+    width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #E5E9F0',
+    fontSize: '0.9rem', fontFamily: 'Outfit, sans-serif', outline: 'none', boxSizing: 'border-box',
+    background: 'white', color: '#1A2332',
+  }
   const labelStyle: React.CSSProperties = { display: 'block', fontWeight: 700, fontSize: '0.85rem', color: '#4A5568', marginBottom: '6px' }
+  const cardStyle: React.CSSProperties = { background: 'white', borderRadius: '20px', padding: '1.75rem', border: '1px solid #E5E9F0' }
 
   if (success) return (
-    <div style={{ padding: '2rem', textAlign: 'center', paddingTop: '6rem' }}>
-      <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>✅</div>
-      <h2 style={{ fontWeight: 900, color: '#059669', marginBottom: '0.5rem' }}>Destinasi Berhasil Diajukan!</h2>
-      <p style={{ color: '#8B98A9' }}>Menunggu review dan approval dari admin. Anda akan diarahkan ke halaman destinasi...</p>
+    <div style={{ padding: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>🎉</div>
+        <h2 style={{ fontWeight: 900, color: '#1A2332', marginBottom: '8px' }}>Destinasi Terkirim!</h2>
+        <p style={{ color: '#8B98A9', fontSize: '0.9rem' }}>Menunggu approval admin sebelum dipublikasikan.</p>
+      </div>
     </div>
   )
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '760px' }}>
+    <div style={{ padding: '2rem' }}>
       <div style={{ marginBottom: '2rem' }}>
         <Link href="/owner/destinasi" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#8B98A9', textDecoration: 'none', fontSize: '0.875rem', marginBottom: '1rem' }}>
           <ArrowLeft size={16} /> Kembali
         </Link>
         <h1 style={{ fontSize: '1.75rem', fontWeight: 900, color: '#1A2332' }}>Tambah Destinasi Baru</h1>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#FEF3C7', color: '#D97706', padding: '6px 14px', borderRadius: '50px', fontSize: '0.8rem', fontWeight: 600, marginTop: '8px' }}>
-          ⏳ Destinasi akan menunggu approval admin sebelum dipublikasikan
-        </div>
+        <p style={{ color: '#8B98A9', fontSize: '0.875rem', marginTop: '4px' }}>Destinasi akan direview admin sebelum dipublikasikan ⏳</p>
       </div>
 
       {error && <div style={{ background: '#FEE2E2', color: '#DC2626', padding: '12px 16px', borderRadius: '12px', marginBottom: '1.5rem', fontSize: '0.875rem', fontWeight: 600 }}>⚠️ {error}</div>}
 
       <form onSubmit={handleSubmit}>
-        <div style={{ background: 'white', borderRadius: '20px', padding: '1.75rem', border: '1px solid #E5E9F0', marginBottom: '1.25rem' }}>
-          <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '1.25rem' }}>📍 Informasi Dasar</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div><label style={labelStyle}>Nama Destinasi *</label><input name="name" value={form.name} onChange={handleChange} required style={inputStyle} /></div>
-              <div><label style={labelStyle}>Slug (URL) *</label><input name="slug" value={form.slug} onChange={handleChange} required style={inputStyle} /></div>
-            </div>
-            <div><label style={labelStyle}>Deskripsi *</label><textarea name="description" value={form.description} onChange={handleChange} required rows={4} style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }} /></div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div>
-                <label style={labelStyle}>Kategori *</label>
-                <select name="categoryId" value={form.categoryId} onChange={handleChange} required style={inputStyle}>
-                  <option value="">Pilih kategori...</option>
-                  {categories.map(parent => (
-                    parent.children && parent.children.length > 0 ? (
-                      <optgroup key={parent.id} label={`${parent.icon} ${parent.name}`}>
-                        {parent.children.map(child => (
-                          <option key={child.id} value={child.id}>{child.icon} {child.name}</option>
-                        ))}
-                      </optgroup>
-                    ) : (
-                      <option key={parent.id} value={parent.id}>{parent.icon} {parent.name}</option>
-                    )
-                  ))}
-                </select>
+        <div className="owner-tambah-grid">
+
+          {/* LEFT */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+
+            <div style={cardStyle}>
+              <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '1.25rem' }}>📍 Informasi Dasar</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div><label style={labelStyle}>Nama Destinasi *</label><input name="name" value={form.name} onChange={handleChange} required placeholder="e.g. Taman Bungkul" style={inputStyle} /></div>
+                  <div><label style={labelStyle}>Slug (URL) *</label><input name="slug" value={form.slug} onChange={handleChange} required placeholder="e.g. taman-bungkul" style={inputStyle} /></div>
+                </div>
+                <div><label style={labelStyle}>Deskripsi *</label><textarea name="description" value={form.description} onChange={handleChange} required rows={5} placeholder="Deskripsi lengkap destinasi..." style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }} /></div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div>
+                    <label style={labelStyle}>Kategori *</label>
+                    <select name="categoryId" value={form.categoryId} onChange={handleChange} required style={inputStyle}>
+                      <option value="">Pilih kategori...</option>
+                      {categories.map(parent => (
+                        parent.children && parent.children.length > 0 ? (
+                          <optgroup key={parent.id} label={`${parent.icon} ${parent.name}`}>
+                            {parent.children.map(child => (
+                              <option key={child.id} value={child.id}>{child.icon} {child.name}</option>
+                            ))}
+                          </optgroup>
+                        ) : (
+                          <option key={parent.id} value={parent.id}>{parent.icon} {parent.name}</option>
+                        )
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Area *</label>
+                    <select name="area" value={form.area} onChange={handleChange} style={inputStyle}>
+                      {AREAS.map(a => <option key={a} value={a}>{a}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div><label style={labelStyle}>Alamat *</label><input name="address" value={form.address} onChange={handleChange} required placeholder="Alamat lengkap destinasi" style={inputStyle} /></div>
               </div>
-              <div>
-                <label style={labelStyle}>Area *</label>
-                <select name="area" value={form.area} onChange={handleChange} style={inputStyle}>
-                  {AREAS.map(a => <option key={a} value={a}>{a}</option>)}
-                </select>
+            </div>
+
+            <div style={cardStyle}>
+              <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '1.25rem' }}>🕐 Operasional &amp; Tiket</h2>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '1rem' }}>
+                <div><label style={labelStyle}>Jam Buka *</label><input type="time" name="openHour" value={form.openHour} onChange={handleChange} required style={inputStyle} /></div>
+                <div><label style={labelStyle}>Jam Tutup *</label><input type="time" name="closeHour" value={form.closeHour} onChange={handleChange} required style={inputStyle} /></div>
+                <div><label style={labelStyle}>Harga Tiket (Rp)</label><input type="number" name="ticketPrice" value={form.ticketPrice} onChange={handleChange} min="0" placeholder="0 = Gratis" style={inputStyle} /></div>
+                <div><label style={labelStyle}>Est. Kunjungan (mnt)</label><input type="number" name="estimatedDuration" value={form.estimatedDuration} onChange={handleChange} min="15" placeholder="60" style={inputStyle} /></div>
               </div>
             </div>
-            <div><label style={labelStyle}>Alamat *</label><input name="address" value={form.address} onChange={handleChange} required style={inputStyle} /></div>
-          </div>
-        </div>
 
-        <div style={{ background: 'white', borderRadius: '20px', padding: '1.75rem', border: '1px solid #E5E9F0', marginBottom: '1.25rem' }}>
-          <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '1.25rem' }}>🕐 Operasional & Harga</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '1rem' }}>
-            <div><label style={labelStyle}>Jam Buka</label><input type="time" name="openHour" value={form.openHour} onChange={handleChange} style={inputStyle} /></div>
-            <div><label style={labelStyle}>Jam Tutup</label><input type="time" name="closeHour" value={form.closeHour} onChange={handleChange} style={inputStyle} /></div>
-            <div><label style={labelStyle}>Harga Tiket (Rp)</label><input type="number" name="ticketPrice" value={form.ticketPrice} onChange={handleChange} min="0" style={inputStyle} /></div>
-            <div><label style={labelStyle}>Est. Kunjungan (mnt)</label><input type="number" name="estimatedDuration" value={form.estimatedDuration} onChange={handleChange} min="15" style={inputStyle} /></div>
-          </div>
-        </div>
-
-        <div style={{ background: 'white', borderRadius: '20px', padding: '1.75rem', border: '1px solid #E5E9F0', marginBottom: '1.25rem' }}>
-          <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '1.25rem' }}>🗺️ Lokasi</h2>
-          <MapPickerWrapper lat={form.lat} lng={form.lng} onChange={(lat, lng) => setForm(prev => ({ ...prev, lat, lng }))} />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
-            <div><label style={labelStyle}>Lat</label><input name="lat" value={form.lat} onChange={handleChange} style={inputStyle} /></div>
-            <div><label style={labelStyle}>Lng</label><input name="lng" value={form.lng} onChange={handleChange} style={inputStyle} /></div>
-          </div>
-        </div>
-
-        <div style={{ background: 'white', borderRadius: '20px', padding: '1.75rem', border: '1px solid #E5E9F0', marginBottom: '1.5rem' }}>
-          <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '1.25rem' }}>🖼️ Media & Fasilitas</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div>
-              <label style={labelStyle}>URL Foto Utama *</label>
-              <input name="mainImage" value={form.mainImage} onChange={handleChange} required style={inputStyle} />
-              {form.mainImage && <img src={form.mainImage} alt="preview" style={{ marginTop: '8px', width: '100%', maxHeight: '160px', objectFit: 'cover', borderRadius: '10px' }} onError={e => e.currentTarget.style.display = 'none'} />}
+            <div style={cardStyle}>
+              <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '1.25rem' }}>🗺️ Lokasi Peta</h2>
+              <MapPickerWrapper lat={form.lat} lng={form.lng} onChange={(lat, lng) => setForm(prev => ({ ...prev, lat, lng }))} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+                <div><label style={labelStyle}>Koordinat Lat</label><input name="lat" value={form.lat} onChange={handleChange} style={inputStyle} /></div>
+                <div><label style={labelStyle}>Koordinat Lng</label><input name="lng" value={form.lng} onChange={handleChange} style={inputStyle} /></div>
+              </div>
             </div>
-            <div><label style={labelStyle}>Fasilitas (pisahkan koma)</label><input name="facilities" value={form.facilities} onChange={handleChange} placeholder="Parkir, Toilet, Musholla" style={inputStyle} /></div>
           </div>
-        </div>
 
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <Link href="/owner/destinasi" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px', borderRadius: '50px', border: '2px solid #E5E9F0', background: 'white', color: '#4A5568', fontWeight: 700, textDecoration: 'none', fontSize: '0.9rem' }}>Batal</Link>
-          <button type="submit" disabled={saving} style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', borderRadius: '50px', background: '#6D28D9', color: 'white', border: 'none', fontWeight: 700, fontSize: '0.9rem', cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'Outfit, sans-serif', opacity: saving ? 0.8 : 1 }}>
-            {saving ? <><Loader size={18} style={{ animation: 'spin 1s linear infinite' }} /> Mengajukan...</> : <><Save size={18} /> Ajukan Destinasi</>}
-          </button>
+          {/* RIGHT */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+
+            <div style={cardStyle}>
+              <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '1.25rem' }}>🖼️ Foto Utama</h2>
+              <label style={labelStyle}>URL Foto *</label>
+              <input name="mainImage" value={form.mainImage} onChange={handleChange} required placeholder="https://..." style={inputStyle} />
+              {form.mainImage && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={form.mainImage} alt="Preview" style={{ marginTop: '10px', width: '100%', aspectRatio: '16/9', objectFit: 'cover', borderRadius: '12px' }} />
+              )}
+            </div>
+
+            <div style={cardStyle}>
+              <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '4px' }}>🏗️ Fasilitas</h2>
+              <p style={{ fontSize: '0.78rem', color: '#8B98A9', marginBottom: '1rem' }}>Pisahkan dengan koma</p>
+              <input name="facilities" value={form.facilities} onChange={handleChange} placeholder="Parkir, Toilet, Musholla, Kantin" style={inputStyle} />
+            </div>
+
+            <div style={{ ...cardStyle, background: '#F0FDF4', borderColor: '#86EFAC' }}>
+              <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>ℹ️</div>
+              <p style={{ fontSize: '0.85rem', color: '#166534', fontWeight: 600, marginBottom: '4px' }}>Perlu Approval Admin</p>
+              <p style={{ fontSize: '0.8rem', color: '#15803D' }}>Setelah submit, destinasi akan masuk status <strong>Pending</strong> dan menunggu review admin sebelum dipublikasikan ke website.</p>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <button type="submit" disabled={saving} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', borderRadius: '50px', background: '#6D28D9', color: 'white', border: 'none', fontWeight: 700, fontSize: '0.95rem', cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'Outfit, sans-serif', opacity: saving ? 0.8 : 1 }}>
+                {saving ? <><Loader size={18} style={{ animation: 'spin 1s linear infinite' }} /> Mengirim...</> : <><Save size={18} /> Kirim untuk Review</>}
+              </button>
+              <Link href="/owner/destinasi" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px', borderRadius: '50px', border: '2px solid #E5E9F0', background: 'white', color: '#4A5568', fontWeight: 700, textDecoration: 'none', fontSize: '0.9rem' }}>
+                Batal
+              </Link>
+            </div>
+          </div>
         </div>
       </form>
-      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .owner-tambah-grid {
+          display: grid;
+          grid-template-columns: 1fr 380px;
+          gap: 1.5rem;
+          align-items: start;
+        }
+        @media (max-width: 1024px) {
+          .owner-tambah-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   )
 }

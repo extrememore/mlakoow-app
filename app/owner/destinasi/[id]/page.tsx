@@ -88,6 +88,7 @@ export default function OwnerEditDestinasiPage() {
     background: 'white', color: '#1A2332',
   }
   const labelStyle: React.CSSProperties = { display: 'block', fontWeight: 700, fontSize: '0.85rem', color: '#4A5568', marginBottom: '6px' }
+  const cardStyle: React.CSSProperties = { background: 'white', borderRadius: '20px', padding: '1.75rem', border: '1px solid #E5E9F0' }
 
   if (loading) return (
     <div style={{ padding: '2rem', textAlign: 'center', paddingTop: '6rem', color: '#8B98A9' }}>
@@ -97,7 +98,7 @@ export default function OwnerEditDestinasiPage() {
   )
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '760px' }}>
+    <div style={{ padding: '2rem' }}>
       <div style={{ marginBottom: '2rem' }}>
         <Link href="/owner/destinasi" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#8B98A9', textDecoration: 'none', fontSize: '0.875rem', marginBottom: '1rem' }}>
           <ArrowLeft size={16} /> Kembali
@@ -122,85 +123,119 @@ export default function OwnerEditDestinasiPage() {
       {error && <div style={{ background: '#FEE2E2', color: '#DC2626', padding: '12px 16px', borderRadius: '12px', marginBottom: '1.5rem', fontSize: '0.875rem', fontWeight: 600 }}>⚠️ {error}</div>}
 
       <form onSubmit={handleSubmit}>
-        <div style={{ background: 'white', borderRadius: '20px', padding: '1.75rem', border: '1px solid #E5E9F0', marginBottom: '1.25rem' }}>
-          <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '1.25rem' }}>📍 Informasi Dasar</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div><label style={labelStyle}>Nama Destinasi *</label><input name="name" value={form.name} onChange={handleChange} required style={inputStyle} /></div>
-              <div><label style={labelStyle}>Slug (URL) *</label><input name="slug" value={form.slug} onChange={handleChange} required style={inputStyle} /></div>
-            </div>
-            <div><label style={labelStyle}>Deskripsi *</label><textarea name="description" value={form.description} onChange={handleChange} required rows={4} style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }} /></div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div>
-                <label style={labelStyle}>Kategori *</label>
-                <select name="categoryId" value={form.categoryId} onChange={handleChange} required style={inputStyle}>
-                  <option value="">Pilih kategori...</option>
-                  {categories.map(parent => (
-                    parent.children && parent.children.length > 0 ? (
-                      <optgroup key={parent.id} label={`${parent.icon} ${parent.name}`}>
-                        {parent.children.map(child => (
-                          <option key={child.id} value={child.id}>{child.icon} {child.name}</option>
-                        ))}
-                      </optgroup>
-                    ) : (
-                      <option key={parent.id} value={parent.id}>{parent.icon} {parent.name}</option>
-                    )
-                  ))}
-                </select>
+        <div className="owner-edit-grid">
+
+          {/* LEFT */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            
+            <div style={cardStyle}>
+              <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '1.25rem' }}>📍 Informasi Dasar</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div><label style={labelStyle}>Nama Destinasi *</label><input name="name" value={form.name} onChange={handleChange} required style={inputStyle} /></div>
+                  <div><label style={labelStyle}>Slug (URL) *</label><input name="slug" value={form.slug} onChange={handleChange} required style={inputStyle} /></div>
+                </div>
+                <div><label style={labelStyle}>Deskripsi *</label><textarea name="description" value={form.description} onChange={handleChange} required rows={5} style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }} /></div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div>
+                    <label style={labelStyle}>Kategori *</label>
+                    <select name="categoryId" value={form.categoryId} onChange={handleChange} required style={inputStyle}>
+                      <option value="">Pilih kategori...</option>
+                      {categories.map(parent => (
+                        parent.children && parent.children.length > 0 ? (
+                          <optgroup key={parent.id} label={`${parent.icon} ${parent.name}`}>
+                            {parent.children.map(child => (
+                              <option key={child.id} value={child.id}>{child.icon} {child.name}</option>
+                            ))}
+                          </optgroup>
+                        ) : (
+                          <option key={parent.id} value={parent.id}>{parent.icon} {parent.name}</option>
+                        )
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Area *</label>
+                    <select name="area" value={form.area} onChange={handleChange} style={inputStyle}>
+                      {AREAS.map(a => <option key={a} value={a}>{a}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div><label style={labelStyle}>Alamat *</label><input name="address" value={form.address} onChange={handleChange} required style={inputStyle} /></div>
               </div>
-              <div>
-                <label style={labelStyle}>Area *</label>
-                <select name="area" value={form.area} onChange={handleChange} style={inputStyle}>
-                  {AREAS.map(a => <option key={a} value={a}>{a}</option>)}
-                </select>
+            </div>
+
+            <div style={cardStyle}>
+              <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '1.25rem' }}>🕐 Operasional &amp; Tiket</h2>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '1rem' }}>
+                <div><label style={labelStyle}>Jam Buka</label><input type="time" name="openHour" value={form.openHour} onChange={handleChange} required style={inputStyle} /></div>
+                <div><label style={labelStyle}>Jam Tutup</label><input type="time" name="closeHour" value={form.closeHour} onChange={handleChange} required style={inputStyle} /></div>
+                <div><label style={labelStyle}>Harga Tiket (Rp)</label><input type="number" name="ticketPrice" value={form.ticketPrice} onChange={handleChange} min="0" style={inputStyle} /></div>
+                <div><label style={labelStyle}>Est. Kunjungan (mnt)</label><input type="number" name="estimatedDuration" value={form.estimatedDuration} onChange={handleChange} min="15" style={inputStyle} /></div>
               </div>
             </div>
-            <div><label style={labelStyle}>Alamat *</label><input name="address" value={form.address} onChange={handleChange} required style={inputStyle} /></div>
-          </div>
-        </div>
 
-        <div style={{ background: 'white', borderRadius: '20px', padding: '1.75rem', border: '1px solid #E5E9F0', marginBottom: '1.25rem' }}>
-          <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '1.25rem' }}>🕐 Operasional & Harga</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '1rem' }}>
-            <div><label style={labelStyle}>Jam Buka</label><input type="time" name="openHour" value={form.openHour} onChange={handleChange} style={inputStyle} /></div>
-            <div><label style={labelStyle}>Jam Tutup</label><input type="time" name="closeHour" value={form.closeHour} onChange={handleChange} style={inputStyle} /></div>
-            <div><label style={labelStyle}>Harga Tiket (Rp)</label><input type="number" name="ticketPrice" value={form.ticketPrice} onChange={handleChange} min="0" style={inputStyle} /></div>
-            <div><label style={labelStyle}>Est. Kunjungan (mnt)</label><input type="number" name="estimatedDuration" value={form.estimatedDuration} onChange={handleChange} min="15" style={inputStyle} /></div>
+            <div style={cardStyle}>
+              <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '1.25rem' }}>🗺️ Lokasi Peta</h2>
+              <MapPickerWrapper lat={form.lat} lng={form.lng} onChange={(lat, lng) => setForm(prev => ({ ...prev, lat, lng }))} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+                <div><label style={labelStyle}>Koordinat Lat</label><input name="lat" value={form.lat} onChange={handleChange} style={inputStyle} /></div>
+                <div><label style={labelStyle}>Koordinat Lng</label><input name="lng" value={form.lng} onChange={handleChange} style={inputStyle} /></div>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div style={{ background: 'white', borderRadius: '20px', padding: '1.75rem', border: '1px solid #E5E9F0', marginBottom: '1.25rem' }}>
-          <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '1.25rem' }}>🗺️ Lokasi</h2>
-          <MapPickerWrapper lat={form.lat} lng={form.lng} onChange={(lat, lng) => setForm(prev => ({ ...prev, lat, lng }))} />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
-            <div><label style={labelStyle}>Lat</label><input name="lat" value={form.lat} onChange={handleChange} style={inputStyle} /></div>
-            <div><label style={labelStyle}>Lng</label><input name="lng" value={form.lng} onChange={handleChange} style={inputStyle} /></div>
-          </div>
-        </div>
-
-        <div style={{ background: 'white', borderRadius: '20px', padding: '1.75rem', border: '1px solid #E5E9F0', marginBottom: '1.5rem' }}>
-          <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '1.25rem' }}>🖼️ Media & Fasilitas</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div>
-              <label style={labelStyle}>URL Foto Utama *</label>
+          {/* RIGHT */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            
+            <div style={cardStyle}>
+              <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '1.25rem' }}>🖼️ Foto Utama</h2>
+              <label style={labelStyle}>URL Foto *</label>
               <input name="mainImage" value={form.mainImage} onChange={handleChange} required style={inputStyle} />
               {form.mainImage && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={form.mainImage} alt="preview" style={{ marginTop: '8px', width: '100%', maxHeight: '160px', objectFit: 'cover', borderRadius: '10px' }} />
+                <img src={form.mainImage} alt="preview" style={{ marginTop: '10px', width: '100%', aspectRatio: '16/9', objectFit: 'cover', borderRadius: '12px' }} />
               )}
             </div>
-            <div><label style={labelStyle}>Fasilitas (pisahkan koma)</label><input name="facilities" value={form.facilities} onChange={handleChange} placeholder="Parkir, Toilet, Musholla" style={inputStyle} /></div>
+
+            <div style={cardStyle}>
+              <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '4px' }}>🏗️ Fasilitas</h2>
+              <p style={{ fontSize: '0.78rem', color: '#8B98A9', marginBottom: '1rem' }}>Pisahkan dengan koma</p>
+              <input name="facilities" value={form.facilities} onChange={handleChange} placeholder="Parkir, Toilet, Musholla, Kantin" style={inputStyle} />
+            </div>
+
+            {destStatus === 'published' && (
+              <div style={{ ...cardStyle, background: '#FEF3C7', borderColor: '#FDE68A' }}>
+                <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>⚠️</div>
+                <p style={{ fontSize: '0.85rem', color: '#D97706', fontWeight: 600, marginBottom: '4px' }}>Direview Ulang</p>
+                <p style={{ fontSize: '0.8rem', color: '#B45309' }}>Menyimpan perubahan akan mengembalikan status destinasi menjadi <strong>Pending</strong>.</p>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <button type="submit" disabled={saving} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', borderRadius: '50px', background: '#6D28D9', color: 'white', border: 'none', fontWeight: 700, fontSize: '0.95rem', cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'Outfit, sans-serif', opacity: saving ? 0.8 : 1 }}>
+                {saving ? <><Loader size={18} style={{ animation: 'spin 1s linear infinite' }} /> Menyimpan...</> : <><Save size={18} /> Simpan Perubahan</>}
+              </button>
+              <Link href="/owner/destinasi" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px', borderRadius: '50px', border: '2px solid #E5E9F0', background: 'white', color: '#4A5568', fontWeight: 700, textDecoration: 'none', fontSize: '0.9rem' }}>
+                Batal
+              </Link>
+            </div>
           </div>
         </div>
-
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <Link href="/owner/destinasi" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px', borderRadius: '50px', border: '2px solid #E5E9F0', background: 'white', color: '#4A5568', fontWeight: 700, textDecoration: 'none', fontSize: '0.9rem' }}>Batal</Link>
-          <button type="submit" disabled={saving} style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', borderRadius: '50px', background: '#6D28D9', color: 'white', border: 'none', fontWeight: 700, fontSize: '0.9rem', cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'Outfit, sans-serif', opacity: saving ? 0.8 : 1 }}>
-            {saving ? <><Loader size={18} style={{ animation: 'spin 1s linear infinite' }} /> Menyimpan...</> : <><Save size={18} /> Simpan Perubahan</>}
-          </button>
-        </div>
       </form>
-      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .owner-edit-grid {
+          display: grid;
+          grid-template-columns: 1fr 380px;
+          gap: 1.5rem;
+          align-items: start;
+        }
+        @media (max-width: 1024px) {
+          .owner-edit-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   )
 }
