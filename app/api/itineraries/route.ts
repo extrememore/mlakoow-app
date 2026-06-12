@@ -35,6 +35,10 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  if ((session.user as any).role === 'owner') {
+    return Response.json({ error: 'Owner tidak dapat membuat itinerary' }, { status: 403 })
+  }
+
   const body = await request.json()
   const { title, duration, budget, area, items, totalEstimatedCost, notes, startDate, isCanvas } = body
 

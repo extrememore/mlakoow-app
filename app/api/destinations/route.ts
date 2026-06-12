@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     return R * c; 
   }
 
-  const where: Prisma.DestinationWhereInput = {}
+  const where: Prisma.DestinationWhereInput = { status: 'published' }
   const andConditions: Prisma.DestinationWhereInput[] = []
 
   if (search) {

@@ -36,6 +36,12 @@ export default function EditDestinasiPage() {
   const [newMenu, setNewMenu] = useState<MenuItem>({ name: '', price: 0, description: '', image: '' })
   const [showMenuForm, setShowMenuForm] = useState(false)
 
+  // Assign owner state
+  const [currentOwner, setCurrentOwner] = useState<{ id: number; name: string; email: string } | null>(null)
+  const [ownerEmailInput, setOwnerEmailInput] = useState('')
+  const [ownerError, setOwnerError] = useState('')
+  const [ownerLoading, setOwnerLoading] = useState(false)
+
   useEffect(() => {
     Promise.all([
       fetch(`/api/admin/destinations/${id}`).then(r => r.json()),
@@ -56,6 +62,8 @@ export default function EditDestinasiPage() {
       setGalleryUrls(gals)
       // Load menus
       try { setMenus(JSON.parse(dest.menus || '[]')) } catch { setMenus([]) }
+      // Load owner
+      if (dest.owner) setCurrentOwner(dest.owner)
       setLoading(false)
     })
   }, [id])
@@ -408,6 +416,63 @@ export default function EditDestinasiPage() {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Assign Owner Section */}
+        <div style={{ background: 'white', borderRadius: '20px', padding: '1.75rem', border: '1px solid #E5E9F0', marginBottom: '1.5rem' }}>
+          <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', marginBottom: '4px' }}>🏪 Pengelola Destinasi (Owner)</h2>
+          <p style={{ fontSize: '0.78rem', color: '#8B98A9', marginBottom: '1.25rem' }}>Assign pemilik/pengelola destinasi ini. Owner dapat mengedit destinasi melalui portal mereka.</p>
+          {currentOwner ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#EDE9FE', padding: '0.875rem', borderRadius: '12px', marginBottom: '1rem' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'linear-gradient(135deg,#6D28D9,#8B5CF6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 800, fontSize: '0.9rem', flexShrink: 0 }}>
+                {currentOwner.name.charAt(0).toUpperCase()}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 700, fontSize: '0.875rem', color: '#1A2332' }}>{currentOwner.name}</div>
+                <div style={{ fontSize: '0.78rem', color: '#6D28D9' }}>{currentOwner.email}</div>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!confirm('Hapus owner dari destinasi ini?')) return
+                  await fetch(`/api/admin/destinations/${id}/assign-owner`, { method: 'DELETE' })
+                  setCurrentOwner(null)
+                }}
+                style={{ padding: '6px 12px', borderRadius: '8px', background: '#FEE2E2', border: 'none', color: '#DC2626', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer', fontFamily: 'Outfit, sans-serif' }}
+              >
+                Hapus Owner
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <input
+                value={ownerEmailInput}
+                onChange={e => { setOwnerEmailInput(e.target.value); setOwnerError('') }}
+                placeholder="Email pengguna dengan role owner..."
+                style={{ flex: 1, padding: '10px 14px', borderRadius: '10px', border: '1.5px solid #E5E9F0', fontSize: '0.875rem', fontFamily: 'Outfit, sans-serif', outline: 'none', background: 'white' }}
+              />
+              <button
+                type="button"
+                disabled={ownerLoading || !ownerEmailInput}
+                onClick={async () => {
+                  setOwnerLoading(true); setOwnerError('')
+                  const res = await fetch(`/api/admin/destinations/${id}/assign-owner`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: ownerEmailInput }),
+                  })
+                  const data = await res.json()
+                  if (res.ok) { setCurrentOwner(data.owner); setOwnerEmailInput('') }
+                  else setOwnerError(data.error || 'Gagal assign owner')
+                  setOwnerLoading(false)
+                }}
+                style={{ padding: '10px 18px', borderRadius: '10px', background: '#6D28D9', color: 'white', border: 'none', fontWeight: 700, fontSize: '0.85rem', cursor: ownerLoading ? 'not-allowed' : 'pointer', fontFamily: 'Outfit, sans-serif', whiteSpace: 'nowrap' }}
+              >
+                {ownerLoading ? 'Memproses...' : '+ Assign Owner'}
+              </button>
+            </div>
+          )}
+          {ownerError && <p style={{ color: '#DC2626', fontSize: '0.8rem', marginTop: '6px', fontWeight: 600 }}>⚠️ {ownerError}</p>}
         </div>
 
         <div style={{ background: 'white', borderRadius: '20px', padding: '1.75rem', border: '1px solid #E5E9F0', marginBottom: '1.5rem' }}>

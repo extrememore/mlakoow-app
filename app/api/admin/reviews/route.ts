@@ -1,10 +1,12 @@
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { NextResponse } from 'next/server'
+import { isAdmin } from '@/lib/roles'
 
 async function checkAdmin() {
   const session = await auth()
-  if (!session?.user || (session.user as any).role !== 'admin') return null
+  const role = (session?.user as any)?.role ?? ''
+  if (!session?.user || !isAdmin(role)) return null
   return session
 }
 
@@ -21,3 +23,4 @@ export async function GET() {
 
   return NextResponse.json(reviews)
 }
+

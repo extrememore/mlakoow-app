@@ -13,11 +13,13 @@ import {
   ChevronRight,
   Calendar,
   MessageCircle,
+  CheckSquare,
 } from 'lucide-react'
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/destinasi', label: 'Destinasi', icon: MapPin },
+  { href: '/admin/approval', label: 'Approval Destinasi', icon: CheckSquare },
   { href: '/admin/bookings', label: 'Pemesanan', icon: Ticket },
   { href: '/admin/users', label: 'Pengguna', icon: Users },
   { href: '/admin/ulasan', label: 'Ulasan', icon: Star },

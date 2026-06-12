@@ -1,12 +1,12 @@
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { NextResponse } from 'next/server'
+import { isAdmin } from '@/lib/roles'
 
 async function checkAdmin() {
   const session = await auth()
-  if (!session?.user || (session.user as any).role !== 'admin') {
-    return null
-  }
+  const role = (session?.user as any)?.role ?? ''
+  if (!session?.user || !isAdmin(role)) return null
   return session
 }
 
@@ -58,7 +58,10 @@ export async function GET(
   const { id } = await params
   const destination = await prisma.destination.findUnique({
     where: { id: parseInt(id) },
-    include: { category: true },
+    include: {
+      category: true,
+      owner: { select: { id: true, name: true, email: true } },
+    },
   })
 
   if (!destination) return NextResponse.json({ error: 'Not found' }, { status: 404 })

@@ -388,7 +388,7 @@ export default function Navbar() {
                     <BookOpen size={16} color="#0A4A5E" />
                     Itinerary Saya
                   </Link>
-                  {(session.user as any).role === 'admin' && (
+                  {((session.user as any).role === 'admin' || (session.user as any).role === 'superadmin') && (
                     <Link
                       href="/admin"
                       onClick={() => setUserMenuOpen(false)}
@@ -405,7 +405,27 @@ export default function Navbar() {
                       className="menu-item"
                     >
                       <Compass size={16} color="#FF6B35" />
-                      Admin Panel
+                      {(session.user as any).role === 'superadmin' ? '👑 Super Admin Panel' : '🛡️ Admin Panel'}
+                    </Link>
+                  )}
+                  {(session.user as any).role === 'owner' && (
+                    <Link
+                      href="/owner"
+                      onClick={() => setUserMenuOpen(false)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        padding: '14px 18px',
+                        textDecoration: 'none',
+                        color: '#1A2332',
+                        fontWeight: 500,
+                        fontSize: '0.9rem',
+                      }}
+                      className="menu-item"
+                    >
+                      <Compass size={16} color="#7C3AED" />
+                      🏪 Portal Pengelola
                     </Link>
                   )}
                   <div style={{ borderTop: '1px solid #E5E9F0' }}>
@@ -612,13 +632,14 @@ export default function Navbar() {
               >
                 <BookOpen size={18} color="#0A4A5E" /> Itinerary Saya
               </Link>
-              {(session.user as any).role === 'admin' && (
-                <Link
-                  href="/admin"
-                  onClick={() => setMobileOpen(false)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0.85rem 0', textDecoration: 'none', color: '#1A2332', fontWeight: 600, borderBottom: '1px solid #E5E9F0' }}
-                >
-                  <Compass size={18} color="#FF6B35" /> Admin Panel
+              {((session.user as any).role === 'admin' || (session.user as any).role === 'superadmin') && (
+                <Link href="/admin" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', borderRadius: '50px', background: '#FF6B35', color: 'white', textDecoration: 'none', fontWeight: 700, fontSize: '0.85rem' }}>
+                  {(session.user as any).role === 'superadmin' ? '👑' : '🛡️'} Admin
+                </Link>
+              )}
+              {(session.user as any).role === 'owner' && (
+                <Link href="/owner" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', borderRadius: '50px', background: '#7C3AED', color: 'white', textDecoration: 'none', fontWeight: 700, fontSize: '0.85rem' }}>
+                  🏪 Owner
                 </Link>
               )}
               <button

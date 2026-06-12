@@ -17,6 +17,10 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'Login diperlukan untuk booking' }, { status: 401 })
   }
 
+  if ((session.user as any).role === 'owner') {
+    return Response.json({ error: 'Owner tidak dapat melakukan pemesanan' }, { status: 403 })
+  }
+
   const { destinationId, visitDate, ticketCount } = await request.json()
 
   const destination = await prisma.destination.findUnique({

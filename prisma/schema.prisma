@@ -25,6 +25,7 @@ model User {
   wishlistShare WishlistShare?
   questions   Question[]
   answers     Answer[]
+  ownedDestinations Destination[] @relation("OwnedDestinations")
 }
 
 model Category {
@@ -61,9 +62,12 @@ model Destination {
   estimatedDuration Int      @default(60)
   facilities        String   @db.Text
   menus             String?  @db.Text
+  status            String   @default("published")
+  ownerId           Int?
   createdAt         DateTime @default(now())
 
   category       Category        @relation(fields: [categoryId], references: [id])
+  owner          User?           @relation("OwnedDestinations", fields: [ownerId], references: [id])
   reviews        Review[]
   itineraryItems ItineraryItem[]
   bookings       Booking[]
