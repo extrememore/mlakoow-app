@@ -22,6 +22,8 @@ export default async function PetaInteraktifPage() {
     label: d.name,
     type: 'destination',
     category: d.category.name,
+    categoryId: d.category.id,
+    parentCategoryId: d.category.parentId,
     image: d.mainImage,
     address: d.address,
     slug: d.slug

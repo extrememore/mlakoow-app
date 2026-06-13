@@ -26,11 +26,82 @@ export interface MapPin {
   id?: string | number
   type?: 'destination' | 'event'
   category?: string
+  categoryId?: number
+  parentCategoryId?: number | null
   image?: string
   address?: string
   slug?: string
   order?: number
   isLiveEvent?: boolean
+}
+
+// Main category style table — keyed by root category ID from DB
+export const CATEGORY_STYLES: Record<number, { color: string; emoji: string; label: string }> = {
+  4:  { color: '#EF4444', emoji: '🍜', label: 'Kuliner' },
+  6:  { color: '#7C3AED', emoji: '💎', label: 'Hidden Gem' },
+  7:  { color: '#92400E', emoji: '☕', label: 'Cafe' },
+  8:  { color: '#8B5CF6', emoji: '🎭', label: 'Hiburan' },
+  10: { color: '#10B981', emoji: '🛍️', label: 'Oleh-Oleh' },
+  11: { color: '#0A4A5E', emoji: '🏛️', label: 'Wisata' },
+}
+
+// Category name-based lookup (for filter buttons that only have name)
+export const CATEGORY_NAME_STYLES: Record<string, { color: string; emoji: string }> = {
+  'Kuliner': { color: '#EF4444', emoji: '🍜' },
+  'Makanan Tradisional': { color: '#EF4444', emoji: '🍲' },
+  'Street Food': { color: '#EF4444', emoji: '🌮' },
+  'Restoran & Rumah Makan': { color: '#EF4444', emoji: '🍽️' },
+  'Jajanan & Snack': { color: '#EF4444', emoji: '🧆' },
+  'Warung Lokal': { color: '#EF4444', emoji: '🏠' },
+  'Seafood': { color: '#EF4444', emoji: '🦐' },
+  'Makanan Khas Surabaya': { color: '#EF4444', emoji: '🦞' },
+  'Cafe & Nongkrong': { color: '#92400E', emoji: '☕' },
+  'Coffee Shop': { color: '#92400E', emoji: '☕' },
+  'Kedai': { color: '#92400E', emoji: '🫖' },
+  'Cafe': { color: '#92400E', emoji: '🍰' },
+  'Creative & Community Space': { color: '#92400E', emoji: '🎨' },
+  'Hiburan': { color: '#8B5CF6', emoji: '🎭' },
+  'Spot Foto': { color: '#8B5CF6', emoji: '📸' },
+  'Studio Foto': { color: '#DB2777', emoji: '📷' },
+  'Spot Foto Outdoor': { color: '#8B5CF6', emoji: '🌄' },
+  'Spot Foto Indoor': { color: '#8B5CF6', emoji: '🏠' },
+  'Permainan & Arcade': { color: '#2563EB', emoji: '🎮' },
+  'Bioskop & Hiburan': { color: '#8B5CF6', emoji: '🎬' },
+  'Olahraga & Petualangan': { color: '#16A34A', emoji: '⚽' },
+  'Oleh-Oleh': { color: '#10B981', emoji: '🛍️' },
+  'Kerajinan Tangan': { color: '#10B981', emoji: '🧵' },
+  'Batik & Fashion': { color: '#10B981', emoji: '👗' },
+  'Minuman & Bumbu': { color: '#10B981', emoji: '🌶️' },
+  'Kue & Roti': { color: '#10B981', emoji: '🍞' },
+  'Souvenir & Aksesoris': { color: '#10B981', emoji: '🎁' },
+  'Wisata': { color: '#0A4A5E', emoji: '🗺️' },
+  'Sejarah': { color: '#3B82F6', emoji: '🏛️' },
+  'Alam': { color: '#10B981', emoji: '🌿' },
+  'Budaya': { color: '#F59E0B', emoji: '🎭' },
+  'Keluarga': { color: '#EC4899', emoji: '👨‍👩‍👧' },
+  'Taman & Rekreasi': { color: '#22C55E', emoji: '🌳' },
+  'Petualangan': { color: '#F59E0B', emoji: '🧗' },
+  'Edukasi': { color: '#3B82F6', emoji: '📚' },
+  'Hidden Gem': { color: '#7C3AED', emoji: '💎' },
+}
+
+const getCategoryStyle = (pin: MapPin): { color: string; emoji: string } => {
+  if (pin.type === 'event') {
+    return { color: pin.isLiveEvent ? '#EF4444' : '#F59E0B', emoji: '🎟️' }
+  }
+  // Use root category if sub-category
+  const rootId = pin.parentCategoryId ?? pin.categoryId
+  if (rootId && CATEGORY_STYLES[rootId]) {
+    const style = CATEGORY_STYLES[rootId]
+    // For sub-categories, use more specific emoji if available by name
+    const nameStyle = pin.category ? CATEGORY_NAME_STYLES[pin.category] : null
+    return { color: style.color, emoji: nameStyle?.emoji ?? style.emoji }
+  }
+  // Fallback by name
+  if (pin.category && CATEGORY_NAME_STYLES[pin.category]) {
+    return CATEGORY_NAME_STYLES[pin.category]
+  }
+  return { color: '#64748B', emoji: '📍' }
 }
 
 interface MapDisplayProps {
@@ -48,41 +119,39 @@ interface MapDisplayProps {
 }
 
 const customIcon = (pin: MapPin) => {
-  let bg = '#0A4A5E'
-  if (pin.type === 'event') {
-    bg = pin.isLiveEvent ? '#EF4444' : '#F59E0B'
-  }
+  const { color, emoji } = getCategoryStyle(pin)
+  const isLive = pin.isLiveEvent
+
+  // If pin has order number (itinerary waypoint), show number instead of emoji
+  const innerContent = pin.order
+    ? `<span style="color:white;font-weight:900;font-size:12px;font-family:'Outfit',sans-serif;line-height:1;position:relative;top:1px;">${pin.order}</span>`
+    : `<span style="font-size:14px;line-height:1;position:relative;top:1px;">${emoji}</span>`
 
   return L.divIcon({
-    className: pin.isLiveEvent ? 'leaflet-live-marker' : '',
+    className: isLive ? 'leaflet-live-marker' : '',
     html: `<div style="
-      width: 36px; height: 36px;
-      background: ${bg};
+      width: 38px; height: 38px;
+      background: ${color};
       border: 3px solid white;
       border-radius: 50% 50% 50% 0;
       transform: rotate(-45deg);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 14px ${color}66;
       display: flex; align-items: center; justify-content: center;
     ">
-      <span style="
-        transform: rotate(45deg);
-        color: white;
-        font-weight: 900;
-        font-size: ${pin.order ? '12px' : '16px'};
-        font-family: 'Outfit', sans-serif;
-        line-height: 1;
-        position: relative; top: 2px;
-      ">${pin.order ?? (pin.type === 'event' ? '🎟️' : '📍')}</span>
+      <div style="transform: rotate(45deg); display:flex; align-items:center; justify-content:center;">
+        ${innerContent}
+      </div>
     </div>`,
-    iconSize: [36, 36],
-    iconAnchor: [18, 36],
-    popupAnchor: [0, -36],
+    iconSize: [38, 38],
+    iconAnchor: [19, 38],
+    popupAnchor: [0, -40],
   })
 }
 
 const buildPopupHtml = (pin: MapPin) => {
-  const catBg = pin.type === 'event' ? '#FEF3C7' : '#E0F2FE'
-  const catColor = pin.type === 'event' ? '#B45309' : '#0A4A5E'
+  const { color } = getCategoryStyle(pin)
+  const catBg = color + '20'
+  const catColor = color
   const liveTag = pin.isLiveEvent
     ? `<span style="background:#FEE2E2;color:#EF4444;padding:4px 10px;border-radius:50px;font-size:0.7rem;font-weight:800;">Sedang Berlangsung</span>`
     : ''
