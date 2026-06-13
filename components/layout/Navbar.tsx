@@ -48,7 +48,7 @@ export default function Navbar() {
           borderBottom: '1px solid rgba(229,233,240,0.8)',
           position: 'sticky',
           top: 0,
-          zIndex: 50,
+          zIndex: 9999, // Increased zIndex so it stays above maps (Leaflet uses zIndex 400-1000)
           boxShadow: '0 2px 20px rgba(10,74,94,0.06)',
         }}
       >
