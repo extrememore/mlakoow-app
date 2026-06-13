@@ -74,34 +74,23 @@ export default function InteractiveMapClient({ initialPins }: InteractiveMapClie
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
 
-      {/* ── Filter Bar ── */}
+      {/* ── Filter Bar — sits naturally above the map, no absolute positioning ── */}
       <div style={{
-        position: 'absolute',
-        top: '16px',
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        pointerEvents: 'auto',
-        display: 'flex',
-        justifyContent: 'center',
-        padding: '0 12px',
+        padding: '10px 12px',
+        background: 'rgba(255,255,255,0.98)',
+        borderBottom: '1px solid #E5E9F0',
+        zIndex: 10,
+        flexShrink: 0,
       }}>
-        {/* Scrollable pill container */}
         <div
           ref={filterScrollRef}
           style={{
             display: 'flex',
             gap: '8px',
             overflowX: 'auto',
-            WebkitOverflowScrolling: 'touch', // smooth iOS scroll
-            scrollbarWidth: 'none',           // Firefox
-            msOverflowStyle: 'none',          // IE/Edge
-            background: 'rgba(255,255,255,0.97)',
-            backdropFilter: 'blur(12px)',
-            padding: '8px 12px',
-            borderRadius: '50px',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.14)',
-            maxWidth: '100%',
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
             alignItems: 'center',
           }}
           className="filter-scrollbar-hide"
@@ -183,83 +172,87 @@ export default function InteractiveMapClient({ initialPins }: InteractiveMapClie
         </div>
       </div>
 
-      {/* ── Legend ── */}
-      <div style={{
-        position: 'absolute',
-        bottom: '20px',
-        right: '12px',
-        zIndex: 1000,
-        pointerEvents: 'auto',
-      }}>
-        <button
-          onClick={() => setShowLegend(v => !v)}
-          style={{
-            background: 'white',
-            border: '1px solid #E5E9F0',
-            borderRadius: '12px',
-            padding: '7px 13px',
-            fontWeight: 700,
-            fontSize: '0.78rem',
-            cursor: 'pointer',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
-            display: 'flex', alignItems: 'center', gap: '6px',
-            color: '#1A2332',
-          }}
-        >
-          🎨 {showLegend ? 'Tutup' : 'Legenda'}
-        </button>
+      {/* ── Map + Legend (contained together) ── */}
+      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
 
-        {showLegend && (
-          <div style={{
-            position: 'absolute',
-            bottom: 'calc(100% + 10px)',
-            right: 0,
-            background: 'white',
-            borderRadius: '16px',
-            padding: '14px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-            border: '1px solid #E5E9F0',
-            minWidth: '190px',
-          }}>
-            <div style={{ fontWeight: 800, fontSize: '0.82rem', color: '#1A2332', marginBottom: '10px' }}>
-              🗺️ Legenda Peta
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {legendItems.map((item, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{
-                    width: '22px', height: '22px', flexShrink: 0,
-                    background: item.color,
-                    borderRadius: '50% 50% 50% 0',
-                    transform: 'rotate(-45deg)',
-                    border: '2px solid white',
-                    boxShadow: `0 2px 6px ${item.color}55`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <span style={{ transform: 'rotate(45deg)', fontSize: '9px' }}>{item.emoji}</span>
+        {/* Map */}
+        <div style={{ height: '100%', width: '100%' }}>
+          <MapWrapper
+            pins={filteredPins}
+            height="100%"
+            zoom={13}
+            onLocationFound={handleLocationFound}
+            radiusMode={isRadiusActive && userLocation ? {
+              active: true,
+              centerLat: userLocation.lat,
+              centerLng: userLocation.lng,
+              radiusKm: 2
+            } : undefined}
+          />
+        </div>
+
+        {/* Legend — floats inside the map area */}
+        <div style={{
+          position: 'absolute',
+          bottom: '20px',
+          right: '12px',
+          zIndex: 1000,
+          pointerEvents: 'auto',
+        }}>
+          <button
+            onClick={() => setShowLegend(v => !v)}
+            style={{
+              background: 'white',
+              border: '1px solid #E5E9F0',
+              borderRadius: '12px',
+              padding: '7px 13px',
+              fontWeight: 700,
+              fontSize: '0.78rem',
+              cursor: 'pointer',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+              display: 'flex', alignItems: 'center', gap: '6px',
+              color: '#1A2332',
+            }}
+          >
+            🎨 {showLegend ? 'Tutup' : 'Legenda'}
+          </button>
+
+          {showLegend && (
+            <div style={{
+              position: 'absolute',
+              bottom: 'calc(100% + 10px)',
+              right: 0,
+              background: 'white',
+              borderRadius: '16px',
+              padding: '14px',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+              border: '1px solid #E5E9F0',
+              minWidth: '190px',
+            }}>
+              <div style={{ fontWeight: 800, fontSize: '0.82rem', color: '#1A2332', marginBottom: '10px' }}>
+                🗺️ Legenda Peta
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {legendItems.map((item, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{
+                      width: '22px', height: '22px', flexShrink: 0,
+                      background: item.color,
+                      borderRadius: '50% 50% 50% 0',
+                      transform: 'rotate(-45deg)',
+                      border: '2px solid white',
+                      boxShadow: `0 2px 6px ${item.color}55`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <span style={{ transform: 'rotate(45deg)', fontSize: '9px' }}>{item.emoji}</span>
+                    </div>
+                    <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#374151' }}>{item.label}</span>
                   </div>
-                  <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#374151' }}>{item.label}</span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
-
-      {/* ── Map ── */}
-      <div style={{ flex: 1, borderRadius: '20px', overflow: 'hidden', zIndex: 1 }}>
-        <MapWrapper
-          pins={filteredPins}
-          height="100%"
-          zoom={13}
-          onLocationFound={handleLocationFound}
-          radiusMode={isRadiusActive && userLocation ? {
-            active: true,
-            centerLat: userLocation.lat,
-            centerLng: userLocation.lng,
-            radiusKm: 2
-          } : undefined}
-        />
+          )}
+        </div>
       </div>
 
       <style>{`
