@@ -984,8 +984,8 @@ export default function ProfileClient({ data }: Props) {
                   )
                 })}
                 <div style={{ textAlign: 'center', marginTop: '0.5rem' }}>
-                  <Link href="/destinasi" style={{ fontSize: '0.875rem', color: '#0A4A5E', fontWeight: 700, textDecoration: 'none' }}>
-                    + Pesan tiket destinasi lainnya →
+                  <Link href="/wisata" style={{ fontSize: '0.875rem', color: '#0A4A5E', fontWeight: 700, textDecoration: 'none' }}>
+                    + Pesan tiket wisata lainnya →
                   </Link>
                 </div>
               </div>

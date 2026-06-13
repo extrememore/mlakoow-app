@@ -81,11 +81,11 @@ export default function Footer() {
               Jelajahi
             </h3>
             {[
-              { href: '/destinasi', label: 'Semua Destinasi' },
-              { href: '/destinasi?category=alam', label: 'Wisata Alam' },
-              { href: '/destinasi?category=sejarah', label: 'Wisata Sejarah' },
-              { href: '/destinasi?category=kuliner', label: 'Kuliner' },
-              { href: '/destinasi?hiddenGem=true', label: 'Hidden Gems' },
+              { href: '/wisata', label: 'Wisata Surabaya' },
+              { href: '/kuliner', label: 'Pusat Kuliner' },
+              { href: '/hiburan', label: 'Spot Foto & Hiburan' },
+              { href: '/cafe', label: 'Cafe & Nongkrong' },
+              { href: '/oleh-oleh', label: 'Pusat Oleh-oleh' },
             ].map((link) => (
               <Link
                 key={link.href}
@@ -113,7 +113,7 @@ export default function Footer() {
             </h3>
             {[
               { href: '/itinerary', label: 'Smart Itinerary' },
-              { href: '/destinasi', label: 'Cari Destinasi' },
+              { href: '/wisata', label: 'Cari Destinasi' },
               { href: '/profil', label: 'Profil & Riwayat' },
             ].map((link) => (
               <Link
