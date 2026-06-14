@@ -18,7 +18,7 @@ export default function Navbar() {
 
   const navLinks = [
     { href: '/', label: 'Beranda' },
-    { href: '/itinerary', label: 'Smart Itinerary' },
+    ...(session ? [{ href: '/itinerary', label: 'Smart Itinerary' }] : []),
     { href: '/bantuan', label: 'Bantuan' },
   ]
 
