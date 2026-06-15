@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
+import Script from 'next/script'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import Link from 'next/link'
@@ -143,21 +144,45 @@ function CheckoutContent() {
     setStep(3)
     setLoading(true)
 
-    // Simulate payment processing delay
-    await new Promise(r => setTimeout(r, 2500))
-
     try {
-      const res = await fetch('/api/bookings', {
+      const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ destinationId, visitDate, ticketCount }),
+        body: JSON.stringify({ destinationId, visitDate, ticketCount, paymentMethod: selectedPayment }),
       })
 
       if (res.ok) {
-        const booking = await res.json()
-        router.push(`/booking/sukses?code=${booking.bookingCode}&name=${encodeURIComponent(destinationName)}&date=${visitDate}&count=${ticketCount}&total=${total}&payment=${selectedPayment}`)
+        const data = await res.json()
+        
+        // @ts-ignore
+        if (typeof window !== 'undefined' && window.snap) {
+          // @ts-ignore
+          window.snap.pay(data.token, {
+            onSuccess: function(result: any){
+              router.push(`/booking/sukses?code=${data.bookingCode}&name=${encodeURIComponent(destinationName)}&date=${visitDate}&count=${ticketCount}&total=${total}&payment=${selectedPayment}`)
+            },
+            onPending: function(result: any){
+              router.push(`/booking/sukses?code=${data.bookingCode}&name=${encodeURIComponent(destinationName)}&date=${visitDate}&count=${ticketCount}&total=${total}&payment=${selectedPayment}`)
+            },
+            onError: function(result: any){
+              setError('Pembayaran gagal.')
+              setStep(2)
+              setLoading(false)
+            },
+            onClose: function(){
+              setError('Anda menutup jendela pembayaran sebelum selesai.')
+              setStep(2)
+              setLoading(false)
+            }
+          })
+        } else {
+          setError('Sistem pembayaran belum siap. Silakan refresh halaman.')
+          setStep(2)
+          setLoading(false)
+        }
       } else {
-        setError('Gagal memproses pembayaran. Silakan coba lagi.')
+        const errData = await res.json()
+        setError(errData.error || 'Gagal memproses pembayaran. Silakan coba lagi.')
         setStep(2)
         setLoading(false)
       }
@@ -186,6 +211,7 @@ function CheckoutContent() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
+      <Script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || 'SB-Mid-client-YOUR_CLIENT_KEY'} strategy="lazyOnload" />
       <Navbar />
 
       {/* Header */}

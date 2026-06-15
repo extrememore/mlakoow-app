@@ -130,6 +130,9 @@ model Booking {
   totalPrice    Int
   status        String      @default("pending")
   bookingCode   String      @unique
+  paymentToken  String?     @db.Text
+  paymentMethod String?
+  paidAt        DateTime?
   createdAt     DateTime    @default(now())
 
   user        User        @relation(fields: [userId], references: [id])

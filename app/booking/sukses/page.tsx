@@ -32,12 +32,17 @@ function SuccessContent() {
   const count = searchParams.get('count') || '1'
   const total = searchParams.get('total') || '0'
   const payment = searchParams.get('payment') || ''
+  const status = searchParams.get('status') || 'success'
+
+  const isPending = status === 'pending'
 
   useEffect(() => {
-    setConfetti(true)
-    const t = setTimeout(() => setConfetti(false), 4000)
-    return () => clearTimeout(t)
-  }, [])
+    if (!isPending) {
+      setConfetti(true)
+      const t = setTimeout(() => setConfetti(false), 4000)
+      return () => clearTimeout(t)
+    }
+  }, [isPending])
 
   // Simple QR code visual using the booking code
   const qrSegments = code.split('').map(c => c.charCodeAt(0))
@@ -69,19 +74,19 @@ function SuccessContent() {
       )}
 
       {/* Hero banner */}
-      <div style={{ background: 'linear-gradient(135deg, #022B1E 0%, #065F46 60%, #10B981 100%)', padding: '3rem 1.5rem', color: 'white', textAlign: 'center' }}>
+      <div style={{ background: isPending ? 'linear-gradient(135deg, #0A4A5E 0%, #0D6E84 100%)' : 'linear-gradient(135deg, #022B1E 0%, #065F46 60%, #10B981 100%)', padding: '3rem 1.5rem', color: 'white', textAlign: 'center' }}>
         <div style={{ maxWidth: '520px', margin: '0 auto' }}>
           <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: '3px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', animation: 'popIn 0.5s ease-out' }}>
-            <CheckCircle size={42} color="#6EE7B7" />
+            {isPending ? <Loader size={42} color="#93C5FD" style={{ animation: 'spin 2s linear infinite' }} /> : <CheckCircle size={42} color="#6EE7B7" />}
           </div>
-          <div style={{ display: 'inline-block', background: 'rgba(110,231,183,0.2)', border: '1px solid rgba(110,231,183,0.4)', borderRadius: '50px', padding: '5px 16px', fontSize: '0.78rem', fontWeight: 700, color: '#6EE7B7', letterSpacing: '0.05em', marginBottom: '1rem' }}>
-            ✅ PEMBAYARAN BERHASIL
+          <div style={{ display: 'inline-block', background: isPending ? 'rgba(147,197,253,0.2)' : 'rgba(110,231,183,0.2)', border: isPending ? '1px solid rgba(147,197,253,0.4)' : '1px solid rgba(110,231,183,0.4)', borderRadius: '50px', padding: '5px 16px', fontSize: '0.78rem', fontWeight: 700, color: isPending ? '#93C5FD' : '#6EE7B7', letterSpacing: '0.05em', marginBottom: '1rem' }}>
+            {isPending ? '⏳ MENUNGGU PEMBAYARAN' : '✅ PEMBAYARAN BERHASIL'}
           </div>
           <h1 style={{ fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: 900, marginBottom: '0.75rem', lineHeight: 1.2 }}>
-            Yeay! Tiket Kamu<br />Sudah Dikonfirmasi 🎉
+            {isPending ? 'Selesaikan Pembayaran Anda' : <>Yeay! Tiket Kamu<br />Sudah Dikonfirmasi 🎉</>}
           </h1>
           <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.95rem', lineHeight: 1.6 }}>
-            Simpan kode booking di bawah sebagai bukti pemesanan.<br />Tunjukkan kepada petugas saat tiba di lokasi.
+            {isPending ? 'Silakan selesaikan pembayaran melalui metode yang Anda pilih. Status tiket akan otomatis terkonfirmasi setelah pembayaran berhasil.' : 'Simpan kode booking di bawah sebagai bukti pemesanan. Tunjukkan kepada petugas saat tiba di lokasi.'}
           </p>
         </div>
       </div>
@@ -163,10 +168,19 @@ function SuccessContent() {
             </div>
 
             {/* Status badge */}
-            <div style={{ marginTop: '1rem', padding: '0.75rem 1rem', background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <CheckCircle size={16} color="#10B981" />
-              <span style={{ fontSize: '0.825rem', color: '#047857', fontWeight: 600 }}>Tiket dikonfirmasi & siap digunakan</span>
-            </div>
+            {!isPending && (
+              <div style={{ marginTop: '1rem', padding: '0.75rem 1rem', background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle size={16} color="#10B981" />
+                <span style={{ fontSize: '0.825rem', color: '#047857', fontWeight: 600 }}>Tiket dikonfirmasi & siap digunakan</span>
+              </div>
+            )}
+            
+            {isPending && (
+               <div style={{ marginTop: '1rem', padding: '0.75rem 1rem', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Loader size={16} color="#D97706" style={{ animation: 'spin 2s linear infinite' }} />
+                <span style={{ fontSize: '0.825rem', color: '#D97706', fontWeight: 600 }}>Menunggu konfirmasi pembayaran otomatis</span>
+              </div>
+            )}
           </div>
         </div>
 
