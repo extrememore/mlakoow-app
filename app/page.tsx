@@ -22,7 +22,20 @@ import {
   Heart,
   Map,
   Sparkles,
-  Ticket
+  Ticket,
+  Coffee,
+  Utensils,
+  Mountain,
+  Landmark,
+  Users2,
+  ShoppingBag,
+  Music,
+  Camera,
+  Trees,
+  Gamepad2,
+  Tent,
+  Building,
+  Car
 } from 'lucide-react'
 
 export default async function HomePage() {
@@ -313,9 +326,26 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1.25rem' }}>
-            {categories.map((cat) => {
-              const colors = categoryColors[cat.slug] || { bg: '#FFFFFF', text: '#4A5568', border: '#E5E9F0' }
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1.25rem' }}>
+            {categories.slice(0, 14).map((cat) => {
+              const colors = categoryColors[cat.slug] || { bg: '#F1F5F9', text: '#475569', border: '#E2E8F0' }
+              
+              const getIcon = (slug: string) => {
+                if (slug.includes('kuliner') || slug.includes('makan') || slug.includes('seafood') || slug.includes('warung')) return <Utensils size={28} strokeWidth={1.5} />
+                if (slug.includes('cafe') || slug.includes('coffee') || slug.includes('minum')) return <Coffee size={28} strokeWidth={1.5} />
+                if (slug.includes('wisata') || slug.includes('taman')) return <Trees size={28} strokeWidth={1.5} />
+                if (slug.includes('alam')) return <Mountain size={28} strokeWidth={1.5} />
+                if (slug.includes('sejarah') || slug.includes('budaya') || slug.includes('edukasi')) return <Landmark size={28} strokeWidth={1.5} />
+                if (slug.includes('keluarga')) return <Users2 size={28} strokeWidth={1.5} />
+                if (slug.includes('oleh') || slug.includes('souvenir') || slug.includes('kerajinan') || slug.includes('batik')) return <ShoppingBag size={28} strokeWidth={1.5} />
+                if (slug.includes('hiburan') || slug.includes('bioskop')) return <Music size={28} strokeWidth={1.5} />
+                if (slug.includes('foto') || slug.includes('studio')) return <Camera size={28} strokeWidth={1.5} />
+                if (slug.includes('gem')) return <Sparkles size={28} strokeWidth={1.5} />
+                if (slug.includes('petualangan') || slug.includes('olahraga')) return <Tent size={28} strokeWidth={1.5} />
+                if (slug.includes('bermain') || slug.includes('arcade')) return <Gamepad2 size={28} strokeWidth={1.5} />
+                return <Compass size={28} strokeWidth={1.5} />
+              }
+
               return (
                 <Link
                   key={cat.id}
@@ -327,18 +357,23 @@ export default async function HomePage() {
                     style={{
                       background: 'white',
                       border: `1px solid #E5E9F0`,
-                      borderRadius: '24px',
-                      padding: '2rem 1.5rem',
+                      borderRadius: '20px',
+                      padding: '1.25rem 1rem',
                       textAlign: 'center',
                       cursor: 'pointer',
                       transition: 'all 0.3s',
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.03)'
+                      boxShadow: '0 4px 15px rgba(0,0,0,0.02)',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center'
                     }}
                   >
-                    <div style={{ width: '70px', height: '70px', background: colors.bg, color: colors.text, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', margin: '0 auto 1.25rem' }}>
-                      {cat.icon}
+                    <div style={{ width: '56px', height: '56px', background: colors.bg, color: colors.text, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
+                      {getIcon(cat.slug)}
                     </div>
-                    <div style={{ fontWeight: 800, color: '#1A2332', fontSize: '1.05rem' }}>{cat.name}</div>
+                    <div style={{ fontWeight: 700, color: '#1A2332', fontSize: '0.85rem', lineHeight: 1.3 }}>{cat.name}</div>
                   </div>
                 </Link>
               )
