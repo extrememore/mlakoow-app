@@ -281,14 +281,25 @@ export default async function HomePage() {
                   </div>
 
                   {/* Main Image */}
-                  <img src="https://images.unsplash.com/photo-1555217851-6141535bd771?w=800&q=80" alt="Surabaya" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '30px', boxShadow: '0 30px 60px rgba(0,0,0,0.4)', border: '8px solid rgba(255,255,255,0.1)' }} />
+                  <img 
+                    src={featuredDestinations[0]?.mainImage || "https://images.unsplash.com/photo-1555217851-6141535bd771?w=800&q=80"} 
+                    alt="Surabaya" 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '30px', boxShadow: '0 30px 60px rgba(0,0,0,0.4)', border: '8px solid rgba(255,255,255,0.1)' }} 
+                  />
 
                   {/* Floating Dest Card */}
                   <div style={{ position: 'absolute', bottom: '10%', left: '-15%', background: 'white', padding: '1rem', borderRadius: '20px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', zIndex: 10, display: 'flex', alignItems: 'center', gap: '15px', animation: 'float 8s ease-in-out infinite reverse' }}>
-                    <img src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=200&q=80" style={{ width: '60px', height: '60px', borderRadius: '12px', objectFit: 'cover' }} />
+                    <img 
+                      src={featuredDestinations[1]?.mainImage || "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=200&q=80"} 
+                      style={{ width: '60px', height: '60px', borderRadius: '12px', objectFit: 'cover' }} 
+                    />
                     <div>
-                      <div style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332' }}>Monumen Kapal Selam</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', color: '#FF6B35', fontWeight: 700, marginTop: '4px' }}><Star size={12} fill="#FF6B35" /> 4.8</div>
+                      <div style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {featuredDestinations[1]?.name || "Monumen Kapal Selam"}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', color: '#FF6B35', fontWeight: 700, marginTop: '4px' }}>
+                        <Star size={12} fill="#FF6B35" /> {featuredDestinations[1]?.rating?.toFixed(1) || "4.8"}
+                      </div>
                     </div>
                   </div>
                </div>
