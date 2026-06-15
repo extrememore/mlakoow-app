@@ -5,6 +5,7 @@ import Footer from '@/components/layout/Footer'
 import DestinationCard from '@/components/ui/DestinationCard'
 import CTAJoin from '@/components/ui/CTAJoin'
 import NearbyRecommendations from '@/components/ui/NearbyRecommendations'
+import HeroCarousel from '@/components/ui/HeroCarousel'
 
 export const dynamic = 'force-dynamic'
 
@@ -270,39 +271,7 @@ export default async function HomePage() {
 
             {/* Desktop Hero Image / Floating elements */}
             <div className="hero-images" style={{ position: 'relative', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-               <div style={{ position: 'relative', width: '100%', maxWidth: '450px', aspectRatio: '4/5' }}>
-                  {/* Stats Card Floating */}
-                  <div style={{ position: 'absolute', top: '10%', right: '-10%', background: 'white', padding: '1.2rem', borderRadius: '20px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', zIndex: 10, display: 'flex', alignItems: 'center', gap: '15px', animation: 'float 6s ease-in-out infinite' }}>
-                    <div style={{ background: '#E0F2FE', padding: '12px', borderRadius: '15px', color: '#0A4A5E' }}><Users size={24} /></div>
-                    <div>
-                      <div style={{ fontWeight: 900, fontSize: '1.2rem', color: '#1A2332' }}>5,000+</div>
-                      <div style={{ fontSize: '0.8rem', color: '#8B98A9', fontWeight: 600 }}>Wisatawan Aktif</div>
-                    </div>
-                  </div>
-
-                  {/* Main Image */}
-                  <img 
-                    src={featuredDestinations[0]?.mainImage || "https://images.unsplash.com/photo-1555217851-6141535bd771?w=800&q=80"} 
-                    alt="Surabaya" 
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '30px', boxShadow: '0 30px 60px rgba(0,0,0,0.4)', border: '8px solid rgba(255,255,255,0.1)' }} 
-                  />
-
-                  {/* Floating Dest Card */}
-                  <div style={{ position: 'absolute', bottom: '10%', left: '-15%', background: 'white', padding: '1rem', borderRadius: '20px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', zIndex: 10, display: 'flex', alignItems: 'center', gap: '15px', animation: 'float 8s ease-in-out infinite reverse' }}>
-                    <img 
-                      src={featuredDestinations[1]?.mainImage || "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=200&q=80"} 
-                      style={{ width: '60px', height: '60px', borderRadius: '12px', objectFit: 'cover' }} 
-                    />
-                    <div>
-                      <div style={{ fontWeight: 800, fontSize: '1rem', color: '#1A2332', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {featuredDestinations[1]?.name || "Monumen Kapal Selam"}
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', color: '#FF6B35', fontWeight: 700, marginTop: '4px' }}>
-                        <Star size={12} fill="#FF6B35" /> {featuredDestinations[1]?.rating?.toFixed(1) || "4.8"}
-                      </div>
-                    </div>
-                  </div>
-               </div>
+               <HeroCarousel destinations={featuredDestinations} />
             </div>
           </div>
         </div>
