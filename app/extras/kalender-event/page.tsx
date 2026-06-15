@@ -6,6 +6,7 @@ import { Calendar, MapPin, Search } from 'lucide-react'
 import EventBookmarkButton from '@/components/ui/EventBookmarkButton'
 import SortSelect from '@/components/ui/SortSelect'
 import Link from 'next/link'
+import EventCalendarGrid from '@/components/ui/EventCalendarGrid'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,6 +22,7 @@ export default async function KalenderEventPage({
   const search = resolvedParams?.search || ''
   const category = resolvedParams?.category || ''
   const sort = resolvedParams?.sort || 'Terdekat'
+  const dateStr = resolvedParams?.date || ''
 
   const where: any = {}
   if (search) {
@@ -52,6 +54,20 @@ export default async function KalenderEventPage({
     events.sort((a, b) => parsePrice(b.price) - parsePrice(a.price))
   } else if (sort === 'Gratis') {
     events = events.filter(e => parsePrice(e.price) === 0)
+  }
+
+  // Filter by date for the list view
+  let displayedEvents = events
+  if (dateStr) {
+    const targetDate = new Date(dateStr)
+    targetDate.setHours(0, 0, 0, 0)
+    displayedEvents = events.filter(e => {
+      const start = new Date(e.startDate)
+      start.setHours(0, 0, 0, 0)
+      const end = new Date(e.endDate)
+      end.setHours(23, 59, 59, 999)
+      return targetDate >= start && targetDate <= end
+    })
   }
 
   // Get saved events for user
@@ -148,14 +164,16 @@ export default async function KalenderEventPage({
           </div>
 
           <div style={{ display: 'grid', gap: '2rem' }}>
-            {events.length === 0 ? (
+            <EventCalendarGrid events={events} />
+
+            {displayedEvents.length === 0 ? (
               <div style={{ background: 'white', padding: '5rem 2rem', textAlign: 'center', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', border: '2px dashed #E5E9F0' }}>
                 <Calendar size={48} color="#E5E9F0" style={{ margin: '0 auto 1rem' }} />
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1A2332', marginBottom: '0.5rem' }}>Tidak ada event ditemukan</h3>
                 <p style={{ color: '#8B98A9' }}>Coba ubah filter, urutan, atau kata kunci pencarian Anda.</p>
               </div>
             ) : (
-              events.map((event) => {
+              displayedEvents.map((event) => {
                 const isSaved = savedEventIds.includes(event.id)
                 const startStr = new Date(event.startDate).toISOString().replace(/-|:|\.\d\d\d/g, "")
                 const endStr = new Date(event.endDate).toISOString().replace(/-|:|\.\d\d\d/g, "")
