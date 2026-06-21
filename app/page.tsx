@@ -404,29 +404,12 @@ export default async function HomePage() {
           </div>
 
           {featuredDestinations.length > 0 ? (
-            <div 
-              style={{ 
-                display: 'flex', 
-                gap: '1.5rem', 
-                overflowX: 'auto', 
-                paddingBottom: '2rem',
-                margin: '0 -1.5rem',
-                padding: '0 1.5rem 2rem 1.5rem',
-                scrollSnapType: 'x mandatory',
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
-              }}
-              className="hide-scrollbar"
-            >
-              <style>{`
-                .hide-scrollbar::-webkit-scrollbar {
-                  display: none;
-                }
-              `}</style>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '2rem' }}>
               {featuredDestinations.map((dest) => (
-                <div key={dest.id} style={{ minWidth: '300px', maxWidth: '320px', scrollSnapAlign: 'start', flexShrink: 0 }}>
-                  <DestinationCard {...dest} />
-                </div>
+                <DestinationCard
+                  key={dest.id}
+                  {...dest}
+                />
               ))}
             </div>
           ) : (
