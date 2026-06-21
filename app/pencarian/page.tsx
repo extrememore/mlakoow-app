@@ -1,12 +1,12 @@
 import DestinationExplorer from '@/components/shared/DestinationExplorer'
-import { MapPin } from 'lucide-react'
+import { Search } from 'lucide-react'
 
 export const metadata = {
-  title: 'Wisata & Atraksi Surabaya - MLAKOOW',
-  description: 'Temukan destinasi wisata terbaik di Kota Surabaya — dari landmark populer hingga taman kota dan museum bersejarah.',
+  title: 'Pencarian Destinasi - MLAKOOW',
+  description: 'Cari destinasi wisata, kuliner, cafe, dan hiburan terbaik di Kota Surabaya.',
 }
 
-export default function WisataPage({
+export default function PencarianPage({
   searchParams,
 }: {
   searchParams: { [key: string]: string | string[] | undefined }
@@ -15,14 +15,12 @@ export default function WisataPage({
 
   return (
     <DestinationExplorer
-      title="Wisata & Atraksi Surabaya"
-      subtitle="DESTINASI WISATA"
-      description="Temukan {total}+ destinasi wisata terbaik di Kota Surabaya — dari landmark populer hingga hidden gems."
+      title="Pencarian Destinasi"
+      subtitle="HASIL PENCARIAN"
+      description={`Menampilkan hasil pencarian untuk destinasi di Surabaya.`}
       gradient="linear-gradient(135deg, #062E3A 0%, #0A4A5E 100%)"
-      icon={<MapPin size={18} color="white" />}
+      icon={<Search size={18} color="white" />}
       showCategoryFilter={true}
-      fixedCategory="wisata"
-      parentCategory="wisata"
       initialSearch={search}
       tags={[
         { label: 'Semua', value: '' },

@@ -52,6 +52,7 @@ interface DestinationExplorerProps {
   tags?: { label: string, value: string }[]
   customBanner?: ReactNode
   pageType?: 'default' | 'kuliner'
+  initialSearch?: string
 }
 
 export default function DestinationExplorer({
@@ -67,7 +68,8 @@ export default function DestinationExplorer({
   showCategoryFilter = false,
   tags = [],
   customBanner,
-  pageType = 'default'
+  pageType = 'default',
+  initialSearch = ''
 }: DestinationExplorerProps) {
   const [destinations, setDestinations] = useState<Destination[]>([])
   const [categories, setCategories] = useState<Category[]>([])
@@ -76,7 +78,7 @@ export default function DestinationExplorer({
   const [total, setTotal] = useState(0)
 
   // Filters
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(initialSearch)
   const debouncedSearch = useDebounce(search, 500)
   
   const [selectedCategory, setSelectedCategory] = useState(fixedCategory || '')

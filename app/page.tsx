@@ -244,7 +244,7 @@ export default async function HomePage() {
               </p>
 
               {/* Search bar */}
-              <form action="/wisata" method="GET" style={{ marginBottom: '2.5rem', width: '100%', maxWidth: '560px' }}>
+              <form action="/pencarian" method="GET" style={{ marginBottom: '2.5rem', width: '100%', maxWidth: '560px' }}>
                 <div
                   style={{
                     display: 'flex',
