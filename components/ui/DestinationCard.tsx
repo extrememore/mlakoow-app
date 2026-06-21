@@ -56,8 +56,31 @@ export default function DestinationCard({
   const [menuOpen, setMenuOpen] = useState(false)
   const [inWishlist, setInWishlist] = useState(false)
   const [wishlistLoading, setWishlistLoading] = useState(false)
+  const [imgError, setImgError] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+
+  // Map category slug to placeholder image
+  const CATEGORY_PLACEHOLDERS: Record<string, string> = {
+    'wisata': '/placeholder/wisata.jpg',
+    'kuliner': '/placeholder/kuliner.jpg',
+    'cafe': '/placeholder/cafe.jpg',
+    'hiburan': '/placeholder/hiburan.jpg',
+    'oleh-oleh': '/placeholder/oleh-oleh.jpg',
+  }
+
+  function getPlaceholder(slug: string): string {
+    // Check direct match
+    if (CATEGORY_PLACEHOLDERS[slug]) return CATEGORY_PLACEHOLDERS[slug]
+    // Check partial match (subcategories like 'makanan-tradisional' fall under 'kuliner')
+    for (const key of Object.keys(CATEGORY_PLACEHOLDERS)) {
+      if (slug.includes(key) || key.includes(slug)) return CATEGORY_PLACEHOLDERS[key]
+    }
+    return '/placeholder/wisata.jpg'
+  }
+
+  const placeholderSrc = getPlaceholder(category.slug)
+  const imgSrc = imgError ? placeholderSrc : (mainImage || placeholderSrc)
 
   useEffect(() => {
     if (initialDistance === undefined && lat !== undefined && lng !== undefined && 'geolocation' in navigator) {
@@ -168,7 +191,7 @@ export default function DestinationCard({
         {/* Image */}
         <div style={{ position: 'relative', paddingTop: '58%', overflow: 'hidden', borderRadius: '20px 20px 0 0' }}>
           <img
-            src={mainImage}
+            src={imgSrc}
             alt={name}
             style={{
               position: 'absolute',
@@ -181,7 +204,7 @@ export default function DestinationCard({
             }}
             onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
             onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-            onError={(e) => { e.currentTarget.src = '/placeholder.png'; e.currentTarget.onerror = null }}
+            onError={() => setImgError(true)}
           />
           {/* Badges */}
           <div style={{ position: 'absolute', top: '12px', left: '12px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>

@@ -287,6 +287,7 @@ export default async function DetailHiburanPage({
                       <SafeImage
                         src={rel.mainImage}
                         alt={rel.name}
+                        categorySlug={rel.category?.slug ?? 'hiburan'}
                         style={{ width: '68px', height: '52px', borderRadius: '10px', objectFit: 'cover', flexShrink: 0 }}
                       />
                       <div style={{ flex: 1, minWidth: 0 }}>

@@ -33,7 +33,7 @@ export default function MenuImage({ src, alt }: MenuImageProps) {
           if (overlay) overlay.style.opacity = '0'
         }}
       >
-        <img src={src} alt={alt} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <img src={src} alt={alt} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.currentTarget.src = '/placeholder/menu.jpg'; e.currentTarget.onerror = null }} />
         <div 
           className="zoom-overlay"
           style={{
